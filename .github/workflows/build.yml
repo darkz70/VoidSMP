@@ -28,7 +28,20 @@ jobs:
           gradle-version: current
 
       - name: Build
-        run: gradle build --no-daemon --stacktrace
+        run: |
+          set -o pipefail
+          gradle build --no-daemon --console=plain 2>&1 | tee /tmp/build.log
+
+      - name: Report build failure to issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE=$(gh issue list --state open --search '"CI failure log" in:title' --limit 1 --json number --jq '.[0].number' 2>/dev/null || true)
+          if [ -z "$ISSUE" ] || [ "$ISSUE" = "null" ]; then
+            ISSUE=$(gh issue create --title "CI failure log" --body "Сюда CI пишет логи упавших сборок (автоматически)." | grep -oE '[0-9]+$')
+          fi
+          { echo "### Сборка упала: run ${{ github.run_id }}, коммит ${{ github.sha }}"; echo '```'; tail -c 5500 /tmp/build.log | sed 's/```/`​``/g'; echo '```'; } | gh issue comment "$ISSUE" --body-file -
 
       - name: Upload jar artifact
         uses: actions/upload-artifact@v4
