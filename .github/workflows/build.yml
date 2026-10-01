@@ -1,0 +1,50 @@
+name: Build VoidQuirks
+
+on:
+  push:
+    branches:
+      - arena/01a0f83b-voidsmp
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: current
+
+      - name: Build
+        run: gradle build --no-daemon --stacktrace
+
+      - name: Upload jar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VoidQuirks-jar
+          path: build/libs/*.jar
+          retention-days: 14
+
+      - name: Update CI release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/arena/01a0f83b-voidsmp'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete ci-build --cleanup-tag --yes 2>/dev/null || true
+          gh release create ci-build build/libs/*.jar \
+            --target "${{ github.sha }}" \
+            --title "VoidQuirks — автосборка" \
+            --notes "Собрано из ветки ${{ github.ref_name }}, коммит ${{ github.sha }}. Скачай jar и положи в папку plugins сервера Paper 26.2." \
+            --prerelease --latest=false

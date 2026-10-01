@@ -1,0 +1,16 @@
+name: VoidQuirks
+version: ${version}
+main: me.darkz70.quirks.VoidQuirksPlugin
+api-version: '26.2'
+authors: [darkz70, ArenaAgent]
+description: Причуды расколотых душ VoidSMP — способности и дебаффы (3 уровня).
+website: https://github.com/darkz70/VoidSMP
+commands:
+  quirk:
+    description: Управление причудами душ
+    aliases: [quirks, причуда]
+    usage: /quirk <set|remove|info|list|reload>
+permissions:
+  quirks.admin:
+    description: Полное управление причудами
+    default: op
