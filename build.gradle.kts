@@ -18,7 +18,9 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:26.2-R0.1-SNAPSHOT")
+    // Paper 26.2 публикует API с версией "26.2.build.<N>-stable"
+    // (актуальный N смотри на https://fill.papermc.io або в панели хостинга)
+    compileOnly("io.papermc.paper:paper-api:26.2.build.129-stable")
 }
 
 tasks.withType<JavaCompile> {
