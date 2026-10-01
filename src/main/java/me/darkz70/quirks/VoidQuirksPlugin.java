@@ -19,6 +19,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
 
     private QuirkStorage storage;
     private QuirkManager quirkManager;
+    private me.darkz70.quirks.labyrinth.LabyrinthManager labyrinth;
 
     @Override
     public void onEnable() {
@@ -31,6 +32,8 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         storage = new QuirkStorage(this);
         storage.load();
         quirkManager = new QuirkManager(this, storage);
+        labyrinth = new me.darkz70.quirks.labyrinth.LabyrinthManager(this);
+        labyrinth.loadIfExists();
 
         Bukkit.getPluginManager().registerEvents(new EngineerListener(this), this);
         Bukkit.getPluginManager().registerEvents(new CatListener(this), this);
@@ -73,5 +76,9 @@ public final class VoidQuirksPlugin extends JavaPlugin {
 
     public QuirkManager quirks() {
         return quirkManager;
+    }
+
+    public me.darkz70.quirks.labyrinth.LabyrinthManager labyrinth() {
+        return labyrinth;
     }
 }

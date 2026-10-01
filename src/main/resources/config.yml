@@ -84,6 +84,20 @@ tasks:
   effects-interval-ticks: 40   # переприменение эффектов / ремонт инвентаря / чистка мечей
   autosave-minutes: 5
 
+# Мир-преисподняя с лабиринтом душ (/quirk lab create | /quirk lab tp)
+labyrinth:
+  world: void_labyrinth       # имя мира (создаётся автоматически, пустота + тьма Энда)
+  floor-y: 60                 # высота пола лабиринта
+  cells: 19                   # размер лабиринта в ячейках (19 -> ~96x96 блоков)
+  cell-size: 5                # ширина ячейки: 4 блока коридор + 1 стена
+  wall-height: 5              # высота стен
+  max-cages: 16               # сколько клеток с душами (в тупиках)
+  soul-name: "&bЗаточённая душа"
+  wall-block: OBSIDIAN
+  accent-block: CRYING_OBSIDIAN
+  accent-chance: 12           # % плачущего обсидиана в стенах
+  floor-block: OBSIDIAN
+
 messages:
   no-permission: "%prefix%&cНедостаточно прав."
   usage: "%prefix%&f/quirk set <игрок> <причуда> [уровень] &8| &f/quirk remove <игрок> &8| &f/quirk info [игрок] &8| &f/quirk list &8| &f/quirk reload"
@@ -110,6 +124,11 @@ messages:
   bedrock-steaks: "%prefix%&7Расколотая душа отзывается: &f+%amount% стейка(-ов)!"
   bedrock-aoe: "%prefix%&8Ударная волна души ранила монстров поблизости!"
   sculk-denied: "&2Плоть отторгает это…"
+  lab-building: "%prefix%&5Начинаю строить лабиринт душ в мире &f%world%&5… не выключай сервер."
+  lab-created: "%prefix%&dЛабиринт душ построен! Площадь &f%size%&d, клеток с душами: &f%cages%&d. Телепорт: /quirk lab tp"
+  lab-exists: "%prefix%&eЛабиринт уже построен. Телепорт: /quirk lab tp"
+  lab-no-world: "%prefix%&cЛабиринт ещё не создан. Сначала /quirk lab create"
+  lab-tp: "%prefix%&dТы входишь в лабиринт душ…"
 
   # Тайтлы (title = верхняя строка, subtitle = нижняя)
   title-engineer-redstone: "&cРедстоуна поблизости: &f%count%"

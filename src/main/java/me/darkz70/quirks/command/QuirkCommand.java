@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 /** /quirk — управление причудами. */
 public final class QuirkCommand implements CommandExecutor, TabCompleter {
 
-    private static final List<String> SUBS = List.of("set", "remove", "info", "list", "reload");
+    private static final List<String> SUBS = List.of("set", "remove", "info", "list", "reload", "lab");
     private static final List<String> QUIRKS = List.of(
             "инженер", "кот", "бедрок", "топор", "скалк",
             "engineer", "cat", "bedrock", "axe", "sculk");
@@ -45,9 +45,34 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             case "info", "get" -> handleInfo(sender, args);
             case "list" -> handleList(sender);
             case "reload" -> handleReload(sender);
+            case "lab", "labyrinth" -> handleLab(sender, args);
             default -> Msg.send(sender, "usage");
         }
         return true;
+    }
+
+    /** /quirk lab <create|tp> — мир лабиринта душ. */
+    private void handleLab(CommandSender sender, String[] args) {
+        if (!admin(sender)) return;
+        if (args.length < 2) {
+            Msg.send(sender, "usage");
+            return;
+        }
+        switch (args[1].toLowerCase(Locale.ROOT)) {
+            case "create" -> plugin.labyrinth().create(sender);
+            case "tp" -> {
+                Player target;
+                if (args.length >= 3) {
+                    target = Bukkit.getPlayerExact(args[2]);
+                } else if (sender instanceof Player player) {
+                    target = player;
+                } else {
+                    target = null;
+                }
+                plugin.labyrinth().teleport(sender, target);
+            }
+            default -> Msg.send(sender, "usage");
+        }
     }
 
     private void handleSet(CommandSender sender, String[] args) {
@@ -173,6 +198,14 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             for (String sub : SUBS) {
                 if (sub.startsWith(args[0].toLowerCase(Locale.ROOT))) out.add(sub);
+            }
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("lab")) {
+            if ("create".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("create");
+            if ("tp".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("tp");
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("lab") && args[1].equalsIgnoreCase("tp")) {
+            String prefix = args[2].toLowerCase(Locale.ROOT);
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                if (player.getName().toLowerCase(Locale.ROOT).startsWith(prefix)) out.add(player.getName());
             }
         } else if (args.length == 2 && List.of("set", "remove", "info", "get").contains(args[0].toLowerCase(Locale.ROOT))) {
             String prefix = args[1].toLowerCase(Locale.ROOT);
