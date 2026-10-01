@@ -1,6 +1,8 @@
 package me.darkz70.quirks.task;
 
+import java.util.Map;
 import me.darkz70.quirks.PlayerData;
+import me.darkz70.quirks.Quirk;
 import me.darkz70.quirks.VoidQuirksPlugin;
 import me.darkz70.quirks.listener.AxeListener;
 import me.darkz70.quirks.mechanic.BedrockLogic;
@@ -24,21 +26,23 @@ public final class EffectsTask extends BukkitRunnable {
     public void run() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             PlayerData data = plugin.storage().get(player.getUniqueId());
-            if (data == null) continue;
+            if (data == null || data.isEmpty()) continue;
 
             plugin.quirks().ensurePassives(player, data);
 
-            switch (data.quirk()) {
-                case BEDROCK -> {
-                    BedrockLogic.applyLayout(plugin, player, data.level());
-                    BedrockLogic.hungerCheck(plugin, player, data);
-                }
-                case AXE -> {
-                    if (data.level() <= 2) {
-                        AxeListener.sweepSwords(plugin, player);
+            for (Map.Entry<Quirk, Integer> entry : data.entries()) {
+                switch (entry.getKey()) {
+                    case BEDROCK -> {
+                        BedrockLogic.applyLayout(plugin, player, entry.getValue());
+                        BedrockLogic.hungerCheck(plugin, player, data, entry.getValue());
                     }
+                    case AXE -> {
+                        if (entry.getValue() <= 2) {
+                            AxeListener.sweepSwords(plugin, player);
+                        }
+                    }
+                    default -> { }
                 }
-                default -> { }
             }
         }
     }

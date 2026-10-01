@@ -21,6 +21,7 @@ import org.bukkit.block.sign.Side;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Allay;
+import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -109,7 +110,17 @@ public final class LabyrinthManager {
         World world = createWorldObject();
         if (world != null) {
             plugin.getLogger().info("Мир лабиринта загружен: " + worldName());
+            purgeDragons(world);
         }
+    }
+
+    /** Никаких эндер-драконов в преисподней — убираем, если вдруг есть. */
+    private void purgeDragons(World world) {
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            for (EnderDragon dragon : world.getEntitiesByClass(EnderDragon.class)) {
+                dragon.remove();
+            }
+        }, 20L);
     }
 
     @Nullable
@@ -144,6 +155,7 @@ public final class LabyrinthManager {
         world.setGameRule(GameRule.MOB_GRIEFING, false);
         world.setGameRule(GameRule.DO_INSOMNIA, false);
         world.setTime(13000L);
+        purgeDragons(world);
 
         buildMaze(sender, world);
     }
@@ -177,12 +189,14 @@ public final class LabyrinthManager {
         Maze maze = new Maze(cells, new Random());
         Random random = new Random();
         Deque<BlockPlace> queue = new ArrayDeque<>();
+        Material ceilingMat = material("labyrinth.ceiling-block", Material.OBSIDIAN);
 
         int span = cells * cellSize; // последний блок — стена с индексом span
-        // пол
+        // пол и потолок
         for (int x = 0; x <= span; x++) {
             for (int z = 0; z <= span; z++) {
                 queue.add(new BlockPlace(x, floor - 1, z, floorMat));
+                queue.add(new BlockPlace(x, floor + wallHeight, z, ceilingMat));
             }
         }
         // стены

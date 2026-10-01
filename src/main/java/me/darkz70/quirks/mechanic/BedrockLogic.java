@@ -150,9 +150,8 @@ public final class BedrockLogic {
      * Бафф голода: стейки (все уровни) + удар по монстрам (2 уровень).
      * Вызывается при смене сытости и периодически из EffectsTask.
      */
-    public static void hungerCheck(VoidQuirksPlugin plugin, Player player, PlayerData data) {
+    public static void hungerCheck(VoidQuirksPlugin plugin, Player player, PlayerData data, int level) {
         if (player.isDead() || !player.isOnline()) return;
-        int level = data.level();
         double drums = plugin.getConfig().getDouble("bedrock.hunger-threshold-drumsticks." + level, 3.0);
         int thresholdPoints = (int) Math.round(drums * 2.0);
         if (player.getFoodLevel() > thresholdPoints) return;
@@ -166,7 +165,7 @@ public final class BedrockLogic {
             leftovers.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
             data.setCooldown("steak", now + steakCd);
             plugin.storage().save();
-            Msg.send(player, "bedrock-steaks", "%amount%", String.valueOf(amount));
+            plugin.notify(player, "bedrock-steaks", "%amount%", String.valueOf(amount));
         }
 
         if (level == 2) {
@@ -185,7 +184,7 @@ public final class BedrockLogic {
                 if (hit) {
                     data.setCooldown("aoe", now + aoeCd);
                     plugin.storage().save();
-                    Msg.send(player, "bedrock-aoe");
+                    plugin.notify(player, "bedrock-aoe");
                 }
             }
         }

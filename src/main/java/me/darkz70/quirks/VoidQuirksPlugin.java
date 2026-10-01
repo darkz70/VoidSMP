@@ -81,4 +81,18 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     public me.darkz70.quirks.labyrinth.LabyrinthManager labyrinth() {
         return labyrinth;
     }
+
+    /** Отправить оповещение с учётом личного тумблера /quirk notify. */
+    public void notify(org.bukkit.entity.Player player, String path, String... repl) {
+        PlayerData data = storage.get(player.getUniqueId());
+        if (data != null && !data.notifications()) return;
+        Msg.send(player, path, repl);
+    }
+
+    /** То же самое, но в action bar. */
+    public void notifyBar(org.bukkit.entity.Player player, String path, String... repl) {
+        PlayerData data = storage.get(player.getUniqueId());
+        if (data != null && !data.notifications()) return;
+        player.sendActionBar(Msg.comp(path, repl));
+    }
 }

@@ -1,7 +1,6 @@
 package me.darkz70.quirks.listener;
 
 import java.time.Duration;
-import me.darkz70.quirks.PlayerData;
 import me.darkz70.quirks.Quirk;
 import me.darkz70.quirks.VoidQuirksPlugin;
 import me.darkz70.quirks.util.MaterialLists;
@@ -21,7 +20,6 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.jetbrains.annotations.Nullable;
 
 /** Причуда «Инженер»: слабость (1 ур.), скан редстоуна, ТНТ, эльфийский желудок (3 ур.). */
 public final class EngineerListener implements Listener {
@@ -32,10 +30,9 @@ public final class EngineerListener implements Listener {
         this.plugin = plugin;
     }
 
-    @Nullable
-    private PlayerData engineerData(Player player) {
-        PlayerData data = plugin.quirks().data(player);
-        return data != null && data.quirk() == Quirk.ENGINEER ? data : null;
+    /** 0 = причуды нет. */
+    private int level(Player player) {
+        return plugin.quirks().levelOf(player, Quirk.ENGINEER);
     }
 
     /** Скан редстоуна/ТНТ по шифту. */
@@ -43,25 +40,24 @@ public final class EngineerListener implements Listener {
     public void onSneak(PlayerToggleSneakEvent event) {
         if (!event.isSneaking()) return;
         Player player = event.getPlayer();
-        PlayerData data = engineerData(player);
-        if (data == null) return;
+        int lvl = level(player);
+        if (lvl == 0) return;
 
         long cooldown = plugin.getConfig().getLong("scan.cooldown-ms", 2000);
         if (!ScanUtil.tryUse(player.getUniqueId(), "scan", cooldown)) return;
 
-        int level = data.level();
-        int radius = plugin.getConfig().getInt("scan.engineer.radius-" + level, 1);
-        boolean withSigns = level >= 2 && MaterialLists.engineerSigns;
+        int radius = plugin.getConfig().getInt("scan.engineer.radius-" + lvl, 5);
+        boolean withSigns = lvl >= 2 && MaterialLists.engineerSigns;
 
         int redstone = ScanUtil.countBlocks(player.getLocation(), radius, material -> {
             if (MaterialLists.engineerBase.contains(material)) return true;
-            if (level >= 2 && MaterialLists.engineerExtra.contains(material)) return true;
+            if (lvl >= 2 && MaterialLists.engineerExtra.contains(material)) return true;
             return withSigns && Tag.SIGNS.isTagged(material);
         });
 
         int tnt = 0;
-        if (level >= 3) {
-            int tntRadius = plugin.getConfig().getInt("scan.engineer.tnt-radius", 5);
+        if (lvl >= 3) {
+            int tntRadius = plugin.getConfig().getInt("scan.engineer.tnt-radius", 25);
             tnt = ScanUtil.countBlocks(player.getLocation(), tntRadius,
                     material -> MaterialLists.engineerTnt.contains(material));
             for (Entity entity : player.getNearbyEntities(tntRadius, tntRadius, tntRadius)) {
@@ -86,8 +82,7 @@ public final class EngineerListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEat(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
-        PlayerData data = engineerData(player);
-        if (data == null || data.level() < 3) return;
+        if (level(player) < 3) return;
         Material eaten = event.getItem().getType();
         if (!MaterialLists.isMeat(eaten)) return;
 

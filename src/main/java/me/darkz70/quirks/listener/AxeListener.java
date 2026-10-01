@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
-import me.darkz70.quirks.PlayerData;
 import me.darkz70.quirks.Quirk;
 import me.darkz70.quirks.VoidQuirksPlugin;
 import me.darkz70.quirks.util.MaterialLists;
@@ -39,8 +38,8 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Причуда «Топор»: запрет мечей, мясоедение, реген за убийства,
- * головы (3 ур.) и рывок в точку взгляда (Shift + Ctrl, 3 ур.).
+ * Причуда «Топор»: запрет мечей, мясоедение, реген за убийства (10%, 2 сек, все уровни),
+ * головы (3 ур.) и рывок в точку взгляда (Shift + Ctrl, 3 ур.) с показом кулдауна.
  */
 public final class AxeListener implements Listener {
 
@@ -53,10 +52,9 @@ public final class AxeListener implements Listener {
         this.plugin = plugin;
     }
 
-    @Nullable
-    private PlayerData axeData(Player player) {
-        PlayerData data = plugin.quirks().data(player);
-        return data != null && data.quirk() == Quirk.AXE ? data : null;
+    /** 0 = причуды нет. */
+    private int level(Player player) {
+        return plugin.quirks().levelOf(player, Quirk.AXE);
     }
 
     private static boolean isSword(Material material) {
@@ -72,8 +70,8 @@ public final class AxeListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPrepareCraft(PrepareItemCraftEvent event) {
         if (!(event.getView().getPlayer() instanceof Player player)) return;
-        PlayerData data = axeData(player);
-        if (data == null || data.level() > 2) return;
+        int lvl = level(player);
+        if (lvl == 0 || lvl > 2) return;
         ItemStack result = event.getInventory().getResult();
         if (result != null && isSword(result.getType())) {
             event.getInventory().setResult(null);
@@ -83,8 +81,8 @@ public final class AxeListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCraft(CraftItemEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        PlayerData data = axeData(player);
-        if (data == null || data.level() > 2) return;
+        int lvl = level(player);
+        if (lvl == 0 || lvl > 2) return;
         ItemStack result = event.getInventory().getResult();
         if (result != null && isSword(result.getType())) {
             event.setCancelled(true);
@@ -95,12 +93,14 @@ public final class AxeListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPickup(EntityPickupItemEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        PlayerData data = axeData(player);
-        if (data == null || data.level() > 2) return;
+        int lvl = level(player);
+        if (lvl == 0 || lvl > 2) return;
         ItemStack stack = event.getItem().getItemStack();
         if (MaterialLists.isLowSword(stack.getType())) {
             event.getItem().setItemStack(new ItemStack(Material.STICK, Math.max(1, stack.getAmount())));
-            notifyStick(player);
+            if (ScanUtil.tryUse(player.getUniqueId(), "axe-stick-msg", 3000)) {
+                plugin.notify(player, "axe-sword-to-stick");
+            }
         }
     }
 
@@ -121,13 +121,7 @@ public final class AxeListener implements Listener {
             changed = true;
         }
         if (changed && ScanUtil.tryUse(player.getUniqueId(), "axe-stick-msg", 3000)) {
-            Msg.send(player, "axe-sword-to-stick");
-        }
-    }
-
-    private void notifyStick(Player player) {
-        if (ScanUtil.tryUse(player.getUniqueId(), "axe-stick-msg", 3000)) {
-            Msg.send(player, "axe-sword-to-stick");
+            plugin.notify(player, "axe-sword-to-stick");
         }
     }
 
@@ -136,8 +130,7 @@ public final class AxeListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEat(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
-        PlayerData data = axeData(player);
-        if (data == null || data.level() < 2) return;
+        if (level(player) < 2) return;
         if (MaterialLists.isMeat(event.getItem().getType())) return;
 
         // еда съедается, но тело мстит
@@ -151,22 +144,23 @@ public final class AxeListener implements Listener {
     public void onKill(EntityDeathEvent event) {
         Player killer = event.getEntity().getKiller();
         if (killer == null) return;
-        PlayerData data = axeData(killer);
-        if (data == null) return;
+        int lvl = level(killer);
+        if (lvl == 0) return;
         if (!isAxe(killer.getInventory().getItemInMainHand().getType())) return;
 
-        int level = data.level();
         LivingEntity dead = event.getEntity();
 
-        if (level <= 2) {
-            int chance = plugin.getConfig().getInt("axe.regen-chance", 5);
-            if (random.nextInt(100) < chance) {
-                int ticks = level == 1 ? 20 : 40;
-                killer.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, ticks, 1, true, false, true));
-            }
-        } else {
-            int chance = plugin.getConfig().getInt("axe.head-chance", 2);
-            if (random.nextInt(100) < chance) {
+        // регенерация II на 2 секунды — 10% на ВСЕХ уровнях
+        int regenChance = plugin.getConfig().getInt("axe.regen-chance", 10);
+        if (random.nextInt(100) < regenChance) {
+            int ticks = plugin.getConfig().getInt("axe.regen-duration-seconds", 2) * 20;
+            killer.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, ticks, 1, true, false, true));
+        }
+
+        // головы мобов — только 3 уровень
+        if (lvl >= 3) {
+            int headChance = plugin.getConfig().getInt("axe.head-chance", 2);
+            if (random.nextInt(100) < headChance) {
                 ItemStack head = headItem(dead);
                 if (head != null) {
                     dead.getWorld().dropItemNaturally(dead.getLocation(), head);
@@ -203,8 +197,7 @@ public final class AxeListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onSneak(PlayerToggleSneakEvent event) {
         Player player = event.getPlayer();
-        PlayerData data = axeData(player);
-        if (data == null || data.level() < 3) return;
+        if (level(player) < 3) return;
         if (event.isSneaking()) {
             lastSneak.put(player.getUniqueId(), System.currentTimeMillis());
             if (isAxe(player.getInventory().getItemInMainHand().getType())) {
@@ -216,8 +209,7 @@ public final class AxeListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onHeld(PlayerItemHeldEvent event) {
         Player player = event.getPlayer();
-        PlayerData data = axeData(player);
-        if (data == null || data.level() < 3 || !player.isSneaking()) return;
+        if (level(player) < 3 || !player.isSneaking()) return;
         ItemStack item = player.getInventory().getItem(event.getNewSlot());
         if (item != null && isAxe(item.getType())) {
             showHint(player);
@@ -226,7 +218,7 @@ public final class AxeListener implements Listener {
 
     private void showHint(Player player) {
         if (ScanUtil.tryUse(player.getUniqueId(), "axe-hint", 4000)) {
-            player.sendActionBar(Msg.comp("axe-teleport-hint"));
+            plugin.notifyBar(player, "axe-teleport-hint");
         }
     }
 
@@ -234,8 +226,7 @@ public final class AxeListener implements Listener {
     public void onSprint(PlayerToggleSprintEvent event) {
         if (!event.isSprinting()) return;
         Player player = event.getPlayer();
-        PlayerData data = axeData(player);
-        if (data == null || data.level() < 3) return;
+        if (level(player) < 3) return;
         if (!isAxe(player.getInventory().getItemInMainHand().getType())) return;
 
         // настоящий Ctrl во время шифта: сник недавно или всё ещё зажат
@@ -245,7 +236,15 @@ public final class AxeListener implements Listener {
         if (!sneakyContext) return;
 
         long cooldownMs = plugin.getConfig().getLong("axe.teleport.cooldown-seconds", 5) * 1000L;
-        if (ScanUtil.remaining(player.getUniqueId(), "axe-tp", cooldownMs) > 0) return;
+        long remaining = ScanUtil.remaining(player.getUniqueId(), "axe-tp", cooldownMs);
+        if (remaining > 0) {
+            // показываем, сколько осталось ждать
+            if (ScanUtil.tryUse(player.getUniqueId(), "axe-tp-msg", 1000)) {
+                player.sendActionBar(Msg.comp("axe-teleport-cooldown",
+                        "%time%", String.valueOf((remaining + 999) / 1000)));
+            }
+            return;
+        }
 
         double maxDistance = plugin.getConfig().getDouble("axe.teleport.max-distance", 20.0);
         Block feet = findTeleportSpot(player, maxDistance);

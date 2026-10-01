@@ -49,9 +49,27 @@ public final class QuirkStorage {
                 UUID uuid = UUID.fromString(key);
                 ConfigurationSection section = root.getConfigurationSection(key);
                 if (section == null) continue;
-                Quirk quirk = Quirk.byName(section.getString("quirk", ""));
-                if (quirk == null) continue;
-                PlayerData data = new PlayerData(quirk, section.getInt("level", 1));
+                PlayerData data = new PlayerData();
+
+                ConfigurationSection quirksSection = section.getConfigurationSection("quirks");
+                if (quirksSection != null) {
+                    // новый формат: несколько причуд
+                    for (String quirkId : quirksSection.getKeys(false)) {
+                        Quirk quirk = Quirk.byName(quirkId);
+                        if (quirk != null) {
+                            data.put(quirk, quirksSection.getInt(quirkId, 1));
+                        }
+                    }
+                } else {
+                    // миграция со старого формата (одна причуда)
+                    Quirk quirk = Quirk.byName(section.getString("quirk", ""));
+                    if (quirk != null) {
+                        data.put(quirk, section.getInt("level", 1));
+                    }
+                }
+
+                data.notifications(section.getBoolean("notifications", true));
+
                 ConfigurationSection cds = section.getConfigurationSection("cooldowns");
                 if (cds != null) {
                     for (String cd : cds.getKeys(false)) {
@@ -69,9 +87,12 @@ public final class QuirkStorage {
         YamlConfiguration yaml = new YamlConfiguration();
         for (Map.Entry<UUID, PlayerData> entry : players.entrySet()) {
             String path = "players." + entry.getKey();
-            yaml.set(path + ".quirk", entry.getValue().quirk().id());
-            yaml.set(path + ".level", entry.getValue().level());
-            for (Map.Entry<String, Long> cd : entry.getValue().cooldowns().entrySet()) {
+            PlayerData data = entry.getValue();
+            yaml.set(path + ".notifications", data.notifications());
+            for (Map.Entry<Quirk, Integer> quirkEntry : data.entries()) {
+                yaml.set(path + ".quirks." + quirkEntry.getKey().id(), quirkEntry.getValue());
+            }
+            for (Map.Entry<String, Long> cd : data.cooldowns().entrySet()) {
                 yaml.set(path + ".cooldowns." + cd.getKey(), cd.getValue());
             }
         }

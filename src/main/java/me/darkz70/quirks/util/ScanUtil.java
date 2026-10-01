@@ -16,7 +16,7 @@ public final class ScanUtil {
 
     private ScanUtil() {}
 
-    /** Считает блоки кубом (2r+1)^3 вокруг центра. */
+    /** Считает блоки кубом (2r+1)^3 вокруг центра. Незагруженные чанки пропускает. */
     public static int countBlocks(Location center, int radius, Predicate<Material> filter) {
         World world = center.getWorld();
         if (world == null) return 0;
@@ -25,8 +25,10 @@ public final class ScanUtil {
         int cz = center.getBlockZ();
         int count = 0;
         for (int dx = -radius; dx <= radius; dx++) {
-            for (int dy = -radius; dy <= radius; dy++) {
-                for (int dz = -radius; dz <= radius; dz++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                // не подгружаем чанки ради скана — иначе будут лаги на большом радиусе
+                if (!world.isChunkLoaded((cx + dx) >> 4, (cz + dz) >> 4)) continue;
+                for (int dy = -radius; dy <= radius; dy++) {
                     Block block = world.getBlockAt(cx + dx, cy + dy, cz + dz);
                     if (filter.test(block.getType())) count++;
                 }

@@ -18,10 +18,10 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/** /quirk — управление причудами. */
+/** /quirk — управление причудами. Причуд можно несколько на одного игрока. */
 public final class QuirkCommand implements CommandExecutor, TabCompleter {
 
-    private static final List<String> SUBS = List.of("set", "remove", "info", "list", "reload", "lab");
+    private static final List<String> SUBS = List.of("set", "remove", "info", "list", "reload", "notify", "lab");
     private static final List<String> QUIRKS = List.of(
             "инженер", "кот", "бедрок", "топор", "скалк",
             "engineer", "cat", "bedrock", "axe", "sculk");
@@ -45,34 +45,11 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             case "info", "get" -> handleInfo(sender, args);
             case "list" -> handleList(sender);
             case "reload" -> handleReload(sender);
+            case "notify", "notifications" -> handleNotify(sender);
             case "lab", "labyrinth" -> handleLab(sender, args);
             default -> Msg.send(sender, "usage");
         }
         return true;
-    }
-
-    /** /quirk lab <create|tp> — мир лабиринта душ. */
-    private void handleLab(CommandSender sender, String[] args) {
-        if (!admin(sender)) return;
-        if (args.length < 2) {
-            Msg.send(sender, "usage");
-            return;
-        }
-        switch (args[1].toLowerCase(Locale.ROOT)) {
-            case "create" -> plugin.labyrinth().create(sender);
-            case "tp" -> {
-                Player target;
-                if (args.length >= 3) {
-                    target = Bukkit.getPlayerExact(args[2]);
-                } else if (sender instanceof Player player) {
-                    target = player;
-                } else {
-                    target = null;
-                }
-                plugin.labyrinth().teleport(sender, target);
-            }
-            default -> Msg.send(sender, "usage");
-        }
     }
 
     private void handleSet(CommandSender sender, String[] args) {
@@ -115,6 +92,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                 "%level%", String.valueOf(level));
     }
 
+    /** /quirk remove <игрок> [причуда] — снимает одну причуду, а без её имени — весь набор. */
     private void handleRemove(CommandSender sender, String[] args) {
         if (!admin(sender)) return;
         if (args.length < 2) {
@@ -126,7 +104,20 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             Msg.send(sender, "target-offline");
             return;
         }
-        if (plugin.quirks().remove(target)) {
+
+        boolean removed;
+        if (args.length >= 3) {
+            Quirk quirk = Quirk.byName(args[2]);
+            if (quirk == null) {
+                Msg.send(sender, "invalid-quirk");
+                return;
+            }
+            removed = plugin.quirks().remove(target, quirk);
+        } else {
+            removed = plugin.quirks().removeAll(target);
+        }
+
+        if (removed) {
             Msg.send(sender, "removed", "%player%", target.getName());
             Msg.send(target, "you-lost-quirk");
         } else {
@@ -151,14 +142,18 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
         }
 
         PlayerData data = plugin.storage().get(target.getUniqueId());
-        if (data == null) {
+        if (data == null || data.isEmpty()) {
             Msg.send(sender, "info-none");
             return;
         }
         sender.sendMessage(Msg.comp("info-header", "%player%", target.getName()));
-        sender.sendMessage(Msg.comp("info-line",
-                "%quirk%", data.quirk().display(),
-                "%level%", String.valueOf(data.level())));
+        for (Map.Entry<Quirk, Integer> entry : data.entries()) {
+            sender.sendMessage(Msg.comp("info-line",
+                    "%quirk%", entry.getKey().display(),
+                    "%level%", String.valueOf(entry.getValue())));
+        }
+        sender.sendMessage(Msg.comp("info-notify",
+                "%state%", data.notifications() ? "включены" : "выключены"));
     }
 
     private void handleList(CommandSender sender) {
@@ -166,15 +161,61 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Msg.comp("list-header"));
         boolean empty = true;
         for (Map.Entry<UUID, PlayerData> entry : plugin.storage().all().entrySet()) {
+            PlayerData data = entry.getValue();
+            if (data.isEmpty()) continue;
             empty = false;
             String name = Bukkit.getOfflinePlayer(entry.getKey()).getName();
+            List<String> parts = new ArrayList<>();
+            for (Map.Entry<Quirk, Integer> quirkEntry : data.entries()) {
+                parts.add(quirkEntry.getKey().display() + " ур. " + quirkEntry.getValue());
+            }
             sender.sendMessage(Msg.comp("list-line",
                     "%player%", name != null ? name : entry.getKey().toString().substring(0, 8),
-                    "%quirk%", entry.getValue().quirk().display(),
-                    "%level%", String.valueOf(entry.getValue().level())));
+                    "%quirks%", String.join(", ", parts)));
         }
         if (empty) {
             Msg.send(sender, "list-empty");
+        }
+    }
+
+    /** /quirk notify — личный тумблер оповещений причуд. */
+    private void handleNotify(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            Msg.send(sender, "usage");
+            return;
+        }
+        PlayerData data = plugin.storage().get(player.getUniqueId());
+        if (data == null) {
+            data = new PlayerData();
+            plugin.storage().put(player.getUniqueId(), data);
+        }
+        boolean enabled = !data.notifications();
+        data.notifications(enabled);
+        plugin.storage().save();
+        Msg.send(player, enabled ? "notify-on" : "notify-off");
+    }
+
+    /** /quirk lab <create|tp> — мир лабиринта душ. */
+    private void handleLab(CommandSender sender, String[] args) {
+        if (!admin(sender)) return;
+        if (args.length < 2) {
+            Msg.send(sender, "usage");
+            return;
+        }
+        switch (args[1].toLowerCase(Locale.ROOT)) {
+            case "create" -> plugin.labyrinth().create(sender);
+            case "tp" -> {
+                Player target;
+                if (args.length >= 3) {
+                    target = Bukkit.getPlayerExact(args[2]);
+                } else if (sender instanceof Player player) {
+                    target = player;
+                } else {
+                    target = null;
+                }
+                plugin.labyrinth().teleport(sender, target);
+            }
+            default -> Msg.send(sender, "usage");
         }
     }
 
@@ -203,16 +244,10 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             if ("create".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("create");
             if ("tp".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("tp");
         } else if (args.length == 3 && args[0].equalsIgnoreCase("lab") && args[1].equalsIgnoreCase("tp")) {
-            String prefix = args[2].toLowerCase(Locale.ROOT);
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (player.getName().toLowerCase(Locale.ROOT).startsWith(prefix)) out.add(player.getName());
-            }
+            addPlayers(out, args[2]);
         } else if (args.length == 2 && List.of("set", "remove", "info", "get").contains(args[0].toLowerCase(Locale.ROOT))) {
-            String prefix = args[1].toLowerCase(Locale.ROOT);
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (player.getName().toLowerCase(Locale.ROOT).startsWith(prefix)) out.add(player.getName());
-            }
-        } else if (args.length == 3 && args[0].equalsIgnoreCase("set")) {
+            addPlayers(out, args[1]);
+        } else if (args.length == 3 && (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("remove"))) {
             String prefix = args[2].toLowerCase(Locale.ROOT);
             for (String quirk : QUIRKS) {
                 if (quirk.startsWith(prefix)) out.add(quirk);
@@ -223,5 +258,12 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             if ("3".startsWith(args[3])) out.add("3");
         }
         return out;
+    }
+
+    private void addPlayers(List<String> out, String prefix) {
+        String lower = prefix.toLowerCase(Locale.ROOT);
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.getName().toLowerCase(Locale.ROOT).startsWith(lower)) out.add(player.getName());
+        }
     }
 }

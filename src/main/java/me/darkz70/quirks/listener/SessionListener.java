@@ -27,7 +27,7 @@ public final class SessionListener implements Listener {
         if (data == null) return;
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline()) {
-                plugin.quirks().apply(player, data);
+                plugin.quirks().applyAll(player, data);
             }
         }, 20L);
     }
@@ -44,7 +44,7 @@ public final class SessionListener implements Listener {
         if (data == null) return;
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline()) {
-                plugin.quirks().apply(player, data);
+                plugin.quirks().applyAll(player, data);
             }
         }, 5L);
     }

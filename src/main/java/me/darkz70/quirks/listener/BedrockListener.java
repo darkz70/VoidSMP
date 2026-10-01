@@ -20,7 +20,6 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.Nullable;
 
 /** Анти-обход запечатанных слотов + голодный бафф причуды «Бедрок». */
 public final class BedrockListener implements Listener {
@@ -31,16 +30,15 @@ public final class BedrockListener implements Listener {
         this.plugin = plugin;
     }
 
-    @Nullable
-    private PlayerData bedrockData(Player player) {
-        PlayerData data = plugin.quirks().data(player);
-        return data != null && data.quirk() == Quirk.BEDROCK ? data : null;
+    /** 0 = причуды нет. */
+    private int level(Player player) {
+        return plugin.quirks().levelOf(player, Quirk.BEDROCK);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        if (bedrockData(player) == null) return;
+        if (level(player) == 0) return;
 
         ItemStack current = event.getCurrentItem();
         ItemStack cursor = event.getCursor();
@@ -66,7 +64,7 @@ public final class BedrockListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDrag(InventoryDragEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        if (bedrockData(player) == null) return;
+        if (level(player) == 0) return;
         if (BedrockLogic.isLocked(event.getOldCursor())) {
             event.setCancelled(true);
         }
@@ -74,7 +72,7 @@ public final class BedrockListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDrop(PlayerDropItemEvent event) {
-        if (bedrockData(event.getPlayer()) == null) return;
+        if (level(event.getPlayer()) == 0) return;
         if (BedrockLogic.isLocked(event.getItemDrop().getItemStack())) {
             event.setCancelled(true);
         }
@@ -82,7 +80,7 @@ public final class BedrockListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onSwapHands(PlayerSwapHandItemsEvent event) {
-        if (bedrockData(event.getPlayer()) == null) return;
+        if (level(event.getPlayer()) == 0) return;
         if (BedrockLogic.isLocked(event.getMainHandItem()) || BedrockLogic.isLocked(event.getOffHandItem())) {
             event.setCancelled(true);
         }
@@ -91,7 +89,7 @@ public final class BedrockListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
-        if (bedrockData(player) == null) return;
+        if (level(player) == 0) return;
         // барьеры и бедрок не выпадают
         event.getDrops().removeIf(BedrockLogic::isLocked);
         player.setItemOnCursor(null);
@@ -100,11 +98,11 @@ public final class BedrockListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
-        PlayerData data = bedrockData(player);
-        if (data == null) return;
+        int lvl = level(player);
+        if (lvl == 0) return;
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline()) {
-                BedrockLogic.applyLayout(plugin, player, data.level());
+                BedrockLogic.applyLayout(plugin, player, lvl);
             }
         }, 5L);
     }
@@ -112,8 +110,10 @@ public final class BedrockListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFoodChange(FoodLevelChangeEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        PlayerData data = bedrockData(player);
+        int lvl = level(player);
+        if (lvl == 0) return;
+        PlayerData data = plugin.storage().get(player.getUniqueId());
         if (data == null) return;
-        BedrockLogic.hungerCheck(plugin, player, data);
+        BedrockLogic.hungerCheck(plugin, player, data, lvl);
     }
 }

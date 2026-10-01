@@ -1,34 +1,51 @@
 package me.darkz70.quirks;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-/** Данные игрока: причуда, уровень и кулдауны (времена в epoch-миллисекундах). */
+/**
+ * Данные игрока: НАБОР причуд (несколько штук с уровнями),
+ * кулдауны и личные настройки оповещений.
+ */
 public final class PlayerData {
 
-    private Quirk quirk;
-    private int level;
+    private final Map<Quirk, Integer> quirks = new EnumMap<>(Quirk.class);
     private final Map<String, Long> cooldowns = new HashMap<>();
+    private boolean notifications = true;
 
-    public PlayerData(Quirk quirk, int level) {
-        this.quirk = quirk;
-        this.level = level;
+    public boolean has(Quirk quirk) {
+        return quirks.containsKey(quirk);
     }
 
-    public Quirk quirk() {
-        return quirk;
+    /** Уровень причуды; 0, если её нет. */
+    public int levelOf(Quirk quirk) {
+        return quirks.getOrDefault(quirk, 0);
     }
 
-    public void quirk(Quirk quirk) {
-        this.quirk = quirk;
+    public void put(Quirk quirk, int level) {
+        quirks.put(quirk, Math.max(1, Math.min(3, level)));
     }
 
-    public int level() {
-        return level;
+    public void remove(Quirk quirk) {
+        quirks.remove(quirk);
     }
 
-    public void level(int level) {
-        this.level = Math.max(1, Math.min(3, level));
+    public boolean isEmpty() {
+        return quirks.isEmpty();
+    }
+
+    public Set<Map.Entry<Quirk, Integer>> entries() {
+        return quirks.entrySet();
+    }
+
+    public boolean notifications() {
+        return notifications;
+    }
+
+    public void notifications(boolean notifications) {
+        this.notifications = notifications;
     }
 
     public long cooldown(String key) {

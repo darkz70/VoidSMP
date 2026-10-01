@@ -1,5 +1,6 @@
 package me.darkz70.quirks;
 
+import java.util.Map;
 import me.darkz70.quirks.mechanic.BedrockLogic;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -10,7 +11,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.Nullable;
 
-/** Назначение/снятие причуд, применение пассивок. */
+/** Назначение/снятие причуд (поддерживается НЕСКОЛЬКО причуд на игрока), пассивки. */
 public final class QuirkManager {
 
     private final VoidQuirksPlugin plugin;
@@ -30,83 +31,117 @@ public final class QuirkManager {
         return storage.get(player.getUniqueId());
     }
 
-    /** Назначает причуду (уровень 1-3). Старую корректно снимает. */
+    /** Уровень причуды у игрока; 0 — нет такой. */
+    public int levelOf(Player player, Quirk quirk) {
+        PlayerData data = storage.get(player.getUniqueId());
+        return data == null ? 0 : data.levelOf(quirk);
+    }
+
+    /** Добавляет причуду в набор игрока (или меняет её уровень). */
     public void assign(Player player, Quirk quirk, int level) {
-        PlayerData old = storage.get(player.getUniqueId());
-        if (old != null) {
-            unapply(player, old);
+        PlayerData data = storage.get(player.getUniqueId());
+        if (data == null) {
+            data = new PlayerData();
+        } else if (data.has(quirk)) {
+            unapplyQuirk(player, quirk); // снять эффекты старого уровня
         }
-        PlayerData data = new PlayerData(quirk, Math.max(1, Math.min(3, level)));
+        data.put(quirk, level);
         storage.put(player.getUniqueId(), data);
-        apply(player, data);
+        applyQuirk(player, quirk, level);
         storage.save();
     }
 
-    /** Полностью снимает причуду. */
-    public boolean remove(Player player) {
-        PlayerData old = storage.get(player.getUniqueId());
-        if (old == null) return false;
-        unapply(player, old);
-        storage.remove(player.getUniqueId());
-        storage.save();
+    /** Снимает ОДНУ причуду из набора. */
+    public boolean remove(Player player, Quirk quirk) {
+        PlayerData data = storage.get(player.getUniqueId());
+        if (data == null || !data.has(quirk)) return false;
+        unapplyQuirk(player, quirk);
+        data.remove(quirk);
+        if (data.isEmpty()) {
+            storage.remove(player.getUniqueId());
+        } else {
+            storage.save();
+        }
         return true;
     }
 
-    /** Применить все эффекты причуды (при назначении/заходе/респауне). */
-    public void apply(Player player, PlayerData data) {
-        switch (data.quirk()) {
+    /** Снимает ВСЕ причуды. */
+    public boolean removeAll(Player player) {
+        PlayerData data = storage.get(player.getUniqueId());
+        if (data == null || data.isEmpty()) return false;
+        for (Map.Entry<Quirk, Integer> entry : data.entries()) {
+            unapplyQuirk(player, entry.getKey());
+        }
+        storage.remove(player.getUniqueId());
+        return true;
+    }
+
+    /** Применить эффекты всего набора (заход/респаун). */
+    public void applyAll(Player player, PlayerData data) {
+        for (Map.Entry<Quirk, Integer> entry : data.entries()) {
+            applyQuirk(player, entry.getKey(), entry.getValue());
+        }
+    }
+
+    private void applyQuirk(Player player, Quirk quirk, int level) {
+        switch (quirk) {
             case ENGINEER -> {
-                if (data.level() == 1) {
+                if (level == 1) {
                     applyFlaggedEffect(player, PotionEffectType.WEAKNESS, 0, Keys.effWeakness);
                 }
             }
             case BEDROCK -> {
-                BedrockLogic.applyLayout(plugin, player, data.level());
-                if (data.level() == 3) {
+                BedrockLogic.applyLayout(plugin, player, level);
+                if (level == 3) {
                     applyFlaggedEffect(player, PotionEffectType.SPEED, 0, Keys.effSpeed);
                     applyFlaggedEffect(player, PotionEffectType.REGENERATION, 0, Keys.effRegen);
                 }
             }
             case SCULK -> {
-                if (data.level() == 3) ensureSculkHp(player);
+                if (level == 3) ensureSculkHp(player);
             }
-            default -> { /* кот и топор не имеют пассивных эффектов при выдаче */ }
+            default -> { /* кот и топор не имеют пассивок при выдаче */ }
         }
     }
 
-    /** Снять всё, что мы наложили (любую причуду — безопасно). */
-    public void unapply(Player player, PlayerData old) {
-        removeFlaggedEffect(player, PotionEffectType.WEAKNESS, Keys.effWeakness);
-        removeFlaggedEffect(player, PotionEffectType.SPEED, Keys.effSpeed);
-        removeFlaggedEffect(player, PotionEffectType.REGENERATION, Keys.effRegen);
-        removeSculkHp(player);
-        if (old.quirk() == Quirk.BEDROCK) {
-            BedrockLogic.clearLayout(player);
-        }
-    }
-
-    /** Периодическая гарантия пассивок (защита от молока и т.п.). Вызывается из EffectsTask. */
-    public void ensurePassives(Player player, PlayerData data) {
-        switch (data.quirk()) {
-            case ENGINEER -> {
-                if (data.level() == 1 && !player.hasPotionEffect(PotionEffectType.WEAKNESS)) {
-                    applyFlaggedEffect(player, PotionEffectType.WEAKNESS, 0, Keys.effWeakness);
-                }
-            }
+    /** Снять всё, что наложила конкретная причуда. */
+    private void unapplyQuirk(Player player, Quirk quirk) {
+        switch (quirk) {
+            case ENGINEER -> removeFlaggedEffect(player, PotionEffectType.WEAKNESS, Keys.effWeakness);
             case BEDROCK -> {
-                if (data.level() == 3) {
-                    if (!player.hasPotionEffect(PotionEffectType.SPEED)) {
-                        applyFlaggedEffect(player, PotionEffectType.SPEED, 0, Keys.effSpeed);
-                    }
-                    if (!player.hasPotionEffect(PotionEffectType.REGENERATION)) {
-                        applyFlaggedEffect(player, PotionEffectType.REGENERATION, 0, Keys.effRegen);
+                removeFlaggedEffect(player, PotionEffectType.SPEED, Keys.effSpeed);
+                removeFlaggedEffect(player, PotionEffectType.REGENERATION, Keys.effRegen);
+                BedrockLogic.clearLayout(player);
+            }
+            case SCULK -> removeSculkHp(player);
+            default -> { }
+        }
+    }
+
+    /** Периодическая гарантия пассивок (защита от молока). Вызывается из EffectsTask. */
+    public void ensurePassives(Player player, PlayerData data) {
+        for (Map.Entry<Quirk, Integer> entry : data.entries()) {
+            switch (entry.getKey()) {
+                case ENGINEER -> {
+                    if (entry.getValue() == 1 && !player.hasPotionEffect(PotionEffectType.WEAKNESS)) {
+                        applyFlaggedEffect(player, PotionEffectType.WEAKNESS, 0, Keys.effWeakness);
                     }
                 }
+                case BEDROCK -> {
+                    if (entry.getValue() == 3) {
+                        if (!player.hasPotionEffect(PotionEffectType.SPEED)) {
+                            applyFlaggedEffect(player, PotionEffectType.SPEED, 0, Keys.effSpeed);
+                        }
+                        if (!player.hasPotionEffect(PotionEffectType.REGENERATION)) {
+                            applyFlaggedEffect(player, PotionEffectType.REGENERATION, 0, Keys.effRegen);
+                        }
+                    }
+                }
+                case SCULK -> {
+                    if (entry.getValue() == 3) ensureSculkHp(player);
+                }
+                default -> { }
             }
-            case SCULK -> {
-                if (data.level() == 3) ensureSculkHp(player);
-            }
-            default -> { }
         }
     }
 

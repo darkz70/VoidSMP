@@ -1,7 +1,6 @@
 package me.darkz70.quirks.listener;
 
 import java.util.Map;
-import me.darkz70.quirks.PlayerData;
 import me.darkz70.quirks.Quirk;
 import me.darkz70.quirks.VoidQuirksPlugin;
 import me.darkz70.quirks.util.MaterialLists;
@@ -22,7 +21,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.jetbrains.annotations.Nullable;
 
 /** Причуда «Скалк»: двойной опыт, ограниченная еда, гниль с насыщением, +2 HP (3 ур.). */
 public final class SculkListener implements Listener {
@@ -33,10 +31,9 @@ public final class SculkListener implements Listener {
         this.plugin = plugin;
     }
 
-    @Nullable
-    private PlayerData sculkData(Player player) {
-        PlayerData data = plugin.quirks().data(player);
-        return data != null && data.quirk() == Quirk.SCULK ? data : null;
+    /** 0 = причуды нет. */
+    private int level(Player player) {
+        return plugin.quirks().levelOf(player, Quirk.SCULK);
     }
 
     /** Двойной опыт с мобов. */
@@ -44,7 +41,7 @@ public final class SculkListener implements Listener {
     public void onMobDeath(EntityDeathEvent event) {
         if (event.getEntity() instanceof Player) return;
         Player killer = event.getEntity().getKiller();
-        if (killer == null || sculkData(killer) == null) return;
+        if (killer == null || level(killer) < 1) return;
         event.setDroppedExp(event.getDroppedExp() * 2);
     }
 
@@ -52,17 +49,17 @@ public final class SculkListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEat(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
-        PlayerData data = sculkData(player);
-        if (data == null) return;
+        int lvl = level(player);
+        if (lvl < 1) return;
 
         Material eaten = event.getItem().getType();
-        if (!MaterialLists.isSculkFood(data.level(), eaten)) {
+        if (!MaterialLists.isSculkFood(lvl, eaten)) {
             event.setCancelled(true);
             Msg.send(player, "sculk-denied");
             return;
         }
-        if (eaten == Material.ROTTEN_FLESH && data.level() >= 2) {
-            int ticks = data.level() == 2 ? 40 : 120; // 2 сек / 6 сек
+        if (eaten == Material.ROTTEN_FLESH && lvl >= 2) {
+            int ticks = lvl == 2 ? 40 : 120; // 2 сек / 6 сек
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, ticks, 0, true, false, true));
         }
     }
@@ -75,10 +72,10 @@ public final class SculkListener implements Listener {
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
 
         Player player = event.getPlayer();
-        PlayerData data = sculkData(player);
-        if (data == null) return;
+        int lvl = level(player);
+        if (lvl < 1) return;
 
-        Map<Material, int[]> custom = MaterialLists.sculkCustom.get(data.level());
+        Map<Material, int[]> custom = MaterialLists.sculkCustom.get(lvl);
         if (custom == null || custom.isEmpty()) return;
 
         ItemStack item = event.getItem();
