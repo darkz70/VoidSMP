@@ -1,0 +1,147 @@
+# ============================================================
+#  VoidQuirks — причуды расколотых душ (VoidSMP)
+#  Все сообщения поддерживают &-цвета и %prefix%.
+#  "Единицы голода" (drumsticks) считаются в ИКОНКАХ:
+#  1 иконка = 2 очка food level. 3.5 иконки = 7 очков.
+# ============================================================
+
+prefix: "&8[&5Причуды&8]&r "
+
+scan:
+  # антиспам для всех проверок через шифт
+  cooldown-ms: 2000
+  engineer:
+    radius-1: 5      # зона ~11x11
+    radius-2: 10     # зона ~21x21
+    radius-3: 15     # зона ~31x31
+    tnt-radius: 25   # зона ~51x51 для ТНТ (3 уровень)
+  cat:
+    water-radius: 5  # зона ~10x10 для воды (3 уровень)
+
+materials:
+  # Инженер: что считаем "редстоуном"
+  engineer-base: [REDSTONE_WIRE, REDSTONE_BLOCK, PISTON, STICKY_PISTON]
+  engineer-extra: [TRIPWIRE]        # "нитки" = натянутая нить (со 2 уровня)
+  engineer-include-signs: true      # таблички (со 2 уровня)
+  engineer-tnt-blocks: [TNT]        # 3 уровень
+  # Мясо (для дебаффов Инженера 3 ур. и Топора 2-3 ур.)
+  meat: [BEEF, COOKED_BEEF, PORKCHOP, COOKED_PORKCHOP, CHICKEN, COOKED_CHICKEN, MUTTON, COOKED_MUTTON, RABBIT, COOKED_RABBIT, ROTTEN_FLESH, RABBIT_STEW]
+  # Рыба (бафф Кота)
+  fish: [COD, COOKED_COD, SALMON, COOKED_SALMON, TROPICAL_FISH, PUFFERFISH]
+  # Мечи, которые в инвентаре Топора превращаются в палку (всё "до алмазного")
+  axe-low-swords: [WOODEN_SWORD, GOLDEN_SWORD, STONE_SWORD, IRON_SWORD]
+  # Что может есть Скалк (обычной едой) на каждом уровне
+  sculk-food-1: [BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT, ROTTEN_FLESH]
+  sculk-food-2: [BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT, ROTTEN_FLESH]
+  sculk-food-3: [BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT, ROTTEN_FLESH]
+
+# Скалк: необычная «еда» через правый клик (кости, порох, слизь).
+# food — очки голода (2 = 1 иконка), saturation — очки насыщения.
+sculk-custom-food:
+  2:
+    BONE: { food: 2, saturation: 1 }
+  3:
+    BONE: { food: 2, saturation: 1 }
+    GUNPOWDER: { food: 2, saturation: 0 }
+    SLIME_BALL: { food: 3, saturation: 1 }
+
+bedrock:
+  # голод в иконках (3 = 6 очков, 3.5 = 7, 4 = 8)
+  hunger-threshold-drumsticks:
+    1: 3.0
+    2: 3.5
+    3: 4.0
+  steak-amount:
+    1: 4
+    2: 5
+    3: 16
+  steak-cooldown-minutes: 30
+  # взрыв по мобам (2 уровень)
+  aoe-damage: 8.0
+  aoe-radius: 10.0
+  aoe-cooldown-minutes: 10
+
+cat:
+  water-damage-1: 3.0   # полтора сердца
+  water-damage-2: 1.0   # пол сердца
+  levitation-seconds: 2
+  creeper-fear-radius: 7   # криперы боятся кота в этом радиусе (с 1 уровня)
+  fish-saturation-seconds-1: 5
+  fish-saturation-seconds-2: 10
+
+engineer:
+  hunger-effect-seconds: 10   # эффект голода за попытку съесть мясо (3 уровень)
+
+axe:
+  regen-chance: 10       # % — регенерация II за убийство топором (на всех уровнях)
+  regen-duration-seconds: 2
+  head-chance: 2         # %
+  head-include-players: true
+  teleport:
+    max-distance: 20.0
+    cooldown-seconds: 5
+    hunger-cost-drumsticks: 4
+
+tasks:
+  effects-interval-ticks: 40   # переприменение эффектов / ремонт инвентаря / чистка мечей
+  autosave-minutes: 5
+
+# Мир-преисподняя с лабиринтом душ (/quirk lab create | /quirk lab tp)
+labyrinth:
+  world: void_labyrinth       # имя мира (создаётся автоматически, пустота + тьма Энда)
+  floor-y: 60                 # высота пола лабиринта
+  cells: 57                   # размер лабиринта в ячейках (57 -> ~286x286 блоков)
+  cell-size: 5                # ширина ячейки: 4 блока коридор + 1 стена
+  wall-height: 10             # высота стен
+  max-cages: 16               # сколько клеток с душами (в тупиках)
+  soul-name: "&bЗаточённая душа"
+  wall-block: OBSIDIAN
+  accent-block: CRYING_OBSIDIAN
+  accent-chance: 12           # % плачущего обсидиана в стенах
+  floor-block: OBSIDIAN
+  ceiling-block: OBSIDIAN     # потолок над всем лабиринтом (на высоте стен)
+
+messages:
+  no-permission: "%prefix%&cНедостаточно прав."
+  usage: "%prefix%&f/quirk set <игрок> <причуда> [уровень] &8| &f/quirk remove <игрок> &8| &f/quirk info [игрок] &8| &f/quirk list &8| &f/quirk reload"
+  target-offline: "%prefix%&cИгрок не найден или не в сети."
+  invalid-quirk: "%prefix%&cНеизвестная причуда. Доступны: инженер, кот, бедрок, топор, скалк."
+  invalid-level: "%prefix%&cУровень должен быть от 1 до 3."
+  set-ok: "%prefix%&aИгроку &f%player% &aназначена причуда &d%quirk% &a(ур. &d%level%&a)."
+  removed: "%prefix%&aПричуда игрока &f%player% &aснята."
+  reload-ok: "%prefix%&aКонфиг перезагружен."
+  you-got-quirk: "%prefix%&dТвоя расколотая душа отозвалась! Причуда: &f%quirk% &dур. &f%level%&d."
+  you-lost-quirk: "%prefix%&7Твоя причуда угасла…"
+  info-header: "&8&m--------&r &5Причуды %player% &8&m--------"
+  info-line: "&fПричуда: &d%quirk% &7| &fУровень: &d%level%"
+  info-notify: "&fОповещения: &d%state%"
+  info-none: "%prefix%&7У игрока нет причуды."
+  list-header: "&8&m-----&r &5Причуды игроков &8&m-----"
+  list-line: "&f%player% &8— &d%quirks%"
+  list-empty: "%prefix%&7Причуд ни у кого нет."
+  notify-on: "%prefix%&7Оповещения причуд &aвключены&7."
+  notify-off: "%prefix%&7Оповещения причуд &cвыключены&7. Включить обратно: /quirk notify"
+  engineer-meat-denied: "&cЭльфийский желудок не может это переварить!"
+  axe-sword-craft-denied: "&cТвои руки отталкивают мечи. Крафт невозможен."
+  axe-sword-to-stick: "&eМеч в твоём инвентаре рассыпался в палку…"
+  axe-no-meat: "&2Тебя мутит… твоё тело принимает только мясо."
+  axe-teleport-hint: "&eНажми &fShift + Ctrl &eдля рывка"
+  axe-teleport-cooldown: "&cРывок ещё остывает: &f%time% с."
+  axe-teleport-fail: "&cНекуда телепортироваться."
+  bedrock-steaks: "%prefix%&7Расколотая душа отзывается: &f+%amount% стейка(-ов)!"
+  bedrock-aoe: "%prefix%&8Ударная волна души ранила монстров поблизости!"
+  sculk-denied: "&2Плоть отторгает это…"
+  shard-given: "%prefix%&aОсколок души &d%quirk% &aур. &d%level% &aвыдан игроку &f%player%&a."
+  shard-used: "%prefix%&dОсколок души вливается в тебя… Причуда: &f%quirk% &dур. &f%level%&d."
+  shard-weaker: "%prefix%&7Твоя душа уже носит эту причуду (или сильнее). Осколок сохранён."
+  soul-freed: "&d✦ &b%player% &dосвободил душу из клетки лабиринта! Она оставила осколок…"
+  lab-building: "%prefix%&5Начинаю строить лабиринт душ в мире &f%world%&5… не выключай сервер."
+  lab-created: "%prefix%&dЛабиринт душ построен! Площадь &f%size%&d, клеток с душами: &f%cages%&d. Телепорт: /quirk lab tp"
+  lab-exists: "%prefix%&eЛабиринт уже построен. Телепорт: /quirk lab tp"
+  lab-no-world: "%prefix%&cЛабиринт ещё не создан. Сначала /quirk lab create"
+  lab-tp: "%prefix%&dТы входишь в лабиринт душ…"
+
+  # Тайтлы (title = верхняя строка, subtitle = нижняя)
+  title-engineer-redstone: "&cРедстоуна поблизости: &f%count%"
+  title-engineer-tnt: "&4ТНТ рядом: &c%count%"
+  title-cat-water: "&bВоды поблизости: &f%count%"
