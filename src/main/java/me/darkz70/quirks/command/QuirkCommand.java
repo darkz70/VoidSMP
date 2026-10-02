@@ -15,13 +15,14 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /** /quirk — управление причудами. Причуд можно несколько на одного игрока. */
 public final class QuirkCommand implements CommandExecutor, TabCompleter {
 
-    private static final List<String> SUBS = List.of("set", "remove", "info", "list", "reload", "notify", "lab");
+    private static final List<String> SUBS = List.of("set", "remove", "info", "list", "reload", "notify", "item", "lab");
     private static final List<String> QUIRKS = List.of(
             "инженер", "кот", "бедрок", "топор", "скалк",
             "engineer", "cat", "bedrock", "axe", "sculk");
@@ -46,10 +47,59 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             case "list" -> handleList(sender);
             case "reload" -> handleReload(sender);
             case "notify", "notifications" -> handleNotify(sender);
+            case "item", "shard" -> handleItem(sender, args);
             case "lab", "labyrinth" -> handleLab(sender, args);
             default -> Msg.send(sender, "usage");
         }
         return true;
+    }
+
+    /** /quirk item <причуда> [уровень] [игрок] — выдать осколок души предметом. */
+    private void handleItem(CommandSender sender, String[] args) {
+        if (!admin(sender)) return;
+        if (args.length < 2) {
+            Msg.send(sender, "usage");
+            return;
+        }
+        Quirk quirk = Quirk.byName(args[1]);
+        if (quirk == null) {
+            Msg.send(sender, "invalid-quirk");
+            return;
+        }
+        int level = 1;
+        if (args.length >= 3) {
+            try {
+                level = Integer.parseInt(args[2]);
+            } catch (NumberFormatException ex) {
+                Msg.send(sender, "invalid-level");
+                return;
+            }
+            if (level < 1 || level > 3) {
+                Msg.send(sender, "invalid-level");
+                return;
+            }
+        }
+        Player target;
+        if (args.length >= 4) {
+            target = Bukkit.getPlayerExact(args[3]);
+        } else if (sender instanceof Player player) {
+            target = player;
+        } else {
+            Msg.send(sender, "usage");
+            return;
+        }
+        if (target == null) {
+            Msg.send(sender, "target-offline");
+            return;
+        }
+
+        ItemStack shard = me.darkz70.quirks.mechanic.SoulShards.makeShard(quirk, level);
+        var leftovers = target.getInventory().addItem(shard);
+        leftovers.values().forEach(rest -> target.getWorld().dropItemNaturally(target.getLocation(), rest));
+        Msg.send(sender, "shard-given",
+                "%player%", target.getName(),
+                "%quirk%", quirk.display(),
+                "%level%", String.valueOf(level));
     }
 
     private void handleSet(CommandSender sender, String[] args) {
@@ -247,15 +297,28 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             addPlayers(out, args[2]);
         } else if (args.length == 2 && List.of("set", "remove", "info", "get").contains(args[0].toLowerCase(Locale.ROOT))) {
             addPlayers(out, args[1]);
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("item")) {
+            String prefix = args[1].toLowerCase(Locale.ROOT);
+            for (String quirk : QUIRKS) {
+                if (quirk.startsWith(prefix)) out.add(quirk);
+            }
         } else if (args.length == 3 && (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("remove"))) {
             String prefix = args[2].toLowerCase(Locale.ROOT);
             for (String quirk : QUIRKS) {
                 if (quirk.startsWith(prefix)) out.add(quirk);
             }
-        } else if (args.length == 4 && args[0].equalsIgnoreCase("set")) {
-            if ("1".startsWith(args[3])) out.add("1");
-            if ("2".startsWith(args[3])) out.add("2");
-            if ("3".startsWith(args[3])) out.add("3");
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("item")) {
+            if ("1".startsWith(args[2])) out.add("1");
+            if ("2".startsWith(args[2])) out.add("2");
+            if ("3".startsWith(args[2])) out.add("3");
+        } else if (args.length == 4 && (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("item"))) {
+            if (args[0].equalsIgnoreCase("set")) {
+                if ("1".startsWith(args[3])) out.add("1");
+                if ("2".startsWith(args[3])) out.add("2");
+                if ("3".startsWith(args[3])) out.add("3");
+            } else {
+                addPlayers(out, args[3]);
+            }
         }
         return out;
     }

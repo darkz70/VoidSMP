@@ -41,6 +41,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new AxeListener(this), this);
         Bukkit.getPluginManager().registerEvents(new SculkListener(this), this);
         Bukkit.getPluginManager().registerEvents(new SessionListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new me.darkz70.quirks.listener.SoulShardListener(this), this);
 
         QuirkCommand command = new QuirkCommand(this);
         PluginCommand quirk = getCommand("quirk");

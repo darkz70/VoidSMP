@@ -283,11 +283,14 @@ public final class LabyrinthManager {
         }
         world.getBlockAt(cx, floor + 4, cz).setType(Material.SOUL_LANTERN, false);
 
-        // «душа» в клетке — светящийся скиталец
+        // «душа» в клетке — светящийся скиталец, помеченный для освобождения
         Allay allay = world.spawn(new Location(world, cx + 0.5, floor + 0.2, cz + 0.5), Allay.class);
         allay.customName(Msg.color(soulName));
         allay.setCustomNameVisible(true);
         allay.setRemoveWhenFarAway(false);
+        allay.getPersistentDataContainer().set(
+                me.darkz70.quirks.Keys.soulMark,
+                org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
         allay.addPotionEffect(new PotionEffect(
                 PotionEffectType.GLOWING, PotionEffect.INFINITE_DURATION, 0, true, false, false));
         return true;
