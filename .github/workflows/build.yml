@@ -44,6 +44,11 @@ jobs:
           fi
           { echo "### Сборка упала: run ${{ github.run_id }}, коммит ${{ github.sha }}"; echo '```'; tail -c 5500 /tmp/build.log | sed 's/```/`​``/g'; echo '```'; } | gh issue comment "$ISSUE" --body-file -
 
+      - name: Zip resource pack
+        run: |
+          mkdir -p build
+          cd resourcepack && zip -r ../build/VoidQuirks-Pack.zip .
+
       - name: Upload jar artifact
         uses: actions/upload-artifact@v4
         with:
@@ -57,8 +62,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release delete ci-build --cleanup-tag --yes 2>/dev/null || true
-          gh release create ci-build build/libs/*.jar \
+          gh release create ci-build build/libs/*.jar build/VoidQuirks-Pack.zip \
             --target "${{ github.sha }}" \
             --title "VoidQuirks — автосборка" \
-            --notes "Собрано из ветки ${{ github.ref_name }}, коммит ${{ github.sha }}. Скачай jar и положи в папку plugins сервера Paper 26.2." \
+            --notes "Собрано из ветки ${{ github.ref_name }}, коммит ${{ github.sha }}. Скачай jar и положи в папку plugins сервера Paper 26.2; VoidQuirks-Pack.zip — ресурспак с текстурой Осколка души (resource-pack=в server.properties)." \
             --prerelease --latest=false

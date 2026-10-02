@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 /** /quirk — управление причудами. Причуд можно несколько на одного игрока. */
 public final class QuirkCommand implements CommandExecutor, TabCompleter {
 
-    private static final List<String> SUBS = List.of("set", "remove", "info", "list", "reload", "notify", "item", "lab");
+    private static final List<String> SUBS = List.of("set", "remove", "info", "list", "reload", "notify", "item", "pack", "lab");
     private static final List<String> QUIRKS = List.of(
             "инженер", "кот", "бедрок", "топор", "скалк",
             "engineer", "cat", "bedrock", "axe", "sculk");
@@ -48,10 +48,17 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             case "reload" -> handleReload(sender);
             case "notify", "notifications" -> handleNotify(sender);
             case "item", "shard" -> handleItem(sender, args);
+            case "pack", "resourcepack" -> handlePack(sender);
             case "lab", "labyrinth" -> handleLab(sender, args);
             default -> Msg.send(sender, "usage");
         }
         return true;
+    }
+
+    /** /quirk pack — показать ссылку на ресурспак с текстурой осколка. */
+    private void handlePack(CommandSender sender) {
+        Msg.send(sender, "pack-link",
+                "%link%", "https://github.com/darkz70/VoidSMP/releases/download/ci-build/VoidQuirks-Pack.zip");
     }
 
     /** /quirk item <причуда> [уровень] [игрок] — выдать осколок души предметом. */

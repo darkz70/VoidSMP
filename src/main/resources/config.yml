@@ -135,6 +135,7 @@ messages:
   shard-used: "%prefix%&dОсколок души вливается в тебя… Причуда: &f%quirk% &dур. &f%level%&d."
   shard-weaker: "%prefix%&7Твоя душа уже носит эту причуду (или сильнее). Осколок сохранён."
   soul-freed: "&d✦ &b%player% &dосвободил душу из клетки лабиринта! Она оставила осколок…"
+  pack-link: "%prefix%&bРесурспак VoidSMP: &f%link%\n%prefix%&7Пропиши ссылку в server.properties в строку &fresource-pack=&7 и перезапусти."
   lab-building: "%prefix%&5Начинаю строить лабиринт душ в мире &f%world%&5… не выключай сервер."
   lab-created: "%prefix%&dЛабиринт душ построен! Площадь &f%size%&d, клеток с душами: &f%cages%&d. Телепорт: /quirk lab tp"
   lab-exists: "%prefix%&eЛабиринт уже построен. Телепорт: /quirk lab tp"

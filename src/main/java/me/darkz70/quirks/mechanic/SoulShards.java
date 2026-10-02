@@ -25,6 +25,10 @@ public final class SoulShards {
             ));
             meta.getPersistentDataContainer().set(Keys.shardQuirk, PersistentDataType.STRING, quirk.id());
             meta.getPersistentDataContainer().set(Keys.shardLevel, PersistentDataType.INTEGER, level);
+            // метка для ресурспака VoidQuirks-Pack (custom_model_data: strings=["soul_shard"])
+            var cmd = meta.getCustomModelDataComponent();
+            cmd.setStrings(List.of("soul_shard"));
+            meta.setCustomModelDataComponent(cmd);
         });
         return item;
     }
