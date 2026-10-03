@@ -13,6 +13,9 @@ public final class Keys {
     public static NamespacedKey shardQuirk;      // осколок души: id причуды
     public static NamespacedKey shardLevel;      // осколок души: уровень
     public static NamespacedKey soulMark;        // пометка аллая-души в лабиринте
+    public static NamespacedKey brewMark;        // зелья/предметы крафтов: neutral / antidote / fertilizer
+    public static NamespacedKey spiderHp;        // -2 HP Паука 1 ур. (модификатор атрибута)
+    public static NamespacedKey effHero;         // герой деревни Фермера применён нами
 
     private Keys() {}
 
@@ -25,5 +28,8 @@ public final class Keys {
         shardQuirk = new NamespacedKey(plugin, "shard_quirk");
         shardLevel = new NamespacedKey(plugin, "shard_level");
         soulMark = new NamespacedKey(plugin, "labyrinth_soul");
+        brewMark = new NamespacedKey(plugin, "brew_mark");
+        spiderHp = new NamespacedKey(plugin, "spider_hp");
+        effHero = new NamespacedKey(plugin, "eff_hero");
     }
 }

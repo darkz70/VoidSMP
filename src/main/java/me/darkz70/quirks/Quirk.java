@@ -9,7 +9,10 @@ public enum Quirk {
     CAT("cat", "Кот"),
     BEDROCK("bedrock", "Бедрок"),
     AXE("axe", "Топор"),
-    SCULK("sculk", "Скалк");
+    SCULK("sculk", "Скалк"),
+    FARMER("farmer", "Фермер"),
+    AMPHIBIAN("amphibian", "Земноводный"),
+    SPIDER("spider", "Паук");
 
     private final String id;
     private final String display;

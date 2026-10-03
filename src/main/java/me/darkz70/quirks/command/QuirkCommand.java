@@ -24,8 +24,8 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBS = List.of("set", "remove", "info", "list", "reload", "notify", "item", "pack", "lab");
     private static final List<String> QUIRKS = List.of(
-            "инженер", "кот", "бедрок", "топор", "скалк",
-            "engineer", "cat", "bedrock", "axe", "sculk");
+            "инженер", "кот", "бедрок", "топор", "скалк", "фермер", "земноводный", "паук",
+            "engineer", "cat", "bedrock", "axe", "sculk", "farmer", "amphibian", "spider");
 
     private final VoidQuirksPlugin plugin;
 

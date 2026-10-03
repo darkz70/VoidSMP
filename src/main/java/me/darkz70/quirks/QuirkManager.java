@@ -92,6 +92,7 @@ public final class QuirkManager {
             }
             case BEDROCK -> {
                 BedrockLogic.applyLayout(plugin, player, level);
+                player.setMaximumAir(plugin.getConfig().getInt("bedrock.max-air", 150));
                 if (level == 3) {
                     applyFlaggedEffect(player, PotionEffectType.SPEED, 0, Keys.effSpeed);
                     applyFlaggedEffect(player, PotionEffectType.REGENERATION, 0, Keys.effRegen);
@@ -99,6 +100,14 @@ public final class QuirkManager {
             }
             case SCULK -> {
                 if (level == 3) ensureSculkHp(player);
+            }
+            case SPIDER -> {
+                if (level == 1) ensureSpiderHp(player);
+            }
+            case FARMER -> {
+                if (level >= 2) {
+                    applyFlaggedEffect(player, PotionEffectType.HERO_OF_THE_VILLAGE, 0, Keys.effHero);
+                }
             }
             default -> { /* кот и топор не имеют пассивок при выдаче */ }
         }
@@ -112,8 +121,11 @@ public final class QuirkManager {
                 removeFlaggedEffect(player, PotionEffectType.SPEED, Keys.effSpeed);
                 removeFlaggedEffect(player, PotionEffectType.REGENERATION, Keys.effRegen);
                 BedrockLogic.clearLayout(player);
+                player.setMaximumAir(300);
             }
             case SCULK -> removeSculkHp(player);
+            case SPIDER -> removeSpiderHp(player);
+            case FARMER -> removeFlaggedEffect(player, PotionEffectType.HERO_OF_THE_VILLAGE, Keys.effHero);
             default -> { }
         }
     }
@@ -128,6 +140,8 @@ public final class QuirkManager {
                     }
                 }
                 case BEDROCK -> {
+                    int air = plugin.getConfig().getInt("bedrock.max-air", 150);
+                    if (player.getMaximumAir() != air) player.setMaximumAir(air);
                     if (entry.getValue() == 3) {
                         if (!player.hasPotionEffect(PotionEffectType.SPEED)) {
                             applyFlaggedEffect(player, PotionEffectType.SPEED, 0, Keys.effSpeed);
@@ -139,6 +153,14 @@ public final class QuirkManager {
                 }
                 case SCULK -> {
                     if (entry.getValue() == 3) ensureSculkHp(player);
+                }
+                case SPIDER -> {
+                    if (entry.getValue() == 1) ensureSpiderHp(player);
+                }
+                case FARMER -> {
+                    if (entry.getValue() >= 2 && !player.hasPotionEffect(PotionEffectType.HERO_OF_THE_VILLAGE)) {
+                        applyFlaggedEffect(player, PotionEffectType.HERO_OF_THE_VILLAGE, 0, Keys.effHero);
+                    }
                 }
                 default -> { }
             }
@@ -174,6 +196,29 @@ public final class QuirkManager {
             if (player.getHealth() > inst.getValue()) {
                 player.setHealth(Math.max(1.0, inst.getValue()));
             }
+        }
+    }
+
+    /** Паук 1 ур.: максимум здоровья обрезан (по умолчанию до 18 HP = 9 сердец). */
+    private void ensureSpiderHp(Player player) {
+        AttributeInstance inst = player.getAttribute(Attribute.MAX_HEALTH);
+        if (inst == null) return;
+        double target = plugin.getConfig().getDouble("spider.max-health-1", 18.0);
+        double amount = target - inst.getDefaultValue();
+        AttributeModifier existing = inst.getModifier(Keys.spiderHp);
+        if (existing == null && Math.abs(amount) > 0.001) {
+            inst.addModifier(new AttributeModifier(Keys.spiderHp, amount, AttributeModifier.Operation.ADD_NUMBER));
+        }
+        if (player.getHealth() > inst.getValue()) {
+            player.setHealth(Math.max(1.0, inst.getValue()));
+        }
+    }
+
+    private void removeSpiderHp(Player player) {
+        AttributeInstance inst = player.getAttribute(Attribute.MAX_HEALTH);
+        if (inst == null) return;
+        if (inst.getModifier(Keys.spiderHp) != null) {
+            inst.removeModifier(Keys.spiderHp);
         }
     }
 }

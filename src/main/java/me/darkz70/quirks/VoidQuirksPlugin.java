@@ -1,14 +1,19 @@
 package me.darkz70.quirks;
 
 import me.darkz70.quirks.command.QuirkCommand;
+import me.darkz70.quirks.listener.AmphibianListener;
 import me.darkz70.quirks.listener.AxeListener;
 import me.darkz70.quirks.listener.BedrockListener;
 import me.darkz70.quirks.listener.CatListener;
+import me.darkz70.quirks.listener.CraftListener;
 import me.darkz70.quirks.listener.EngineerListener;
+import me.darkz70.quirks.listener.FarmerListener;
 import me.darkz70.quirks.listener.SculkListener;
 import me.darkz70.quirks.listener.SessionListener;
+import me.darkz70.quirks.listener.SpiderListener;
 import me.darkz70.quirks.mechanic.BedrockLogic;
 import me.darkz70.quirks.task.EffectsTask;
+import me.darkz70.quirks.task.WebPhysicsTask;
 import me.darkz70.quirks.util.MaterialLists;
 import me.darkz70.quirks.util.Msg;
 import org.bukkit.Bukkit;
@@ -42,6 +47,11 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new SculkListener(this), this);
         Bukkit.getPluginManager().registerEvents(new SessionListener(this), this);
         Bukkit.getPluginManager().registerEvents(new me.darkz70.quirks.listener.SoulShardListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new CraftListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new FarmerListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new AmphibianListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new SpiderListener(this), this);
+        CraftListener.registerRecipes(this);
 
         QuirkCommand command = new QuirkCommand(this);
         PluginCommand quirk = getCommand("quirk");
@@ -52,6 +62,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
 
         int interval = Math.max(20, getConfig().getInt("tasks.effects-interval-ticks", 40));
         new EffectsTask(this).runTaskTimer(this, interval, interval);
+        new WebPhysicsTask(this).runTaskTimer(this, 1L, 1L);
 
         long autosave = Math.max(1, getConfig().getLong("tasks.autosave-minutes", 5)) * 60L * 20L;
         Bukkit.getScheduler().runTaskTimer(this, storage::save, autosave, autosave);

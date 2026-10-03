@@ -6,6 +6,7 @@ import me.darkz70.quirks.VoidQuirksPlugin;
 import me.darkz70.quirks.mechanic.BedrockLogic;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -20,6 +21,8 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 /** Анти-обход запечатанных слотов + голодный бафф причуды «Бедрок». */
 public final class BedrockListener implements Listener {
@@ -115,5 +118,29 @@ public final class BedrockListener implements Listener {
         PlayerData data = plugin.storage().get(player.getUniqueId());
         if (data == null) return;
         BedrockLogic.hungerCheck(plugin, player, data, lvl);
+    }
+
+    /** «Последний оплот» (со 2 ур.): удар до 1 HP отменяется, 5 секунд неуязвимости, кд час. */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onDamage(org.bukkit.event.entity.EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        int lvl = level(player);
+        if (lvl < 2) return;
+        double after = player.getHealth() - event.getFinalDamage();
+        if (after > plugin.getConfig().getDouble("bedrock.laststand-hp", 1.0)) return;
+
+        PlayerData data = plugin.storage().get(player.getUniqueId());
+        if (data == null) return;
+        long now = System.currentTimeMillis();
+        long cooldown = plugin.getConfig().getLong("bedrock.laststand-cooldown-minutes", 60) * 60_000L;
+        if (now < data.cooldown("laststand")) return;
+
+        data.setCooldown("laststand", now + cooldown);
+        plugin.storage().save();
+        event.setCancelled(true);
+        int ticks = plugin.getConfig().getInt("bedrock.laststand-seconds", 5) * 20;
+        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, ticks, 4, true, false, true));
+        player.getWorld().playSound(player.getLocation(), Sound.ITEM_TOTEM_USE, 0.7f, 1.2f);
+        plugin.notify(player, "bedrock-immortal");
     }
 }

@@ -21,7 +21,7 @@ import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-/** Причуда «Инженер»: слабость (1 ур.), скан редстоуна, ТНТ, эльфийский желудок (3 ур.). */
+/** Причуда «Инженер»: слабость (1 ур.), скорость в паутине (1 ур.), скан редстоуна, ТНТ, эльфийский желудок (2-3 ур.). */
 public final class EngineerListener implements Listener {
 
     private final VoidQuirksPlugin plugin;
@@ -78,11 +78,11 @@ public final class EngineerListener implements Listener {
         player.showTitle(Title.title(main, sub, times));
     }
 
-    /** Эльфийский желудок (3 ур.): мясо отменяется + эффект голода. */
+    /** Эльфийский желудок (со 2 уровня): мясо отменяется + эффект голода. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEat(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
-        if (level(player) < 3) return;
+        if (level(player) < 2) return;
         Material eaten = event.getItem().getType();
         if (!MaterialLists.isMeat(eaten)) return;
 

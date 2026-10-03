@@ -1,5 +1,5 @@
 # ============================================================
-#  VoidQuirks — причуды расколотых душ (VoidSMP)
+#  VoidQuirks — причуды расколотых душ (VoidSMP) — v0.6.0
 #  Все сообщения поддерживают &-цвета и %prefix%.
 #  "Единицы голода" (drumsticks) считаются в ИКОНКАХ:
 #  1 иконка = 2 очка food level. 3.5 иконки = 7 очков.
@@ -24,16 +24,19 @@ materials:
   engineer-extra: [TRIPWIRE]        # "нитки" = натянутая нить (со 2 уровня)
   engineer-include-signs: true      # таблички (со 2 уровня)
   engineer-tnt-blocks: [TNT]        # 3 уровень
-  # Мясо (для дебаффов Инженера 3 ур. и Топора 2-3 ур.)
+  # Мясо (дебаффы Инженера 2-3 ур., Топора 2-3 ур., Паука)
   meat: [BEEF, COOKED_BEEF, PORKCHOP, COOKED_PORKCHOP, CHICKEN, COOKED_CHICKEN, MUTTON, COOKED_MUTTON, RABBIT, COOKED_RABBIT, ROTTEN_FLESH, RABBIT_STEW]
   # Рыба (бафф Кота)
   fish: [COD, COOKED_COD, SALMON, COOKED_SALMON, TROPICAL_FISH, PUFFERFISH]
-  # Мечи, которые в инвентаре Топора превращаются в палку (всё "до алмазного")
-  axe-low-swords: [WOODEN_SWORD, GOLDEN_SWORD, STONE_SWORD, IRON_SWORD]
-  # Что может есть Скалк (обычной едой) на каждом уровне
-  sculk-food-1: [BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT, ROTTEN_FLESH]
-  sculk-food-2: [BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT, ROTTEN_FLESH]
-  sculk-food-3: [BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT, ROTTEN_FLESH]
+  # Мечи, которые в инвентаре Топора превращаются в палку
+  axe-low-swords-1: [WOODEN_SWORD, GOLDEN_SWORD, STONE_SWORD, IRON_SWORD, DIAMOND_SWORD]  # 1 ур.: всё до незеритового
+  axe-low-swords-2: [WOODEN_SWORD, GOLDEN_SWORD, STONE_SWORD, IRON_SWORD]                  # 2 ур.: всё до алмазного
+  # Что может есть Скалк (обычной едой) на каждом уровне (сырая рыба разрешена!)
+  sculk-food-1: [BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT, ROTTEN_FLESH, COD, SALMON, TROPICAL_FISH, PUFFERFISH]
+  sculk-food-2: [BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT, ROTTEN_FLESH, COD, SALMON, TROPICAL_FISH, PUFFERFISH]
+  sculk-food-3: [BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT, ROTTEN_FLESH, COD, SALMON, TROPICAL_FISH, PUFFERFISH]
+  # Сырая еда, которую Фермер должен пожарить
+  farmer-raw-denied: [BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT, COD, SALMON, POTATO, KELP]
 
 # Скалк: необычная «еда» через правый клик (кости, порох, слизь).
 # food — очки голода (2 = 1 иконка), saturation — очки насыщения.
@@ -44,6 +47,9 @@ sculk-custom-food:
     BONE: { food: 2, saturation: 1 }
     GUNPOWDER: { food: 2, saturation: 0 }
     SLIME_BALL: { food: 3, saturation: 1 }
+
+sculk:
+  flicker-minutes: 20   # раз в столько минут ненадолго вспыхивают частицы скалка (2-3 ур.)
 
 bedrock:
   # голод в иконках (3 = 6 очков, 3.5 = 7, 4 = 8)
@@ -60,6 +66,14 @@ bedrock:
   aoe-damage: 8.0
   aoe-radius: 10.0
   aoe-cooldown-minutes: 10
+  # «последний оплот»: удар до 1 HP -> неуязвимость (со 2 уровня)
+  laststand-hp: 1.0
+  laststand-seconds: 5
+  laststand-cooldown-minutes: 60
+  max-air: 150          # кислорода в 2 раза меньше (ваниль: 300)
+  # зелёные частицы, когда рядом игрок со Скалком
+  green-radius: 3.0
+  green-count: 50
 
 cat:
   water-damage-1: 3.0   # полтора сердца
@@ -70,17 +84,37 @@ cat:
   fish-saturation-seconds-2: 10
 
 engineer:
-  hunger-effect-seconds: 10   # эффект голода за попытку съесть мясо (3 уровень)
+  hunger-effect-seconds: 10   # эффект голода за попытку съесть мясо (эльфийский желудок, 2-3 ур.)
 
 axe:
-  regen-chance: 10       # % — регенерация II за убийство топором (на всех уровнях)
-  regen-duration-seconds: 2
-  head-chance: 2         # %
+  # регенерация II за убийство топором — только 1 уровень
+  regen-chance: 5        # %
+  regen-duration-seconds: 1
+  rage-cooldown-minutes: 30   # режим ярости (2-3 ур.): Shift, затем Ctrl
+  head-chance: 2         # % — головы мобов с 3 уровня
   head-include-players: true
-  teleport:
+  teleport:              # разрыв пространства (3 ур.): Shift + ПКМ топором
     max-distance: 20.0
-    cooldown-seconds: 5
+    cooldown-seconds: 2
     hunger-cost-drumsticks: 4
+
+spider:
+  max-health-1: 18.0     # сердец на 1 уровне меньше
+  webs-needed: 9         # минимум паутины для выстрела
+  web-shot-cooldown-minutes:
+    2: 10
+    3: 5
+
+amphibian:
+  drowned-aggro-radius-1: 5.0   # утопленники атакуют 1 уровня только вблизи
+  sun-damage: 2.0               # 1 сердце каждые 2 сек под солнцем (1-2 ур.)
+  nether-damage: 2.0            # 1 сердце каждые 2 сек в аду (2-3 ур.)
+
+farmer:
+  growth-radius: 10      # в радиусе посевы растут быстрее (~x4)
+  growth-chance-percent: 1  # шанс +1 стадия у посева каждые 2 сек
+  weakness-hp: 5.0       # ниже этого HP — слабость I (2-3 ур.)
+  wolf-radius: 10.0      # дикие волки нападают (3 ур.)
 
 tasks:
   effects-interval-ticks: 40   # переприменение эффектов / ремонт инвентаря / чистка мечей
@@ -105,7 +139,7 @@ messages:
   no-permission: "%prefix%&cНедостаточно прав."
   usage: "%prefix%&f/quirk set <игрок> <причуда> [уровень] &8| &f/quirk remove <игрок> &8| &f/quirk info [игрок] &8| &f/quirk list &8| &f/quirk reload"
   target-offline: "%prefix%&cИгрок не найден или не в сети."
-  invalid-quirk: "%prefix%&cНеизвестная причуда. Доступны: инженер, кот, бедрок, топор, скалк."
+  invalid-quirk: "%prefix%&cНеизвестная причуда. Доступны: инженер, кот, бедрок, топор, скалк, фермер, земноводный, паук."
   invalid-level: "%prefix%&cУровень должен быть от 1 до 3."
   set-ok: "%prefix%&aИгроку &f%player% &aназначена причуда &d%quirk% &a(ур. &d%level%&a)."
   removed: "%prefix%&aПричуда игрока &f%player% &aснята."
@@ -125,11 +159,15 @@ messages:
   axe-sword-craft-denied: "&cТвои руки отталкивают мечи. Крафт невозможен."
   axe-sword-to-stick: "&eМеч в твоём инвентаре рассыпался в палку…"
   axe-no-meat: "&2Тебя мутит… твоё тело принимает только мясо."
-  axe-teleport-hint: "&eНажми &fShift + Ctrl &eдля рывка"
+  axe-hint-2: "&eShift + &fCtrl &e— режим ярости"
+  axe-hint-3: "&eShift+ПКМ &f— разрыв пространства &8| &eShift+Ctrl &f— ярость"
+  axe-rage-on: "&4Ярость переполняет тебя!"
+  axe-rage-cooldown: "&cЯрость остывает: &f%time%&c."
   axe-teleport-cooldown: "&cРывок ещё остывает: &f%time% с."
   axe-teleport-fail: "&cНекуда телепортироваться."
   bedrock-steaks: "%prefix%&7Расколотая душа отзывается: &f+%amount% стейка(-ов)!"
   bedrock-aoe: "%prefix%&8Ударная волна души ранила монстров поблизости!"
+  bedrock-immortal: "%prefix%&8Ядро бедрока вспыхивает — ты неуязвим!"
   sculk-denied: "&2Плоть отторгает это…"
   shard-given: "%prefix%&aОсколок души &d%quirk% &aур. &d%level% &aвыдан игроку &f%player%&a."
   shard-used: "%prefix%&dОсколок души вливается в тебя… Причуда: &f%quirk% &dур. &f%level%&d."
@@ -141,6 +179,16 @@ messages:
   lab-exists: "%prefix%&eЛабиринт уже построен. Телепорт: /quirk lab tp"
   lab-no-world: "%prefix%&cЛабиринт ещё не создан. Сначала /quirk lab create"
   lab-tp: "%prefix%&dТы входишь в лабиринт душ…"
+  antidote-cured: "%prefix%&2Антидот жжёт вены… Скалк покидает твоё тело!"
+  antidote-none: "%prefix%&7Горьковато. Но лечить нечего — скалка в тебе нет."
+  farmer-raw-denied: "&eСырое! Это нужно пожарить."
+  farmer-craft-denied: "&cТолько Фермер знает рецепт супер-удобрения."
+  spider-meat-denied: "&cПаук питается только мясом!"
+  spider-webs-hint: "&eShift + ПКМ мечом &f— выстрел паутиной &8(&7нужно 9 паутины&8)"
+  spider-webs-cooldown: "&cПаутинные железы отдыхают: &f%time%&c."
+  spider-webs-none: "&cНужно минимум 9 блоков паутины в инвентаре!"
+  spider-webs-cast: "&8*фшш* &7Паутина выпущена!"
+  amph-armor-denied: "&bНезерит тянет тебя на дно — броня соскальзывает!"
 
   # Тайтлы (title = верхняя строка, subtitle = нижняя)
   title-engineer-redstone: "&cРедстоуна поблизости: &f%count%"

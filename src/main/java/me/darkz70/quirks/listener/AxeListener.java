@@ -12,6 +12,7 @@ import me.darkz70.quirks.util.ScanUtil;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -20,14 +21,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.event.player.PlayerToggleSprintEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -38,8 +42,10 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Причуда «Топор»: запрет мечей, мясоедение, реген за убийства (10%, 2 сек, все уровни),
- * головы (3 ур.) и рывок в точку взгляда (Shift + Ctrl, 3 ур.) с показом кулдауна.
+ * Причуда «Топор» (v0.6.0):
+ * 1 ур.: без крафта мечей, мечи слабее незеритового — палки; реген II за убийство топором (5%, 1 сек).
+ * 2 ур.: + мечи слабее алмазного — палки; только мясо (иначе яд); режим ярости (Shift, затем Ctrl).
+ * 3 ур.: + разрыв пространства (Shift + ПКМ, рывок до 20 блоков, 4 голода, кд 2 сек) и головы.
  */
 public final class AxeListener implements Listener {
 
@@ -65,7 +71,7 @@ public final class AxeListener implements Listener {
         return material.name().endsWith("_AXE");
     }
 
-    // ---------- дебафф: без мечей (1-2 ур.) ----------
+    // ---------- дебафф: без крафта мечей (1-2 ур.) ----------
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPrepareCraft(PrepareItemCraftEvent event) {
@@ -96,7 +102,7 @@ public final class AxeListener implements Listener {
         int lvl = level(player);
         if (lvl == 0 || lvl > 2) return;
         ItemStack stack = event.getItem().getItemStack();
-        if (MaterialLists.isLowSword(stack.getType())) {
+        if (MaterialLists.isLowSword(lvl, stack.getType())) {
             event.getItem().setItemStack(new ItemStack(Material.STICK, Math.max(1, stack.getAmount())));
             if (ScanUtil.tryUse(player.getUniqueId(), "axe-stick-msg", 3000)) {
                 plugin.notify(player, "axe-sword-to-stick");
@@ -105,18 +111,18 @@ public final class AxeListener implements Listener {
     }
 
     /** Периодическая зачистка мечей в инвентаре (вызывается из EffectsTask). */
-    public static void sweepSwords(VoidQuirksPlugin plugin, Player player) {
+    public static void sweepSwords(VoidQuirksPlugin plugin, Player player, int level) {
         PlayerInventory inv = player.getInventory();
         boolean changed = false;
         for (int i = 0; i < inv.getSize(); i++) {
             ItemStack item = inv.getItem(i);
-            if (item != null && MaterialLists.isLowSword(item.getType())) {
+            if (item != null && MaterialLists.isLowSword(level, item.getType())) {
                 inv.setItem(i, new ItemStack(Material.STICK, Math.max(1, item.getAmount())));
                 changed = true;
             }
         }
         ItemStack cursor = player.getItemOnCursor();
-        if (cursor != null && MaterialLists.isLowSword(cursor.getType())) {
+        if (cursor != null && MaterialLists.isLowSword(level, cursor.getType())) {
             player.setItemOnCursor(new ItemStack(Material.STICK, Math.max(1, cursor.getAmount())));
             changed = true;
         }
@@ -125,7 +131,7 @@ public final class AxeListener implements Listener {
         }
     }
 
-    // ---------- дебафф: только мясо (2-3 ур.) ----------
+    // ---------- дебафф: только мясо (2-3 ур.), иначе отравление ----------
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEat(PlayerItemConsumeEvent event) {
@@ -150,14 +156,16 @@ public final class AxeListener implements Listener {
 
         LivingEntity dead = event.getEntity();
 
-        // регенерация II на 2 секунды — 10% на ВСЕХ уровнях
-        int regenChance = plugin.getConfig().getInt("axe.regen-chance", 10);
-        if (random.nextInt(100) < regenChance) {
-            int ticks = plugin.getConfig().getInt("axe.regen-duration-seconds", 2) * 20;
-            killer.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, ticks, 1, true, false, true));
+        // регенерация II на 1 секунду, 5% — только 1 уровень
+        if (lvl == 1) {
+            int regenChance = plugin.getConfig().getInt("axe.regen-chance", 5);
+            if (random.nextInt(100) < regenChance) {
+                int ticks = plugin.getConfig().getInt("axe.regen-duration-seconds", 1) * 20;
+                killer.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, ticks, 1, true, false, true));
+            }
         }
 
-        // головы мобов — только 3 уровень
+        // головы мобов — только 3 уровень (легаси-бонус)
         if (lvl >= 3) {
             int headChance = plugin.getConfig().getInt("axe.head-chance", 2);
             if (random.nextInt(100) < headChance) {
@@ -192,16 +200,17 @@ public final class AxeListener implements Listener {
         return item;
     }
 
-    // ---------- рывок (3 ур.): Shift, затем Ctrl ----------
+    // ---------- подсказки по Shift (2-3 ур.) ----------
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onSneak(PlayerToggleSneakEvent event) {
         Player player = event.getPlayer();
-        if (level(player) < 3) return;
+        int lvl = level(player);
+        if (lvl < 2) return;
         if (event.isSneaking()) {
             lastSneak.put(player.getUniqueId(), System.currentTimeMillis());
             if (isAxe(player.getInventory().getItemInMainHand().getType())) {
-                showHint(player);
+                showHint(player, lvl);
             }
         }
     }
@@ -209,24 +218,28 @@ public final class AxeListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onHeld(PlayerItemHeldEvent event) {
         Player player = event.getPlayer();
-        if (level(player) < 3 || !player.isSneaking()) return;
+        int lvl = level(player);
+        if (lvl < 2 || !player.isSneaking()) return;
         ItemStack item = player.getInventory().getItem(event.getNewSlot());
         if (item != null && isAxe(item.getType())) {
-            showHint(player);
+            showHint(player, lvl);
         }
     }
 
-    private void showHint(Player player) {
+    private void showHint(Player player, int lvl) {
         if (ScanUtil.tryUse(player.getUniqueId(), "axe-hint", 4000)) {
-            plugin.notifyBar(player, "axe-teleport-hint");
+            plugin.notifyBar(player, lvl >= 3 ? "axe-hint-3" : "axe-hint-2");
         }
     }
+
+    // ---------- режим ярости (2-3 ур.): Shift, затем Ctrl ----------
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onSprint(PlayerToggleSprintEvent event) {
         if (!event.isSprinting()) return;
         Player player = event.getPlayer();
-        if (level(player) < 3) return;
+        int lvl = level(player);
+        if (lvl < 2) return;
         if (!isAxe(player.getInventory().getItemInMainHand().getType())) return;
 
         // настоящий Ctrl во время шифта: сник недавно или всё ещё зажат
@@ -235,10 +248,46 @@ public final class AxeListener implements Listener {
                 || (sneakAt != null && System.currentTimeMillis() - sneakAt < 1500);
         if (!sneakyContext) return;
 
-        long cooldownMs = plugin.getConfig().getLong("axe.teleport.cooldown-seconds", 5) * 1000L;
+        long cooldownMs = plugin.getConfig().getLong("axe.rage-cooldown-minutes", 30) * 60_000L;
+        long remaining = ScanUtil.remaining(player.getUniqueId(), "axe-rage", cooldownMs);
+        if (remaining > 0) {
+            if (ScanUtil.tryUse(player.getUniqueId(), "axe-rage-msg", 1000)) {
+                long seconds = (remaining + 999) / 1000;
+                String time = seconds >= 60 ? ((seconds + 59) / 60) + " мин." : seconds + " с.";
+                player.sendActionBar(Msg.comp("axe-rage-cooldown", "%time%", time));
+            }
+            return;
+        }
+
+        ScanUtil.stamp(player.getUniqueId(), "axe-rage");
+        // ярость: сила 4 сек; скорость II 2 сек; реген 2 сек (уровень зависит от причуды)
+        int strengthAmp = lvl >= 3 ? 1 : 0;
+        int regenAmp = lvl >= 3 ? 2 : 1;
+        player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 80, strengthAmp, true, false, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 40, 1, true, false, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 40, regenAmp, true, false, true));
+        Msg.send(player, "axe-rage-on");
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5f, 1.2f);
+    }
+
+    // ---------- разрыв пространства (3 ур.): Shift + ПКМ топором ----------
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onInteract(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        Action action = event.getAction();
+        if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
+
+        Player player = event.getPlayer();
+        if (level(player) < 3) return;
+        if (!player.isSneaking()) return;
+        if (!isAxe(player.getInventory().getItemInMainHand().getType())) return;
+
+        event.setUseItemInHand(org.bukkit.event.Event.Result.DENY);
+
+        long cooldownMs = plugin.getConfig().getLong("axe.teleport.cooldown-seconds", 2) * 1000L;
         long remaining = ScanUtil.remaining(player.getUniqueId(), "axe-tp", cooldownMs);
         if (remaining > 0) {
-            // показываем, сколько осталось ждать
             if (ScanUtil.tryUse(player.getUniqueId(), "axe-tp-msg", 1000)) {
                 player.sendActionBar(Msg.comp("axe-teleport-cooldown",
                         "%time%", String.valueOf((remaining + 999) / 1000)));
@@ -254,6 +303,7 @@ public final class AxeListener implements Listener {
         }
 
         ScanUtil.stamp(player.getUniqueId(), "axe-tp");
+        Location from = player.getLocation().add(0, 1, 0);
         Location dest = feet.getLocation().add(0.5, 0, 0.5);
         dest.setYaw(player.getLocation().getYaw());
         dest.setPitch(player.getLocation().getPitch());
@@ -261,6 +311,9 @@ public final class AxeListener implements Listener {
         player.setFallDistance(0);
         int cost = plugin.getConfig().getInt("axe.teleport.hunger-cost-drumsticks", 4) * 2;
         player.setFoodLevel(Math.max(0, player.getFoodLevel() - cost));
+        // частицы как у эндермена — и на старте, и в пункте назначения
+        player.getWorld().spawnParticle(Particle.PORTAL, from, 40, 0.3, 0.6, 0.3, 0.5);
+        player.getWorld().spawnParticle(Particle.PORTAL, dest.clone().add(0, 1, 0), 40, 0.3, 0.6, 0.3, 0.5);
         player.getWorld().playSound(dest, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.2f);
     }
 
