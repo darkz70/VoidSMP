@@ -41,8 +41,8 @@ public final class Msg {
         def("axe-sword-craft-denied", "&cТвои руки отталкивают мечи. Крафт невозможен.");
         def("axe-sword-to-stick", "&eМеч в твоём инвентаре рассыпался в палку…");
         def("axe-no-meat", "&2Тебя мутит… твоё тело принимает только мясо.");
-        def("axe-hint-2", "&eShift + &fCtrl &e— режим ярости");
-        def("axe-hint-3", "&eShift+ПКМ &f— разрыв пространства &8| &eShift+Ctrl &f— ярость");
+        def("axe-hint-2", "&eНажми &fCtrl &eс топором в руке — режим ярости");
+        def("axe-hint-3", "&eShift+ПКМ &f— разрыв пространства &8| &eCtrl &f— ярость");
         def("axe-rage-on", "&4Ярость переполняет тебя!");
         def("axe-rage-cooldown", "&cЯрость остывает: &f%time%&c.");
         def("axe-teleport-cooldown", "&cРывок ещё остывает: &f%time% с.");

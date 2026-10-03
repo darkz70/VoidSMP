@@ -42,6 +42,19 @@ public final class CraftListener implements Listener {
     private static final String ANTIDOTE = "antidote";
     private static final String FERTILIZER = "fertilizer";
 
+    /** Ключ рецепта супер-удобрения (видимость книги рецептов — только у Фермера). */
+    public static NamespacedKey fertilizerKey;
+
+    /** Выдать/забрать видимость рецепта удобрения у игрока. */
+    public static void syncFertilizerRecipe(Player player, boolean farmer) {
+        if (fertilizerKey == null) return;
+        if (farmer) {
+            player.discoverRecipe(fertilizerKey);
+        } else {
+            player.undiscoverRecipe(fertilizerKey);
+        }
+    }
+
     private final VoidQuirksPlugin plugin;
 
     public CraftListener(VoidQuirksPlugin plugin) {
@@ -62,13 +75,13 @@ public final class CraftListener implements Listener {
         antidote.addIngredient(Material.HONEYCOMB);
         add(antidoteKey, antidote);
 
-        NamespacedKey fertKey = new NamespacedKey(plugin, "super_fertilizer");
-        ShapelessRecipe fert = new ShapelessRecipe(fertKey, makeFertilizer());
+        fertilizerKey = new NamespacedKey(plugin, "super_fertilizer");
+        ShapelessRecipe fert = new ShapelessRecipe(fertilizerKey, makeFertilizer());
         for (int i = 0; i < 6; i++) {
             fert.addIngredient(Material.BONE_MEAL);
         }
         fert.addIngredient(Material.WHEAT_SEEDS);
-        add(fertKey, fert);
+        add(fertilizerKey, fert);
     }
 
     private static void add(NamespacedKey key, ShapelessRecipe recipe) {
@@ -129,6 +142,16 @@ public final class CraftListener implements Listener {
         String value = item.getItemMeta().getPersistentDataContainer()
                 .get(Keys.brewMark, PersistentDataType.STRING);
         return tag.equals(value);
+    }
+
+    /** Не-фермеру результат удобрения даже не рисуем в выдаче стола. */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPrepareCraft(org.bukkit.event.inventory.PrepareItemCraftEvent event) {
+        if (!(event.getView().getPlayer() instanceof Player player)) return;
+        ItemStack result = event.getInventory().getResult();
+        if (tagged(result, FERTILIZER) && plugin.quirks().levelOf(player, Quirk.FARMER) == 0) {
+            event.getInventory().setResult(null);
+        }
     }
 
     /** Супер-удобрение крафтит только Фермер. */

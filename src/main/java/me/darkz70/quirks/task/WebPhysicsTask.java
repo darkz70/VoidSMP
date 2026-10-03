@@ -36,16 +36,16 @@ public final class WebPhysicsTask extends BukkitRunnable {
 
             boolean inWeb = inCobweb(player);
 
-            // компенсация замедления паутины (горизонтальная скорость)
+            // компенсация замедления паутины (горизонтальная скорость) — множители из конфига
             if (inWeb) {
-                double mult = spider >= 1 ? 4.0 : (engineer >= 1 ? 2.0 : 0.0);
+                double spiderMult = plugin.getConfig().getDouble("spider.web-speed-multiplier", 7.0);
+                double engMult = plugin.getConfig().getDouble("engineer.web-speed-multiplier", 2.5);
+                double mult = spider >= 1 ? spiderMult : (engineer >= 1 ? engMult : 0.0);
                 if (mult > 0.0) {
                     Vector v = player.getVelocity();
-                    if (Math.abs(v.getX()) > 0.001 || Math.abs(v.getZ()) > 0.001) {
-                        v.setX(v.getX() * mult);
-                        v.setZ(v.getZ() * mult);
-                        player.setVelocity(v);
-                    }
+                    v.setX(v.getX() * mult);
+                    v.setZ(v.getZ() * mult);
+                    player.setVelocity(v);
                 }
             }
 

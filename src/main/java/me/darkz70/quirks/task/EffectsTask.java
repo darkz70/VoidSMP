@@ -65,7 +65,7 @@ public final class EffectsTask extends BukkitRunnable {
             // паутина: Скалк и Кот слепнут, Паук — наоборот, в своей стихии
             boolean web = WebPhysicsTask.inCobweb(player);
             if (web && (cat > 0 || sculk > 0)) {
-                player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100, 0, true, false, false));
+                ambient(player, PotionEffectType.BLINDNESS, 0);
             }
 
             // отдельные периодики классов
@@ -116,6 +116,16 @@ public final class EffectsTask extends BukkitRunnable {
         long time = world.getTime() % 24000L;
         if (time < 0) time += 24000L;
         return time < 12300L && !world.hasStorm();
+    }
+
+    /**
+     * Поддерживает эффект без «мигания»: перевешивает, только если его нет
+     * или почти сгорел, и с хорошим запасом по времени (не сбрасывает туман слепоты).
+     */
+    public static void ambient(Player player, PotionEffectType type, int amplifier) {
+        PotionEffect current = player.getPotionEffect(type);
+        if (current != null && current.getDuration() > 60) return;
+        player.addPotionEffect(new PotionEffect(type, 200, amplifier, true, false, false));
     }
 
     /** Над головой открытое небо. */

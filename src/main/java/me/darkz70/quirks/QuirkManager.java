@@ -105,6 +105,8 @@ public final class QuirkManager {
                 if (level == 1) ensureSpiderHp(player);
             }
             case FARMER -> {
+                // рецепт супер-удобрения виден только Фермеру
+                me.darkz70.quirks.listener.CraftListener.syncFertilizerRecipe(player, true);
                 if (level >= 2) {
                     applyFlaggedEffect(player, PotionEffectType.HERO_OF_THE_VILLAGE, 0, Keys.effHero);
                 }
@@ -125,7 +127,10 @@ public final class QuirkManager {
             }
             case SCULK -> removeSculkHp(player);
             case SPIDER -> removeSpiderHp(player);
-            case FARMER -> removeFlaggedEffect(player, PotionEffectType.HERO_OF_THE_VILLAGE, Keys.effHero);
+            case FARMER -> {
+                removeFlaggedEffect(player, PotionEffectType.HERO_OF_THE_VILLAGE, Keys.effHero);
+                me.darkz70.quirks.listener.CraftListener.syncFertilizerRecipe(player, false);
+            }
             default -> { }
         }
     }

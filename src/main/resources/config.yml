@@ -85,6 +85,7 @@ cat:
 
 engineer:
   hunger-effect-seconds: 10   # эффект голода за попытку съесть мясо (эльфийский желудок, 2-3 ур.)
+  web-speed-multiplier: 2.5   # Инженер в паутине быстрее остальных (4.0 = обычная)
 
 axe:
   # регенерация II за убийство топором — только 1 уровень
@@ -101,6 +102,7 @@ axe:
 spider:
   max-health-1: 18.0     # сердец на 1 уровне меньше
   webs-needed: 9         # минимум паутины для выстрела
+  web-speed-multiplier: 7.0   # скорость в паутине (4.0 = обычная ходьба)
   web-shot-cooldown-minutes:
     2: 10
     3: 5
@@ -159,8 +161,8 @@ messages:
   axe-sword-craft-denied: "&cТвои руки отталкивают мечи. Крафт невозможен."
   axe-sword-to-stick: "&eМеч в твоём инвентаре рассыпался в палку…"
   axe-no-meat: "&2Тебя мутит… твоё тело принимает только мясо."
-  axe-hint-2: "&eShift + &fCtrl &e— режим ярости"
-  axe-hint-3: "&eShift+ПКМ &f— разрыв пространства &8| &eShift+Ctrl &f— ярость"
+  axe-hint-2: "&eНажми &fCtrl &eс топором в руке — режим ярости"
+  axe-hint-3: "&eShift+ПКМ &f— разрыв пространства &8| &eCtrl &f— ярость"
   axe-rage-on: "&4Ярость переполняет тебя!"
   axe-rage-cooldown: "&cЯрость остывает: &f%time%&c."
   axe-teleport-cooldown: "&cРывок ещё остывает: &f%time% с."

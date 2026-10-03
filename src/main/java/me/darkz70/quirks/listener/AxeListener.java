@@ -1,9 +1,6 @@
 package me.darkz70.quirks.listener;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
-import java.util.UUID;
 import me.darkz70.quirks.Quirk;
 import me.darkz70.quirks.VoidQuirksPlugin;
 import me.darkz70.quirks.util.MaterialLists;
@@ -51,8 +48,6 @@ public final class AxeListener implements Listener {
 
     private final VoidQuirksPlugin plugin;
     private final Random random = new Random();
-    /** когда игрок последний раз садился на шифт (для Shift+Ctrl) */
-    private final Map<UUID, Long> lastSneak = new HashMap<>();
 
     public AxeListener(VoidQuirksPlugin plugin) {
         this.plugin = plugin;
@@ -137,7 +132,10 @@ public final class AxeListener implements Listener {
     public void onEat(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
         if (level(player) < 2) return;
-        if (MaterialLists.isMeat(event.getItem().getType())) return;
+        // зелья — не еда: их пьют все расы без наказаний
+        Material eaten = event.getItem().getType();
+        if (eaten == Material.POTION || eaten == Material.OMINOUS_BOTTLE) return;
+        if (MaterialLists.isMeat(eaten)) return;
 
         // еда съедается, но тело мстит
         Msg.send(player, "axe-no-meat");
@@ -200,18 +198,16 @@ public final class AxeListener implements Listener {
         return item;
     }
 
-    // ---------- подсказки по Shift (2-3 ур.) ----------
+    // ---------- подсказки (2-3 ур.): при взятии топора в руку; на 3 ур. ещё и по Shift ----------
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onSneak(PlayerToggleSneakEvent event) {
         Player player = event.getPlayer();
         int lvl = level(player);
-        if (lvl < 2) return;
-        if (event.isSneaking()) {
-            lastSneak.put(player.getUniqueId(), System.currentTimeMillis());
-            if (isAxe(player.getInventory().getItemInMainHand().getType())) {
-                showHint(player, lvl);
-            }
+        if (lvl < 3) return;
+        if (event.isSneaking()
+                && isAxe(player.getInventory().getItemInMainHand().getType())) {
+            showHint(player, lvl);
         }
     }
 
@@ -219,7 +215,7 @@ public final class AxeListener implements Listener {
     public void onHeld(PlayerItemHeldEvent event) {
         Player player = event.getPlayer();
         int lvl = level(player);
-        if (lvl < 2 || !player.isSneaking()) return;
+        if (lvl < 2) return;
         ItemStack item = player.getInventory().getItem(event.getNewSlot());
         if (item != null && isAxe(item.getType())) {
             showHint(player, lvl);
@@ -232,7 +228,7 @@ public final class AxeListener implements Listener {
         }
     }
 
-    // ---------- режим ярости (2-3 ур.): Shift, затем Ctrl ----------
+    // ---------- режим ярости (2-3 ур.): просто нажми Ctrl с топором в руке ----------
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onSprint(PlayerToggleSprintEvent event) {
@@ -241,12 +237,6 @@ public final class AxeListener implements Listener {
         int lvl = level(player);
         if (lvl < 2) return;
         if (!isAxe(player.getInventory().getItemInMainHand().getType())) return;
-
-        // настоящий Ctrl во время шифта: сник недавно или всё ещё зажат
-        Long sneakAt = lastSneak.get(player.getUniqueId());
-        boolean sneakyContext = player.isSneaking()
-                || (sneakAt != null && System.currentTimeMillis() - sneakAt < 1500);
-        if (!sneakyContext) return;
 
         long cooldownMs = plugin.getConfig().getLong("axe.rage-cooldown-minutes", 30) * 60_000L;
         long remaining = ScanUtil.remaining(player.getUniqueId(), "axe-rage", cooldownMs);

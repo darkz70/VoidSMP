@@ -52,7 +52,10 @@ public final class SpiderListener implements Listener {
     public void onEat(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
         if (level(player) < 1) return;
-        if (MaterialLists.isMeat(event.getItem().getType())) return;
+        // зелья пьют все расы
+        Material eaten = event.getItem().getType();
+        if (eaten == Material.POTION || eaten == Material.OMINOUS_BOTTLE) return;
+        if (MaterialLists.isMeat(eaten)) return;
         event.setCancelled(true);
         Msg.send(player, "spider-meat-denied");
     }

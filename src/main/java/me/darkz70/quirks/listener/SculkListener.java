@@ -53,6 +53,8 @@ public final class SculkListener implements Listener {
         if (lvl < 1) return;
 
         Material eaten = event.getItem().getType();
+        // зелья пьют все расы
+        if (eaten == Material.POTION || eaten == Material.OMINOUS_BOTTLE) return;
         if (!MaterialLists.isSculkFood(lvl, eaten)) {
             event.setCancelled(true);
             Msg.send(player, "sculk-denied");
