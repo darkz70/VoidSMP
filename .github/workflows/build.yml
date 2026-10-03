@@ -1,0 +1,69 @@
+name: Build VoidQuirks
+
+on:
+  push:
+    branches:
+      - arena/01a0f83b-voidsmp
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: current
+
+      - name: Build
+        run: |
+          set -o pipefail
+          gradle build --no-daemon --console=plain 2>&1 | tee /tmp/build.log
+
+      - name: Report build failure to issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE=$(gh issue list --state open --search '"CI failure log" in:title' --limit 1 --json number --jq '.[0].number' 2>/dev/null || true)
+          if [ -z "$ISSUE" ] || [ "$ISSUE" = "null" ]; then
+            ISSUE=$(gh issue create --title "CI failure log" --body "Сюда CI пишет логи упавших сборок (автоматически)." | grep -oE '[0-9]+$')
+          fi
+          { echo "### Сборка упала: run ${{ github.run_id }}, коммит ${{ github.sha }}"; echo '```'; tail -c 5500 /tmp/build.log | sed 's/```/`​``/g'; echo '```'; } | gh issue comment "$ISSUE" --body-file -
+
+      - name: Zip resource pack
+        run: |
+          mkdir -p build
+          cd resourcepack && zip -r ../build/VoidQuirks-Pack.zip .
+
+      - name: Upload jar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VoidQuirks-jar
+          path: build/libs/*.jar
+          retention-days: 14
+
+      - name: Update CI release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/arena/01a0f83b-voidsmp'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete ci-build --cleanup-tag --yes 2>/dev/null || true
+          gh release create ci-build build/libs/*.jar build/VoidQuirks-Pack.zip \
+            --target "${{ github.sha }}" \
+            --title "VoidQuirks — автосборка" \
+            --notes "Собрано из ветки ${{ github.ref_name }}, коммит ${{ github.sha }}. Скачай jar и положи в папку plugins сервера Paper 26.2; VoidQuirks-Pack.zip — ресурспак с текстурой Осколка души (resource-pack=в server.properties)." \
+            --prerelease --latest=false
