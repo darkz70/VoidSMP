@@ -3,6 +3,7 @@ package me.darkz70.quirks.listener;
 import me.darkz70.quirks.Quirk;
 import me.darkz70.quirks.VoidQuirksPlugin;
 import me.darkz70.quirks.task.EffectsTask;
+import me.darkz70.quirks.task.WebPhysicsTask;
 import me.darkz70.quirks.util.MaterialLists;
 import me.darkz70.quirks.util.Msg;
 import me.darkz70.quirks.util.ScanUtil;
