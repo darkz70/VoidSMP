@@ -197,12 +197,13 @@ public final class MagicListener implements Listener {
         Material[] icons = ICONS.getOrDefault(menu.element, new Material[]{Material.BOOK});
         for (int i = 0; i < spells.length; i++) {
             Spell spell = spells[i];
+            final int fi = i;
             int slot = 10 + i;
             Material icon = icons[Math.min(i, icons.length - 1)];
             ItemStack item = new ItemStack(icon);
             item.editMeta(meta -> {
                 boolean unlocked = data != null && data.magicLevel() >= spell.requiredLevel();
-                boolean selected = data != null && data.selectedSpell() == i;
+                boolean selected = data != null && data.selectedSpell() == fi;
                 meta.displayName(Msg.comp("magic-menu-item", "%emoji%", menu.element.emoji(),
                         "%spell%", spell.name(), "%state%", unlocked ? (selected ? "&a✔" : "&f") : "&8✘"));
                 meta.lore(List.of(
