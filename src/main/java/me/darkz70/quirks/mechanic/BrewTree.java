@@ -363,7 +363,7 @@ public final class BrewTree {
             meta.displayName(me.darkz70.quirks.util.Msg.color("&dФокус: &f")
                     .append(net.kyori.adventure.text.Component.translatable(targetFinal)));
             List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
-            lore.add(me.darkz70.quirks.util.Msg.color("&7ПКМ — каст &8| &7Q — смена &8| &7F — меню"));
+            lore.add(me.darkz70.quirks.util.Msg.color("&7ПКМ — каст &8| &7Q/F — смена &8| &7Shift+F — меню"));
             meta.lore(lore);
             meta.getPersistentDataContainer().set(Keys.focusKey, PersistentDataType.BYTE, (byte) 1);
         });

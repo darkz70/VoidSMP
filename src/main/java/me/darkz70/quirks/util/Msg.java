@@ -79,7 +79,7 @@ public final class Msg {
         // v1.0 — магия
         def("magic-no-mage", "&7Ты ещё не ощутил стихию. Найди книгу стихии…");
         def("magic-bar", "%emoji% %element% &8| &bМана %mana%/%max% &8| &f%spell%");
-        def("magic-learned", "&dСтихия отозвалась! %emoji% &f%element% &dстала твоей. &7ПКМ фокусом — каст, Q — смена, F — меню.");
+        def("magic-learned", "&dСтихия отозвалась! %emoji% &f%element% &dстала твоей. &7ПКМ — каст, Q/F — смена, Shift+F — меню.");
         def("magic-already-element", "&7Твоя душа уже слушает: &f%element%&7. Смена — только зельем переквалификации.");
         def("magic-need-four-books", "&cСвет и тьма смиряются только теми, кто держит &f4 книги&c других стихий.");
         def("magic-book-weak", "&cЭта книга слишком сильна для тебя. Нужен уровень магии %min%+.");
