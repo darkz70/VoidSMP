@@ -87,11 +87,11 @@ public final class BrewTree {
 
     /** Самогон уровня n (1..16). */
     public static ItemStack makeSamogon(int level, boolean boosted) {
-        level = Math.max(1, Math.min(16, level));
-        ItemStack item = potion("&6Самогон &7(ур. " + level + ")", Color.fromRGB(0xC4, 0x8A, 0x1D), "samogon", null,
+        final int lvl = Math.max(1, Math.min(16, level));
+        ItemStack item = potion("&6Самогон &7(ур. " + lvl + ")", Color.fromRGB(0xC4, 0x8A, 0x1D), "samogon", null,
                 boosted ? "&eПод самогонным спиртом — по двойной" : "&7Горит, но греет душу");
         item.editMeta(meta -> {
-            meta.getPersistentDataContainer().set(Keys.brewLevel, PersistentDataType.INTEGER, level);
+            meta.getPersistentDataContainer().set(Keys.brewLevel, PersistentDataType.INTEGER, lvl);
             if (boosted) meta.getPersistentDataContainer().set(Keys.spellExtra, PersistentDataType.INTEGER, 2);
         });
         return item;
@@ -355,12 +355,13 @@ public final class BrewTree {
         if (markOf(target) != null) return null;                      // не зелья/книги плагина
         if (target.getType() == Material.POTION || target.getType() == Material.SPLASH_POTION
                 || target.getType() == Material.LINGERING_POTION) return null;
+        final ItemStack targetFinal = target;
         ItemStack result = target.clone();
         result.setAmount(1);
         if (result.getPersistentDataContainer().has(Keys.focusKey, PersistentDataType.BYTE)) return null;
         result.editMeta(meta -> {
             meta.displayName(me.darkz70.quirks.util.Msg.color("&dФокус: &f")
-                    .append(net.kyori.adventure.text.Component.translatable(target)));
+                    .append(net.kyori.adventure.text.Component.translatable(targetFinal)));
             List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
             lore.add(me.darkz70.quirks.util.Msg.color("&7ПКМ — каст &8| &7Q — смена &8| &7F — меню"));
             meta.lore(lore);
