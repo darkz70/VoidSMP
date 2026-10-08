@@ -31,7 +31,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.SmallFireball;
 import org.bukkit.entity.Snowball;
-import org.bukkit.entity.Undead;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
@@ -737,7 +736,7 @@ public final class MagicSystem {
             }
             case 5 -> { // Кара нежити
                 for (Entity entity : world.getNearbyEntities(player.getLocation(), 8, 8, 8)) {
-                    if (entity instanceof LivingEntity victim && entity instanceof Undead) {
+                    if (entity instanceof LivingEntity victim && isUndead(victim)) {
                         victim.damage(computeDamage(player, victim, 15, Element.LIGHT), player);
                         victim.setFireTicks(120);
                     }
@@ -853,6 +852,17 @@ public final class MagicSystem {
         return best;
     }
 
+    /** Нежить (зомби- и скелето-семейства, фантомы, визеры, зоглины). */
+    public static boolean isUndead(LivingEntity entity) {
+        return entity instanceof org.bukkit.entity.Zombie
+                || entity instanceof org.bukkit.entity.AbstractSkeleton
+                || entity instanceof org.bukkit.entity.Phantom
+                || entity instanceof org.bukkit.entity.Wither
+                || entity instanceof org.bukkit.entity.Zoglin
+                || entity instanceof org.bukkit.entity.ZombieHorse
+                || entity instanceof org.bukkit.entity.SkeletonHorse;
+    }
+
     private static double rand(double spread) {
         return (Math.random() - 0.5) * spread * 2;
     }
@@ -881,7 +891,7 @@ public final class MagicSystem {
         long now = System.currentTimeMillis();
         if (lightAuraActive(id)) {
             for (Entity entity : player.getWorld().getNearbyEntities(player.getLocation(), 4, 4, 4)) {
-                if (entity instanceof LivingEntity victim && entity instanceof Undead) {
+                if (entity instanceof LivingEntity victim && isUndead(victim)) {
                     victim.damage(2.0, player);
                 }
             }
