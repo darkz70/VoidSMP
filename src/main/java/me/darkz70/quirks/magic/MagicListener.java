@@ -130,7 +130,11 @@ public final class MagicListener implements Listener {
         ItemStack item = event.getItemDrop().getItemStack();
         if (!isFocus(item)) return;
         event.setCancelled(true);
-        Player player = event.getPlayer();
+        cycleSpell(event.getPlayer());
+    }
+
+    /** Переключиться на следующее доступное заклинание (Q или F). */
+    private void cycleSpell(Player player) {
         PlayerData data = magic().data(player);
         Element element = magic().elementOf(player);
         if (data == null || element == null) {
@@ -162,7 +166,7 @@ public final class MagicListener implements Listener {
                 "%spell%", spell.name()));
     }
 
-    // ---------- F — меню заклинаний ----------
+    // ---------- F / Shift+F — цикл / меню заклинаний ----------
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onSwap(PlayerSwapHandItemsEvent event) {
@@ -175,7 +179,11 @@ public final class MagicListener implements Listener {
             Msg.send(player, "magic-no-mage");
             return;
         }
-        openMenu(player, element);
+        if (player.isSneaking()) {
+            openMenu(player, element);   // Shift+F — меню
+        } else {
+            cycleSpell(player);          // F — цикл (дублирует Q)
+        }
     }
 
     /** Меню выбора заклинания (27 слотов). */
