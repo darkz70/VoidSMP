@@ -10,6 +10,13 @@ commands:
     description: Управление причудами душ
     aliases: [quirks, причуда]
     usage: /quirk <set|remove|info|list|reload>
+  magic:
+    description: Магия VoidSMP — меню заклинаний и админ-выдача
+    aliases: [магия]
+    usage: /magic [book|upbook|brew|set]
+  gaid:
+    description: Книга-гайд по механикам VoidSMP (админ)
+    usage: /gaid
 permissions:
   quirks.admin:
     description: Полное управление причудами

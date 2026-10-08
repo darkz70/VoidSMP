@@ -70,6 +70,13 @@ public final class QuirkStorage {
 
                 data.notifications(section.getBoolean("notifications", true));
 
+                data.magicElement(section.getString("magic.element", null));
+                data.magicLevel(section.getInt("magic.level", 1));
+                data.mana(section.getDouble("magic.mana", 0));
+                data.selectedSpell(section.getInt("magic.spell", 0));
+                data.tmpQuirks(section.getString("tmpquirks", null));
+                data.tmpUntil(section.getLong("tmpuntil", 0));
+
                 ConfigurationSection cds = section.getConfigurationSection("cooldowns");
                 if (cds != null) {
                     for (String cd : cds.getKeys(false)) {
@@ -92,6 +99,12 @@ public final class QuirkStorage {
             for (Map.Entry<Quirk, Integer> quirkEntry : data.entries()) {
                 yaml.set(path + ".quirks." + quirkEntry.getKey().id(), quirkEntry.getValue());
             }
+            if (data.magicElement() != null) yaml.set(path + ".magic.element", data.magicElement());
+            yaml.set(path + ".magic.level", data.magicLevel());
+            yaml.set(path + ".magic.mana", data.mana());
+            yaml.set(path + ".magic.spell", data.selectedSpell());
+            if (data.tmpQuirks() != null) yaml.set(path + ".tmpquirks", data.tmpQuirks());
+            yaml.set(path + ".tmpuntil", data.tmpUntil());
             for (Map.Entry<String, Long> cd : data.cooldowns().entrySet()) {
                 yaml.set(path + ".cooldowns." + cd.getKey(), cd.getValue());
             }

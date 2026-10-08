@@ -1,7 +1,14 @@
 package me.darkz70.quirks;
 
+import me.darkz70.quirks.command.GaidCommand;
+import me.darkz70.quirks.command.MagicCommand;
 import me.darkz70.quirks.command.QuirkCommand;
 import me.darkz70.quirks.listener.AmphibianListener;
+import me.darkz70.quirks.magic.MagicListener;
+import me.darkz70.quirks.magic.MagicSystem;
+import me.darkz70.quirks.magic.MagicTask;
+import me.darkz70.quirks.mechanic.BrewTree;
+import me.darkz70.quirks.listener.PotionListener;
 import me.darkz70.quirks.listener.AxeListener;
 import me.darkz70.quirks.listener.BedrockListener;
 import me.darkz70.quirks.listener.CatListener;
@@ -24,6 +31,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
 
     private QuirkStorage storage;
     private QuirkManager quirkManager;
+    private MagicSystem magic;
     private me.darkz70.quirks.labyrinth.LabyrinthManager labyrinth;
 
     @Override
@@ -37,6 +45,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         storage = new QuirkStorage(this);
         storage.load();
         quirkManager = new QuirkManager(this, storage);
+        magic = new MagicSystem(this);
         labyrinth = new me.darkz70.quirks.labyrinth.LabyrinthManager(this);
         labyrinth.loadIfExists();
 
@@ -52,6 +61,11 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new AmphibianListener(this), this);
         Bukkit.getPluginManager().registerEvents(new SpiderListener(this), this);
         CraftListener.registerRecipes(this);
+        BrewTree.registerBrewing(this);
+
+        MagicListener magicListener = new MagicListener(this);
+        Bukkit.getPluginManager().registerEvents(magicListener, this);
+        Bukkit.getPluginManager().registerEvents(new PotionListener(this), this);
 
         QuirkCommand command = new QuirkCommand(this);
         PluginCommand quirk = getCommand("quirk");
@@ -60,9 +74,24 @@ public final class VoidQuirksPlugin extends JavaPlugin {
             quirk.setTabCompleter(command);
         }
 
+        MagicCommand magicCommand = new MagicCommand(this, magicListener);
+        PluginCommand magicCmd = getCommand("magic");
+        if (magicCmd != null) {
+            magicCmd.setExecutor(magicCommand);
+            magicCmd.setTabCompleter(magicCommand);
+        }
+
+        GaidCommand gaidCommand = new GaidCommand(this);
+        PluginCommand gaid = getCommand("gaid");
+        if (gaid != null) {
+            gaid.setExecutor(gaidCommand);
+            gaid.setTabCompleter(gaidCommand);
+        }
+
         int interval = Math.max(20, getConfig().getInt("tasks.effects-interval-ticks", 40));
         new EffectsTask(this).runTaskTimer(this, interval, interval);
         new WebPhysicsTask(this).runTaskTimer(this, 1L, 1L);
+        new MagicTask(this).runTaskTimer(this, 20L, 20L);
 
         long autosave = Math.max(1, getConfig().getLong("tasks.autosave-minutes", 5)) * 60L * 20L;
         Bukkit.getScheduler().runTaskTimer(this, storage::save, autosave, autosave);
@@ -80,6 +109,11 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         reloadConfig();
         MaterialLists.load(getConfig(), getLogger());
         Msg.init(this);
+        if (magic != null) magic.reloadMults();
+    }
+
+    public MagicSystem magic() {
+        return magic;
     }
 
     public QuirkStorage storage() {

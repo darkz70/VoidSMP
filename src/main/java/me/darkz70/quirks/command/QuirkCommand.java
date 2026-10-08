@@ -144,9 +144,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                 "%player%", target.getName(),
                 "%quirk%", quirk.display(),
                 "%level%", String.valueOf(level));
-        Msg.send(target, "you-got-quirk",
-                "%quirk%", quirk.display(),
-                "%level%", String.valueOf(level));
+        // скрытность админ-выдачи: получение причуды не анонсируем (спека 1.0)
     }
 
     /** /quirk remove <игрок> [причуда] — снимает одну причуду, а без её имени — весь набор. */
@@ -176,7 +174,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
 
         if (removed) {
             Msg.send(sender, "removed", "%player%", target.getName());
-            Msg.send(target, "you-lost-quirk");
+            // скрытность: снятие админом не анонсируется (спека 1.0)
         } else {
             Msg.send(sender, "info-none");
         }

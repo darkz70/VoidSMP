@@ -146,7 +146,7 @@ messages:
   set-ok: "%prefix%&aИгроку &f%player% &aназначена причуда &d%quirk% &a(ур. &d%level%&a)."
   removed: "%prefix%&aПричуда игрока &f%player% &aснята."
   reload-ok: "%prefix%&aКонфиг перезагружен."
-  you-got-quirk: "%prefix%&dТвоя расколотая душа отозвалась! Причуда: &f%quirk% &dур. &f%level%&d."
+  you-got-quirk: "%prefix%&dРасколотая душа отозвалась… в ней что-то дрогнуло."
   you-lost-quirk: "%prefix%&7Твоя причуда угасла…"
   info-header: "&8&m--------&r &5Причуды %player% &8&m--------"
   info-line: "&fПричуда: &d%quirk% &7| &fУровень: &d%level%"
@@ -161,18 +161,18 @@ messages:
   axe-sword-craft-denied: "&cТвои руки отталкивают мечи. Крафт невозможен."
   axe-sword-to-stick: "&eМеч в твоём инвентаре рассыпался в палку…"
   axe-no-meat: "&2Тебя мутит… твоё тело принимает только мясо."
-  axe-hint-2: "&eНажми &fCtrl &eс топором в руке — режим ярости"
-  axe-hint-3: "&eShift+ПКМ &f— разрыв пространства &8| &eCtrl &f— ярость"
+  axe-hint-2: "&eShift+ЛКМ &fтопором — ярость"
+  axe-hint-3: "&eShift+ПКМ &f— разрыв пространства &8| &eShift+ЛКМ &f— ярость"
   axe-rage-on: "&4Ярость переполняет тебя!"
   axe-rage-cooldown: "&cЯрость остывает: &f%time%&c."
   axe-teleport-cooldown: "&cРывок ещё остывает: &f%time% с."
   axe-teleport-fail: "&cНекуда телепортироваться."
   bedrock-steaks: "%prefix%&7Расколотая душа отзывается: &f+%amount% стейка(-ов)!"
   bedrock-aoe: "%prefix%&8Ударная волна души ранила монстров поблизости!"
-  bedrock-immortal: "%prefix%&8Ядро бедрока вспыхивает — ты неуязвим!"
+  bedrock-immortal: "%prefix%&8Душа вспыхивает ядром — ты неуязвим!"
   sculk-denied: "&2Плоть отторгает это…"
   shard-given: "%prefix%&aОсколок души &d%quirk% &aур. &d%level% &aвыдан игроку &f%player%&a."
-  shard-used: "%prefix%&dОсколок души вливается в тебя… Причуда: &f%quirk% &dур. &f%level%&d."
+  shard-used: "%prefix%&dОсколок души вливается в тебя… душа отозвалась."
   shard-weaker: "%prefix%&7Твоя душа уже носит эту причуду (или сильнее). Осколок сохранён."
   soul-freed: "&d✦ &b%player% &dосвободил душу из клетки лабиринта! Она оставила осколок…"
   pack-link: "%prefix%&bРесурспак VoidSMP: &f%link%\n%prefix%&7Пропиши ссылку в server.properties в строку &fresource-pack=&7 и перезапусти."
@@ -181,11 +181,11 @@ messages:
   lab-exists: "%prefix%&eЛабиринт уже построен. Телепорт: /quirk lab tp"
   lab-no-world: "%prefix%&cЛабиринт ещё не создан. Сначала /quirk lab create"
   lab-tp: "%prefix%&dТы входишь в лабиринт душ…"
-  antidote-cured: "%prefix%&2Антидот жжёт вены… Скалк покидает твоё тело!"
-  antidote-none: "%prefix%&7Горьковато. Но лечить нечего — скалка в тебе нет."
+  antidote-cured: "%prefix%&2Антидот жжёт вены… чужеродное покидает твоё тело!"
+  antidote-none: "%prefix%&7Горьковато. Но и изгонять нечего."
   farmer-raw-denied: "&eСырое! Это нужно пожарить."
-  farmer-craft-denied: "&cТолько Фермер знает рецепт супер-удобрения."
-  spider-meat-denied: "&cПаук питается только мясом!"
+  farmer-craft-denied: "&cТвоим рукам этот рецепт не подвластен."
+  spider-meat-denied: "&cЭто тело питается только мясом!"
   spider-webs-hint: "&eShift + ПКМ мечом &f— выстрел паутиной &8(&7нужно 9 паутины&8)"
   spider-webs-cooldown: "&cПаутинные железы отдыхают: &f%time%&c."
   spider-webs-none: "&cНужно минимум 9 блоков паутины в инвентаре!"
@@ -196,3 +196,98 @@ messages:
   title-engineer-redstone: "&cРедстоуна поблизости: &f%count%"
   title-engineer-tnt: "&4ТНТ рядом: &c%count%"
   title-cat-water: "&bВоды поблизости: &f%count%"
+
+  # v1.0 — магия
+  magic-no-mage: "&7Ты ещё не ощутил стихию. Найди книгу стихии…"
+  magic-bar: "%emoji% %element% &8| &bМана %mana%/%max% &8| &f%spell%"
+  magic-learned: "&dСтихия отозвалась! %emoji% &f%element% &dстала твоей. &7ПКМ фокусом — каст, Q — смена, F — меню."
+  magic-already-element: "&7Твоя душа уже слушает: &f%element%&7. Смена — только зельем переквалификации."
+  magic-need-four-books: "&cСвет и тьма смиряются только теми, кто держит &f4 книги&c других стихий."
+  magic-book-weak: "&cЭта книга слишком сильна для тебя. Нужен уровень магии %min%+."
+  magic-level-up: "&b✦ Уровень магии: &f%level%&b!"
+  magic-spell-locked: "&8Заклинание &7%spell% &8откроется на %level% уровне магии."
+  magic-cooldown: "&7Заклинание остывает: &f%time%с&7."
+  magic-no-mana: "&cМаны не хватает — нужно %need%."
+  magic-quirks-back: "&7Отголоски чужих душ рассеялись. Ты снова собой."
+  magic-flight-end: "&7Крылья магии угасают… плавное снижение."
+  magic-menu-title: "%emoji% Заклинания: %element%"
+  magic-menu-item: "%emoji% &f%spell% %state%"
+  magic-usage: "&f/magic &8— меню заклинаний &8| &f/magic book <стихия> [игрок] &8| &f/magic upbook <1-5> [игрок] &8| &f/magic brew <тег> [игрок] &8| &f/magic set <игрок> <element|level|mana> <значение>"
+  magic-bad-element: "&cНеизвестная стихия. Доступны: fire, water, wind, earth, dark, light."
+  magic-book-given: "&aКнига стихии &d%element% &aвыдана игроку &f%player%&a."
+  magic-brew-given: "&aЗелье &d%brew% &aвыдано игроку &f%player%&a."
+  magic-bad-brew: "&cНеизвестный тег зелья. См. таб-комплит."
+  magic-set-ok: "&aМагия игрока &f%player% &aобновлена."
+  magic-cast-fire3: "&cТвоя кожа дышит жаром — огненная аура!"
+  magic-cast-fire4: "&6Огонь больше не тронет тебя (10 минут)."
+  magic-cast-fire5: "&6Ты — огненный профи: жар в крови, удары вдвойне!"
+  magic-cast-fire6: "&4Семь блейзов отвечают на зов!"
+  magic-cast-water3: "&bЛёд стынет вокруг тебя."
+  magic-cast-water4: "&bВода теперь твой дом (10 минут)."
+  magic-cast-water6: "&dГлубины делятся своей силой."
+  magic-cast-wind3: "&fВетер подхватывает твои шаги."
+  magic-cast-wind4: "&fПадение больше не страшно (5 минут)."
+  magic-cast-wind5: "&fБуря удерживает врагов на месте…"
+  magic-cast-wind6: "&fПорабощённая буря несёт тебя к небу!"
+  magic-cast-earth1: "&7Каменный кулак заряжен — следующий удар сокрушит."
+  magic-cast-earth3: "&7Каменная аура окружила тебя."
+  magic-cast-earth4: "&7Ты твёрд, как сама порода (5 минут)."
+  magic-cast-earth6: "&8Земля встаёт стеной!"
+  magic-cast-dark2: "&5Твои руки касаются теней."
+  magic-cast-dark3: "&5Тьма прячет тебя от чужих глаз (10 минут)."
+  magic-cast-dark4: "&5Тени укрывают — четверть ударов пройдёт мимо."
+  magic-cast-dark5: "&5Твои теневые копии дублируют удары!"
+  magic-cast-light3: "&eАура света жжёт нежить вокруг (30 с)."
+  magic-cast-light4: "&eСвет защищает твой разум (5 минут)."
+  magic-cast-light5: "&eСветовой щит: поглощает до 20 урона (30 с)."
+  # v1.0 — зелья
+  potion-quirk-away: "&8Что-то внутри тебя растворилось в тишине…"
+  potion-nothing: "&7Прошло сквозь тебя, ничего не найдя."
+  potion-soul-stir: "&5Что-то вибрирует из глубин… твоя душа отзывается."
+  potion-samogon: "&6Самогон ур. %level% &7— горит, но живёшь."
+  potion-deny: "&8Всё хорошее смыто."
+  potion-confirm: "&fВсё плохое смыто."
+  potion-life: "&cЖизнь пульсирует в тебе!"
+  potion-limit: "&cТело не выдержит ещё одну дозу так скоро."
+  potion-watch: "&8Зелье смотрит, справишься ли ты… (60 с)"
+  potion-noharm-strike: "&4&lТы ослаб — зелье вреда отомстило!"
+  potion-norestore-gift: "&2&lТы выстоял без лечения — восстановление отвечает!"
+  potion-fly: "&fВосемь секунд — и ты птица!"
+  potion-god: "&6&lТы бог. Две минуты."
+  potion-god-price: "&c&lРасплата: −2 максимального здоровья на 7 дней…"
+  potion-berserk: "&4&lЯРОСТЬ БЕЗ БОЛИ!"
+  potion-qp-short: "&dНа десять секунд ты — всё и каждый…"
+  potion-qp-warn: "&4Глоток №%count% за полчаса. Душа рвётся: −2 макс. здоровья на 5 минут!"
+  potion-qp-death: "&4&lДУША ЛОПНУЛА. &c&oСердце навсегда слабее…"
+  potion-qp-ban: "&8&oТвоя душа навсегда безмолвна для этого зелья."
+  potion-return: "&bЧистый лист. Всё, что наслоила магия душ, смыто."
+  potion-retrain: "&eСтихия забыта. Можно начать магию заново."
+  potion-demagic: "&5Волна притупления расходится от тебя…"
+  potion-demagic-hit: "&5Твой уровень магии осыпался на единицу."
+  potion-grandsam: "&6Великий самогон вскипает в жилах!"
+  gaid-given: "&aКнига-гайд открыта. Приятного чтения."
+  gaid-player-only: "&cТолько из игры."
+
+# ---------- v1.0: магия ----------
+magic:
+  # реген маны: сколько маны за тик (тик = 2 сек, с 20+ уровня — 1 сек)
+  mana-per-tick: 5
+  fast-regen-level: 20
+  # матрицы урона: стихия-заклинания × причуда-жертвы (перемножаются со второй таблицей)
+  elem-vs-quirk:
+    fire:  { axe: 1.2, cat: 1.0, bedrock: 0.5, farmer: 1.0, sculk: 0.6, engineer: 1.0, amphibian: 1.2, spider: 1.3 }
+    water: { axe: 0.9, cat: 0.8, bedrock: 0.7, farmer: 1.0, sculk: 1.0, engineer: 1.0, amphibian: 1.5, spider: 1.1 }
+    wind:  { axe: 0.8, cat: 1.1, bedrock: 0.6, farmer: 1.0, sculk: 1.0, engineer: 1.0, amphibian: 1.0, spider: 0.9 }
+    earth: { axe: 1.0, cat: 1.0, bedrock: 0.4, farmer: 1.2, sculk: 1.2, engineer: 1.2, amphibian: 0.9, spider: 1.1 }
+    dark:  { axe: 1.0, cat: 1.2, bedrock: 0.6, farmer: 1.0, sculk: 0.5, engineer: 1.0, amphibian: 1.0, spider: 0.9 }
+    light: { axe: 1.0, cat: 0.9, bedrock: 0.5, farmer: 1.0, sculk: 1.6, engineer: 1.0, amphibian: 1.0, spider: 1.3 }
+  # матрицы урона: причуда-кастера × стихия-заклинания
+  quirk-vs-elem:
+    axe:       { fire: 1.3, water: 0.9, wind: 1.0, earth: 1.1, dark: 1.1, light: 0.8 }
+    cat:       { fire: 1.0, water: 0.7, wind: 1.2, earth: 0.9, dark: 1.3, light: 1.0 }
+    bedrock:   { fire: 0.8, water: 0.9, wind: 0.7, earth: 1.4, dark: 1.0, light: 1.1 }
+    sculk:     { fire: 0.7, water: 0.8, wind: 0.9, earth: 1.1, dark: 1.5, light: 0.6 }
+    farmer:    { fire: 0.9, water: 1.3, wind: 1.1, earth: 1.3, dark: 0.8, light: 1.1 }
+    engineer:  { fire: 1.2, water: 1.0, wind: 1.1, earth: 1.1, dark: 0.9, light: 1.0 }
+    amphibian: { fire: 0.6, water: 1.5, wind: 1.1, earth: 0.9, dark: 0.9, light: 1.0 }
+    spider:    { fire: 1.1, water: 0.8, wind: 1.0, earth: 1.1, dark: 1.3, light: 0.8 }

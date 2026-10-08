@@ -27,7 +27,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
-import org.bukkit.event.player.PlayerToggleSprintEvent;
+
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -228,15 +228,11 @@ public final class AxeListener implements Listener {
         }
     }
 
-    // ---------- режим ярости (2-3 ур.): просто нажми Ctrl с топором в руке ----------
+    // ---------- режим ярости (2-3 ур.): Shift + ЛКМ топором ----------
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onSprint(PlayerToggleSprintEvent event) {
-        if (!event.isSprinting()) return;
-        Player player = event.getPlayer();
+    private void tryRage(Player player) {
         int lvl = level(player);
         if (lvl < 2) return;
-        if (!isAxe(player.getInventory().getItemInMainHand().getType())) return;
 
         long cooldownMs = plugin.getConfig().getLong("axe.rage-cooldown-minutes", 30) * 60_000L;
         long remaining = ScanUtil.remaining(player.getUniqueId(), "axe-rage", cooldownMs);
@@ -260,15 +256,24 @@ public final class AxeListener implements Listener {
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5f, 1.2f);
     }
 
-    // ---------- разрыв пространства (3 ур.): Shift + ПКМ топором ----------
+    // ---------- разрыв пространства (3 ур.): Shift + ПКМ топором; ярость: Shift + ЛКМ ----------
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onInteract(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
         Action action = event.getAction();
-        if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
-
         Player player = event.getPlayer();
+
+        // ярость: Shift + ЛКМ топором (2+ ур.)
+        if ((action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK)
+                && player.isSneaking()
+                && level(player) >= 2
+                && isAxe(player.getInventory().getItemInMainHand().getType())) {
+            tryRage(player);
+            return;
+        }
+
+        if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
         if (level(player) < 3) return;
         if (!player.isSneaking()) return;
         if (!isAxe(player.getInventory().getItemInMainHand().getType())) return;

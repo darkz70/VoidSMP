@@ -15,6 +15,15 @@ public final class PlayerData {
     private final Map<String, Long> cooldowns = new HashMap<>();
     private boolean notifications = true;
 
+    // магия
+    private String magicElement = null;   // fire|water|wind|earth|dark|light
+    private int magicLevel = 1;
+    private double mana = 0;
+    private int selectedSpell = 0;
+    /** бэкап набора причуд для зелья причуды/божества: "axe:2,cat:1" */
+    private String tmpQuirks = null;
+    private long tmpUntil = 0;
+
     public boolean has(Quirk quirk) {
         return quirks.containsKey(quirk);
     }
@@ -58,5 +67,57 @@ public final class PlayerData {
 
     public Map<String, Long> cooldowns() {
         return cooldowns;
+    }
+
+    // ---------- магия ----------
+
+    @org.jetbrains.annotations.Nullable
+    public String magicElement() {
+        return magicElement;
+    }
+
+    public void magicElement(@org.jetbrains.annotations.Nullable String element) {
+        this.magicElement = element;
+    }
+
+    public int magicLevel() {
+        return magicLevel;
+    }
+
+    public void magicLevel(int level) {
+        this.magicLevel = Math.max(1, level);
+    }
+
+    public double mana() {
+        return mana;
+    }
+
+    public void mana(double mana) {
+        this.mana = Math.max(0, mana);
+    }
+
+    public int selectedSpell() {
+        return selectedSpell;
+    }
+
+    public void selectedSpell(int index) {
+        this.selectedSpell = index;
+    }
+
+    @org.jetbrains.annotations.Nullable
+    public String tmpQuirks() {
+        return tmpQuirks;
+    }
+
+    public void tmpQuirks(@org.jetbrains.annotations.Nullable String backup) {
+        this.tmpQuirks = backup;
+    }
+
+    public long tmpUntil() {
+        return tmpUntil;
+    }
+
+    public void tmpUntil(long until) {
+        this.tmpUntil = until;
     }
 }

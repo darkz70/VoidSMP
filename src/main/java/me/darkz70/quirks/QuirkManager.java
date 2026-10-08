@@ -57,7 +57,7 @@ public final class QuirkManager {
         if (data == null || !data.has(quirk)) return false;
         unapplyQuirk(player, quirk);
         data.remove(quirk);
-        if (data.isEmpty()) {
+        if (data.isEmpty() && data.magicElement() == null && data.tmpQuirks() == null) {
             storage.remove(player.getUniqueId());
         } else {
             storage.save();
@@ -68,11 +68,24 @@ public final class QuirkManager {
     /** Снимает ВСЕ причуды. */
     public boolean removeAll(Player player) {
         PlayerData data = storage.get(player.getUniqueId());
-        if (data == null || data.isEmpty()) return false;
-        for (Map.Entry<Quirk, Integer> entry : data.entries()) {
-            unapplyQuirk(player, entry.getKey());
+        if (data == null || data.isEmpty()) {
+            if (data != null && data.magicElement() == null && data.tmpQuirks() == null) {
+                storage.remove(player.getUniqueId());
+                return true;
+            }
+            return false;
         }
-        storage.remove(player.getUniqueId());
+        java.util.List<Quirk> held = new java.util.ArrayList<>();
+        for (Map.Entry<Quirk, Integer> entry : data.entries()) held.add(entry.getKey());
+        for (Quirk quirk : held) {
+            unapplyQuirk(player, quirk);
+            data.remove(quirk);
+        }
+        if (data.magicElement() == null && data.tmpQuirks() == null) {
+            storage.remove(player.getUniqueId());
+        } else {
+            storage.save();
+        }
         return true;
     }
 
