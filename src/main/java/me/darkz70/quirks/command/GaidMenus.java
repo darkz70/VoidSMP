@@ -131,7 +131,8 @@ public final class GaidMenus implements Listener {
         if (tag.startsWith("elem-book-")) {
             Element element = Element.byId(tag.substring(10));
             if (element == Element.LIGHT || element == Element.DARK) {
-                return new String[]{"&7×: зелье океанида + зелье альбатроса + воздушного гнезда",
+                return new String[]{"&7×: варёное яйцо + птенца + глубин + панда + океанид",
+                    "&7+ альбатрос + воздушное гнездо (вся ветка, 7 предметов)",
                     "&8(оба фолианта выдаются парой)"};
             }
             return new String[]{"&7Верстак: книга + 4 аметиста + " + (element == null ? "?" : element.emoji())};
