@@ -185,15 +185,11 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             Msg.send(sender, "target-offline");
             return;
         }
+        // «временные причуды» — активный чит набора от зелья причуд: откатываем к бэкапу
         PlayerData data = plugin.storage().get(target.getUniqueId());
-        boolean removed = false;
-        if (data != null) {
-            for (Quirk quirk : Quirk.values()) {
-                if (plugin.storage().isTemporary(target.getUniqueId(), quirk)
-                        && plugin.quirks().remove(target, quirk)) {
-                    removed = true;
-                }
-            }
+        boolean removed = data != null && data.tmpQuirks() != null;
+        if (removed) {
+            plugin.magic().restoreTmp(target);
         }
         if (removed) {
             Msg.send(sender, "removed", "%player%", target.getName());
