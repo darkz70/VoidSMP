@@ -674,6 +674,16 @@ public final class BrewTree {
                 "&7Крыло над волной.");
     }
 
+    /** Финальный крафт яично-океанской ветки: оба фолианта (тёмный выдаётся бонусом). */
+    public static ItemStack makeFoliants() {
+        ItemStack item = me.darkz70.quirks.listener.CraftListener.makeElementBook(
+                me.darkz70.quirks.magic.Element.LIGHT);
+        item.editMeta(meta -> meta.getPersistentDataContainer().set(
+                me.darkz70.quirks.Keys.brewTarget, org.bukkit.persistence.PersistentDataType.STRING,
+                "duo:dark"));
+        return item;
+    }
+
     public static ItemStack makeNest() {
         return potion("&eЗелье воздушного гнезда", Color.fromRGB(0xEE, 0xDD, 0x99), "nest", null,
                 "&7Не говори «мы не такие».");
@@ -748,6 +758,8 @@ public final class BrewTree {
                 mat(Material.AMETHYST_SHARD), mat(Material.AMETHYST_SHARD), mark("knowledge"));
         rule(l -> makeArchimage(), mark("manapot"), mark("mind"));
         rule(l -> makeGreatArch(), mark("archimage"), mark("basis"), markPrefix("upbook-"));
+        // Светлый+тёмный фолианты: вершины яично-океанской ветки — только так
+        rule(l -> makeFoliants(), mark("oceanid"), mark("albatross"), mark("nest"));
         rule(l -> makeDarkMagic(), mark("infusion"), mark("manapot"), mark("darkpotion"), mat(Material.SCULK));
         rule(l -> makeLightMagic(), mark("infusion"), mark("manapot"), mark("lightpotion"),
                 mat(Material.GLOWSTONE));

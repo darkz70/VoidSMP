@@ -130,6 +130,10 @@ public final class GaidMenus implements Listener {
         if (tag == null) return new String[]{"&7(нет)"};
         if (tag.startsWith("elem-book-")) {
             Element element = Element.byId(tag.substring(10));
+            if (element == Element.LIGHT || element == Element.DARK) {
+                return new String[]{"&7×: зелье океанида + зелье альбатроса + воздушного гнезда",
+                    "&8(оба фолианта выдаются парой)"};
+            }
             return new String[]{"&7Верстак: книга + 4 аметиста + " + (element == null ? "?" : element.emoji())};
         }
         if (tag.startsWith("upbook-")) {

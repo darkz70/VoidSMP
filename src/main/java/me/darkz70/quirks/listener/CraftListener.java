@@ -94,6 +94,9 @@ public final class CraftListener implements Listener {
 
         // 6 книг стихий: книга + 4 аметиста + катализатор стихии
         for (Element element : Element.values()) {
+            if (element == Element.LIGHT || element == Element.DARK) {
+                continue; // светлый и тёмный фолианты — только вершинами яично-океанской ветки
+            }
             ShapelessRecipe book = new ShapelessRecipe(new NamespacedKey(plugin, "elem_book_" + element.id()),
                     makeElementBook(element));
             book.addIngredient(Material.BOOK);
@@ -296,6 +299,14 @@ public final class CraftListener implements Listener {
         if (BrewTree.tagged(result, "fertilizer") && plugin.quirks().levelOf(player, Quirk.FARMER) == 0) {
             event.setCancelled(true);
             Msg.send(player, "farmer-craft-denied");
+            return;
+        }
+        // яично-океанская тройка: светлый фолиант ложится стеком, тёмный — бонусом
+        if (result != null && "duo:dark".equals(result.getPersistentDataContainer()
+                .get(Keys.brewTarget, org.bukkit.persistence.PersistentDataType.STRING))) {
+            player.getInventory().addItem(makeElementBook(Element.DARK)).values()
+                    .forEach(rest -> player.getWorld().dropItemNaturally(player.getLocation(), rest));
+            Msg.send(player, "foliants-duo");
         }
     }
 
