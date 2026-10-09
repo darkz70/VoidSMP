@@ -189,7 +189,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
         PlayerData data = plugin.storage().get(target.getUniqueId());
         boolean removed = data != null && data.tmpQuirks() != null;
         if (removed) {
-            plugin.magic().restoreTmp(target);
+            plugin.magic().restoreTmpQuirks(target);
         }
         if (removed) {
             Msg.send(sender, "removed", "%player%", target.getName());
