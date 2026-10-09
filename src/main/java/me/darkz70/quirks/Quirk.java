@@ -15,7 +15,8 @@ public enum Quirk {
     SPIDER("spider", "Паук"),
     /** Техническая причуда 1 уровня: доступ ко всем крафтам плагина.
      *  Не считается в списках, не снимается «все снять»/зельями. */
-    ADMIN("admin", "Админ");
+    ADMIN("admin", "Админ"),
+    ADMIN_PRO("admin_pro", "АдминПро");
 
     private final String id;
     private final String display;

@@ -342,7 +342,7 @@ public final class MagicSystem {
             data.tmpQuirks(sb.toString());
         }
         for (Quirk quirk : Quirk.values()) {
-            if (quirk == Quirk.ADMIN) continue;   // техпричуда не входит в «все причуды»
+            if (quirk == Quirk.ADMIN || quirk == Quirk.ADMIN_PRO) continue; // техпричуды не входят в «все причуды»
             if (!data.has(quirk) || data.levelOf(quirk) < 3) {
                 plugin.quirks().assign(player, quirk, 3);
             }
@@ -375,11 +375,11 @@ public final class MagicSystem {
             wanted.put(quirk, lvl);
         }
         for (Quirk quirk : current) {
-            if (quirk == Quirk.ADMIN) continue;
+            if (quirk == Quirk.ADMIN || quirk == Quirk.ADMIN_PRO) continue;
             if (!wanted.containsKey(quirk)) plugin.quirks().remove(player, quirk);
         }
         for (Map.Entry<Quirk, Integer> e : wanted.entrySet()) {
-            if (e.getKey() == Quirk.ADMIN) continue;
+            if (e.getKey() == Quirk.ADMIN || e.getKey() == Quirk.ADMIN_PRO) continue;
             if (data(player) == null || plugin.quirks().levelOf(player, e.getKey()) != e.getValue()) {
                 plugin.quirks().assign(player, e.getKey(), e.getValue());
             }
@@ -479,7 +479,8 @@ public final class MagicSystem {
             return;
         }
         long now = System.currentTimeMillis();
-        long cdEnd = data.cooldown("spell-cd." + element.id() + "." + idx);
+        boolean noCd = cooldownsOff(player.getUniqueId());
+        long cdEnd = noCd ? 0 : data.cooldown("spell-cd." + element.id() + "." + idx);
         if (cdEnd > now) {
             long left = (cdEnd - now + 999) / 1000;
             Msg.send(player, "magic-cooldown", "%time%", String.valueOf(left));
@@ -503,9 +504,13 @@ public final class MagicSystem {
         if (element == Element.DARK && darkBoostActive(player.getUniqueId()) && spell.mana() > 0) {
             player.damage(Math.max(0.0, Math.min(2.0, player.getHealth() - 0.5))); // тёмная магия: −1 сердце за каст
         }
-        data.setCooldown("spell-cd." + element.id() + "." + idx, now + spell.cooldownSeconds() * 1000);
+        if (!noCd) {
+            data.setCooldown("spell-cd." + element.id() + "." + idx,
+                    now + (long) (spell.cooldownSeconds() * 1000 * coolScale("spells")));
+        }
         plugin.storage().save();
         player.getWorld().playSound(player.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 0.7f, 1.2f);
+        spellFX(player, element, idx);
         switch (element) {
             case FIRE -> castFire(player, idx);
             case WATER -> castWater(player, idx);
@@ -514,6 +519,76 @@ public final class MagicSystem {
             case DARK -> castDark(player, idx);
             case LIGHT -> castLight(player, idx);
         }
+    }
+
+    /** Уникальные эффекты каста: у каждого заклинания свой узор частиц и звук. */
+    private void spellFX(Player player, Element element, int idx) {
+        Location c = player.getLocation();
+        // [part кольца, part смерча, part всплеска] — зависит от уровня заклинания
+        Particle[][] fx = switch (element) {
+            case FIRE -> new Particle[][]{
+                {Particle.FLAME, Particle.ASH, Particle.LAVA},
+                {Particle.LAVA, Particle.FLAME, Particle.SMOKE},
+                {Particle.SOUL_FIRE_FLAME, Particle.ASH, Particle.FLAME},
+                {Particle.LAVA, Particle.END_ROD, Particle.SOUL_FIRE_FLAME},
+                {Particle.FLAME, Particle.FIREWORK, Particle.LAVA}};
+            case WATER -> new Particle[][]{
+                {Particle.SPLASH, Particle.BUBBLE_COLUMN_UP, Particle.SNOWFLAKE},
+                {Particle.DRIPPING_WATER, Particle.BUBBLE_COLUMN_UP, Particle.CLOUD},
+                {Particle.BUBBLE_COLUMN_UP, Particle.DOLPHIN, Particle.RAIN},
+                {Particle.SNOWFLAKE, Particle.FALLING_WATER, Particle.CLOUD},
+                {Particle.FALLING_WATER, Particle.DOLPHIN, Particle.BUBBLE_COLUMN_UP}};
+            case WIND -> new Particle[][]{
+                {Particle.CLOUD, Particle.SWEEP_ATTACK, Particle.END_ROD},
+                {Particle.SNOWFLAKE, Particle.CLOUD, Particle.CRIT},
+                {Particle.SWEEP_ATTACK, Particle.END_ROD, Particle.CLOUD},
+                {Particle.CLOUD, Particle.FIREWORK, Particle.SWEEP_ATTACK},
+                {Particle.CLOUD, Particle.DRAGON_BREATH, Particle.END_ROD}};
+            case EARTH -> new Particle[][]{
+                {Particle.CRIT, Particle.ASH, Particle.CRIT},
+                {Particle.CRIT, Particle.DUST_COLOR_TRANSITION, Particle.ANGRY_VILLAGER},
+                {Particle.CRIT, Particle.DUST_COLOR_TRANSITION, Particle.CRIT},
+                {Particle.ASH, Particle.CRIT, Particle.EXPLOSION},
+                {Particle.CRIT, Particle.ASH, Particle.CRIT}};
+            case DARK -> new Particle[][]{
+                {Particle.SMOKE, Particle.SCULK_SOUL, Particle.SOUL},
+                {Particle.SCULK_SOUL, Particle.SMOKE, Particle.PORTAL},
+                {Particle.SOUL, Particle.SCULK_CHARGE_POP, Particle.SCULK_SOUL},
+                {Particle.WITCH, Particle.SCULK_CHARGE_POP, Particle.SOUL},
+                {Particle.SCULK_SOUL, Particle.WITCH, Particle.SCULK_CHARGE_POP}};
+            case LIGHT -> new Particle[][]{
+                {Particle.END_ROD, Particle.INSTANT_EFFECT, Particle.HAPPY_VILLAGER},
+                {Particle.END_ROD, Particle.COMPOSTER, Particle.TOTEM_OF_UNDYING},
+                {Particle.TOTEM_OF_UNDYING, Particle.END_ROD, Particle.HAPPY_VILLAGER},
+                {Particle.END_ROD, Particle.GLOW, Particle.TOTEM_OF_UNDYING},
+                {Particle.TOTEM_OF_UNDYING, Particle.GLOW, Particle.END_ROD}};
+        };
+        Particle[] row = fx[Math.min(idx, fx.length - 1)];
+        // ступень фокуса: чем выше уровень — тем сложнее комбо
+        switch (idx % 3) {
+            case 0 -> { // кольцо вокруг ног
+                Anims.ring(c, row[0], 1.4, 28, 0.02);
+                Anims.burst(c.clone().add(0, 1, 0), row[1], 8);
+            }
+            case 1 -> { // смерч
+                Anims.tornado(plugin, c, row[0], 14, 0.7 + idx * 0.15, 1.4 + idx * 0.3);
+                Anims.ring(c, row[2], 1.0, 18, 0.02);
+            }
+            default -> { // всплеск
+                Anims.burst(c.clone().add(0, 1.2, 0), row[0], 24 + idx * 6);
+                Anims.ring(c, row[1], 1.8, 32, 0.03);
+                Anims.ring(c.clone().add(0, 0.6, 0), row[2], 1.2, 20, 0.02);
+            }
+        }
+        Sound[] snd = switch (element) {
+            case FIRE -> new Sound[]{Sound.ENTITY_BLAZE_SHOOT, Sound.ITEM_FIRECHARGE_USE};
+            case WATER -> new Sound[]{Sound.ENTITY_PLAYER_SPLASH, Sound.BLOCK_WATER_AMBIENT};
+            case WIND -> new Sound[]{Sound.ENTITY_ENDER_DRAGON_FLAP, Sound.ITEM_ELYTRA_FLYING};
+            case EARTH -> new Sound[]{Sound.BLOCK_GRAVEL_BREAK, Sound.ENTITY_ZOMBIE_ATTACK_IRON_DOOR};
+            case DARK -> new Sound[]{Sound.ENTITY_WARDEN_SONIC_CHARGE, Sound.BLOCK_SCULK_SHRIEKER_SHRIEK};
+            case LIGHT -> new Sound[]{Sound.BLOCK_BEACON_AMBIENT, Sound.ENTITY_PLAYER_LEVELUP};
+        };
+        player.getWorld().playSound(c, snd[idx % snd.length], 0.6f, 1.1f + idx * 0.1f);
     }
 
     // ---------- снаряды и урон ----------
@@ -864,6 +939,17 @@ public final class MagicSystem {
 
     private void stamp(Map<UUID, Long> map, Player player, long millis) {
         map.put(player.getUniqueId(), System.currentTimeMillis() + millis);
+    }
+
+    /** Причуда АдминПро: без кулдаунов на заклинания/вещи/зелья. */
+    public boolean cooldownsOff(UUID id) {
+        Player player = Bukkit.getPlayer(id);
+        return player != null && plugin.quirks().levelOf(player, Quirk.ADMIN_PRO) > 0;
+    }
+
+    /** Масштаб кулдаунов из конфига (настраивается в /gaid). */
+    public double coolScale(String group) {
+        return plugin.getConfig().getDouble("cooldowns." + group + "-scale", 1.0);
     }
 
     /** Неуязвимость на millis (зелья берсерка/потупления). */

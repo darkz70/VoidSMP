@@ -322,3 +322,10 @@ magic:
     engineer:  { fire: 1.2, water: 1.0, wind: 1.1, earth: 1.1, dark: 0.9, light: 1.0 }
     amphibian: { fire: 0.6, water: 1.5, wind: 1.1, earth: 0.9, dark: 0.9, light: 1.0 }
     spider:    { fire: 1.1, water: 0.8, wind: 1.0, earth: 1.1, dark: 1.3, light: 0.8 }
+
+# Масштаб кулдаунов (настраивается из /gaid → «Настройки КД»):
+# 1.0 = как задумано, 0.5 = вдвое быстрее, 2.0 = вдвое дольше.
+cooldowns:
+  spells-scale: 1.0
+  potions-scale: 1.0
+  items-scale: 1.0

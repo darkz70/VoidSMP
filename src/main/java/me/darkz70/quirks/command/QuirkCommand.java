@@ -22,10 +22,11 @@ import org.jetbrains.annotations.Nullable;
 /** /quirk — управление причудами. Причуд можно несколько на одного игрока. */
 public final class QuirkCommand implements CommandExecutor, TabCompleter {
 
-    private static final List<String> SUBS = List.of("set", "remove", "info", "list", "reload", "notify", "item", "pack", "lab");
+    private static final List<String> SUBS = List.of("set", "remove", "remove_admin", "remove_tmp", "info", "list", "reload", "notify", "item", "pack", "lab");
     private static final List<String> QUIRKS = List.of(
             "инженер", "кот", "бедрок", "топор", "скалк", "фермер", "земноводный", "паук",
-            "engineer", "cat", "bedrock", "axe", "sculk", "farmer", "amphibian", "spider");
+            "engineer", "cat", "bedrock", "axe", "sculk", "farmer", "amphibian", "spider",
+            "admin", "admin_pro", "админ", "админпро");
 
     private final VoidQuirksPlugin plugin;
 
@@ -43,6 +44,8 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "set" -> handleSet(sender, args);
             case "remove", "clear" -> handleRemove(sender, args);
+            case "remove_admin" -> handleRemoveAdmin(sender, args);
+            case "remove_tmp" -> handleRemoveTmp(sender, args);
             case "info", "get" -> handleInfo(sender, args);
             case "list" -> handleList(sender);
             case "reload" -> handleReload(sender);
@@ -86,6 +89,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                 return;
             }
         }
+        if (quirk == Quirk.ADMIN || quirk == Quirk.ADMIN_PRO) level = 1; // техпричуда всегда 1-го
         Player target;
         if (args.length >= 4) {
             target = Bukkit.getPlayerExact(args[3]);
@@ -138,6 +142,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                 return;
             }
         }
+        if (quirk == Quirk.ADMIN || quirk == Quirk.ADMIN_PRO) level = 1; // техпричуда всегда 1-го
 
         plugin.quirks().assign(target, quirk, level);
         Msg.send(sender, "set-ok",
@@ -145,6 +150,56 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                 "%quirk%", quirk.display(),
                 "%level%", String.valueOf(level));
         // скрытность админ-выдачи: получение причуды не анонсируем (спека 1.0)
+    }
+
+    /** /quirk remove_admin <игрок> — снять причуду Админ / АдминПро. */
+    private void handleRemoveAdmin(CommandSender sender, String[] args) {
+        if (!admin(sender)) return;
+        if (args.length < 2) {
+            Msg.send(sender, "usage");
+            return;
+        }
+        Player target = Bukkit.getPlayerExact(args[1]);
+        if (target == null) {
+            Msg.send(sender, "target-offline");
+            return;
+        }
+        boolean removed = plugin.quirks().remove(target, Quirk.ADMIN);
+        removed |= plugin.quirks().remove(target, Quirk.ADMIN_PRO);
+        if (removed) {
+            Msg.send(sender, "removed", "%player%", target.getName());
+        } else {
+            Msg.send(sender, "info-none");
+        }
+    }
+
+    /** /quirk remove_tmp <игрок> — снять только временные причуды. */
+    private void handleRemoveTmp(CommandSender sender, String[] args) {
+        if (!admin(sender)) return;
+        if (args.length < 2) {
+            Msg.send(sender, "usage");
+            return;
+        }
+        Player target = Bukkit.getPlayerExact(args[1]);
+        if (target == null) {
+            Msg.send(sender, "target-offline");
+            return;
+        }
+        PlayerData data = plugin.storage().get(target.getUniqueId());
+        boolean removed = false;
+        if (data != null) {
+            for (Quirk quirk : Quirk.values()) {
+                if (plugin.storage().isTemporary(target.getUniqueId(), quirk)
+                        && plugin.quirks().remove(target, quirk)) {
+                    removed = true;
+                }
+            }
+        }
+        if (removed) {
+            Msg.send(sender, "removed", "%player%", target.getName());
+        } else {
+            Msg.send(sender, "info-none");
+        }
     }
 
     /** /quirk remove <игрок> [причуда] — снимает одну причуду, а без её имени — весь набор. */
@@ -222,6 +277,9 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             String name = Bukkit.getOfflinePlayer(entry.getKey()).getName();
             List<String> parts = new ArrayList<>();
             for (Map.Entry<Quirk, Integer> quirkEntry : data.entries()) {
+                if (quirkEntry.getKey() == Quirk.ADMIN || quirkEntry.getKey() == Quirk.ADMIN_PRO) {
+                    continue; // техпричуды — вне списков
+                }
                 parts.add(quirkEntry.getKey().display() + " ур. " + quirkEntry.getValue());
             }
             sender.sendMessage(Msg.comp("list-line",
@@ -300,7 +358,9 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             if ("tp".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("tp");
         } else if (args.length == 3 && args[0].equalsIgnoreCase("lab") && args[1].equalsIgnoreCase("tp")) {
             addPlayers(out, args[2]);
-        } else if (args.length == 2 && List.of("set", "remove", "info", "get").contains(args[0].toLowerCase(Locale.ROOT))) {
+        } else if (args.length == 2
+                && List.of("set", "remove", "info", "get", "remove_admin", "remove_tmp")
+                    .contains(args[0].toLowerCase(Locale.ROOT))) {
             addPlayers(out, args[1]);
         } else if (args.length == 2 && args[0].equalsIgnoreCase("item")) {
             String prefix = args[1].toLowerCase(Locale.ROOT);

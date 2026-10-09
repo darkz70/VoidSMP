@@ -127,13 +127,14 @@ public final class MagicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDrop(PlayerDropItemEvent event) {
+        // Shift+Q для OP — админское меню причуд/магий (M сервер ловить не умеет)
+        if (event.getPlayer().isSneaking() && event.getPlayer().isOp()) {
+            event.setCancelled(true);
+            me.darkz70.quirks.command.AdminMenu.openHub(plugin, event.getPlayer());
+            return;
+        }
         ItemStack item = event.getItemDrop().getItemStack();
         if (!isFocus(item)) {
-            // Shift+Q для OP — админское меню причуд/магий (M сервер ловить не умеет)
-            if (event.getPlayer().isSneaking() && event.getPlayer().isOp()) {
-                event.setCancelled(true);
-                me.darkz70.quirks.command.AdminMenu.openHub(plugin, event.getPlayer());
-            }
             return;
         }
         event.setCancelled(true);

@@ -446,6 +446,7 @@ public final class PotionListener implements Listener {
 
     /** Жёсткий кулдаун зелья (минуты/секунды в ms). false — зелье ещё остывает (пытливый пьяница). */
     private boolean potionCd(Player player, PlayerData data, String tag, long windowMs, long now) {
+        if (magic().cooldownsOff(player.getUniqueId())) return true; // АдминПро без кд
         long end = data.cooldown("potcd." + tag);
         if (end > now) {
             long left = (end - now + 999) / 1000;
@@ -453,7 +454,8 @@ public final class PotionListener implements Listener {
             Msg.send(player, "potion-cd", "%time%", time);
             return false;
         }
-        data.setCooldown("potcd." + tag, now + windowMs);
+        long window = (long) (windowMs * magic().coolScale("potions"));
+        data.setCooldown("potcd." + tag, now + window);
         plugin.storage().save();
         return true;
     }

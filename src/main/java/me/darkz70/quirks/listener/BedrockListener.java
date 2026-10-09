@@ -133,9 +133,15 @@ public final class BedrockListener implements Listener {
         if (data == null) return;
         long now = System.currentTimeMillis();
         long cooldown = plugin.getConfig().getLong("bedrock.laststand-cooldown-minutes", 60) * 60_000L;
-        if (now < data.cooldown("laststand")) return;
+        if (!plugin.magic().cooldownsOff(player.getUniqueId()) && now < data.cooldown("laststand")) return;
 
-        data.setCooldown("laststand", now + cooldown);
+        long scaled = plugin.magic().cooldownsOff(player.getUniqueId()) ? 0
+                : (long) (cooldown * plugin.magic().coolScale("items"));
+        data.setCooldown("laststand", now + scaled);
+        me.darkz70.quirks.util.Anims.burst(player.getLocation().add(0, 1, 0),
+                org.bukkit.Particle.CRIT, 40);
+        me.darkz70.quirks.util.Anims.ring(player.getLocation(),
+                org.bukkit.Particle.HEART, 1.4, 12, 0.01);
         plugin.storage().save();
         event.setCancelled(true);
         int ticks = plugin.getConfig().getInt("bedrock.laststand-seconds", 5) * 20;

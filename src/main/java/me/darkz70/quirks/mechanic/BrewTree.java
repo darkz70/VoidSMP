@@ -109,9 +109,9 @@ public final class BrewTree {
                 "&7Смывает всё плохое.");
     }
 
-    /** Зелье отключения: снимает ВСЕ причуды, кроме скалка (антидот — за скалком). */
+    /** Зелье от причуды: снимает ВСЕ причуды, кроме скалка (антидот — за скалком) и техпричуд. */
     public static ItemStack makeDisable() {
-        return potion("&7Зелье отключения", Color.fromRGB(0x66, 0x44, 0x22), "disable", null,
+        return potion("&7Зелье от причуды", Color.fromRGB(0x66, 0x44, 0x22), "disable", null,
                 "&8Судный день для причуд. Скалк не сдаётся.");
     }
 
@@ -489,7 +489,7 @@ public final class BrewTree {
     }
 
     /** Сделать 32 наконечные стрелы из любого «стрелочного» зелья. */
-    private static ItemStack makeBrewArrows(ItemStack brew) {
+    public static ItemStack makeBrewArrows(ItemStack brew) {
         String tag = markOf(brew);
         ItemStack arrows = new ItemStack(Material.TIPPED_ARROW, 32);
         arrows.editMeta(meta -> {
@@ -844,6 +844,7 @@ public final class BrewTree {
             case "samogon" -> makeSamogon(1, false);
             case "deny" -> makeDeny();
             case "confirm" -> makeConfirm();
+            case "disable" -> makeDisable();
             case "quirkall" -> makeQuirkAll();
             case "life" -> makeLife();
             case "paces" -> makePaces();

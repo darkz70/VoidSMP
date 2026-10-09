@@ -77,7 +77,7 @@ public final class QuirkManager {
         }
         java.util.List<Quirk> held = new java.util.ArrayList<>();
         for (Map.Entry<Quirk, Integer> entry : data.entries()) {
-            if (entry.getKey() == Quirk.ADMIN) continue; // техпричуду «все снять» не трогает
+            if (entry.getKey() == Quirk.ADMIN || entry.getKey() == Quirk.ADMIN_PRO) continue; // техпричуды «все снять» не трогает
             held.add(entry.getKey());
         }
         for (Quirk quirk : held) {

@@ -235,6 +235,8 @@ public final class AxeListener implements Listener {
         if (lvl < 2) return;
 
         long cooldownMs = plugin.getConfig().getLong("axe.rage-cooldown-minutes", 30) * 60_000L;
+        if (plugin.magic().cooldownsOff(player.getUniqueId())) cooldownMs = 0;
+        else cooldownMs = (long) (cooldownMs * plugin.magic().coolScale("items"));
         long remaining = ScanUtil.remaining(player.getUniqueId(), "axe-rage", cooldownMs);
         if (remaining > 0) {
             if (ScanUtil.tryUse(player.getUniqueId(), "axe-rage-msg", 1000)) {
