@@ -758,8 +758,9 @@ public final class BrewTree {
                 mat(Material.AMETHYST_SHARD), mat(Material.AMETHYST_SHARD), mark("knowledge"));
         rule(l -> makeArchimage(), mark("manapot"), mark("mind"));
         rule(l -> makeGreatArch(), mark("archimage"), mark("basis"), markPrefix("upbook-"));
-        // Светлый+тёмный фолианты: вершины яично-океанской ветки — только так (откат к 1.1.1)
-        rule(l -> makeFoliants(), mark("oceanid"), mark("albatross"), mark("nest"));
+        // Светлый+тёмный фолианты: ВСЯ яично-океанская ветка целиком (7 позиций) — только так
+        rule(l -> makeFoliants(), mark("boiledegg"), mark("chick"), mark("depths"), mark("panda"),
+                mark("oceanid"), mark("albatross"), mark("nest"));
         rule(l -> makeDarkMagic(), mark("infusion"), mark("manapot"), mark("darkpotion"), mat(Material.SCULK));
         rule(l -> makeLightMagic(), mark("infusion"), mark("manapot"), mark("lightpotion"),
                 mat(Material.GLOWSTONE));
@@ -774,11 +775,18 @@ public final class BrewTree {
         rule(l -> makeOceanid(), mark("depths"), mark("panda"));
         rule(l -> makeAlbatross(), mark("chick"), mark("depths"));
         rule(l -> makeNest(), mark("chick"), potionFam("SLOW_FALLING"));
-        // «стрелочные» зелья: любое новое зелье + 8 стрел = 32 наконечные стрелы (эффекты 5 с)
-        for (String arrowTagRaw : new String[]{"doublepoison", "nature", "druid", "naturepoison", "warrior",
-            "gladiator", "plague", "epidemic", "bastion", "fortress", "weightless", "angel", "witherpot",
-            "necro", "nightmare", "madness", "manapot", "archimage", "greatarch", "darkmagic", "lightmagic",
-            "mushroomspirit", "forestfeast", "newlife", "darkpotion", "lightpotion", "blindpotion"}) {
+        // «стрелочные» зелья: любое новое зелье + 8 стрел = 32 наконечная стрелы (эффекты 5 с)
+    }
+
+    /** Спековый набор тег-зелий, конвертируемых в стрелы (все зелья ниже маркера списка). */
+    public static final String[] ARROWABLE = {
+        "doublepoison", "nature", "druid", "naturepoison", "warrior", "gladiator", "plague",
+        "epidemic", "bastion", "fortress", "weightless", "angel", "witherpot", "necro", "nightmare",
+        "madness", "manapot", "archimage", "greatarch", "darkmagic", "lightmagic", "mushroomspirit",
+        "forestfeast", "newlife", "chick", "depths", "panda", "oceanid", "albatross", "nest"};
+
+    static {
+        for (String arrowTagRaw : ARROWABLE) {
             final String arrowTag = arrowTagRaw;
             rule(l -> makeBrewArrows(findTag(l, arrowTag)),
                     mark(arrowTag),

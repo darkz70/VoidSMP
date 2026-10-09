@@ -42,9 +42,10 @@ public final class GaidMenus implements Listener {
         RootHolder holder = new RootHolder();
         Inventory inv = Bukkit.createInventory(holder, 27, Msg.color("&5&lГайд VoidSMP"));
         holder.inv = inv;
-        inv.setItem(10, button(Material.BOOK, "&dОписания", "&7Механики и команды — тематические книги"));
+        inv.setItem(11, button(Material.BOOK, "&dОписания", "&7Механики и команды — тематические книги"));
         inv.setItem(12, button(Material.CHEST, "&eПредметы", "&7Все предметы плагина + крафты (+взять себе)"));
-        inv.setItem(14, button(Material.PLAYER_HEAD, "&cАдмин-панель", "&7Причуды и магии онлайн-игроков"));
+        inv.setItem(13, button(Material.ZOMBIE_SPAWN_EGG, "&9Призыв", "&740 отрядов мобов для ваших сцен"));
+        inv.setItem(15, button(Material.PLAYER_HEAD, "&cАдмин-панель", "&7Причуды и магии онлайн-игроков"));
         inv.setItem(16, button(Material.CLOCK, "&bНастройки КД", "&7Масштаб кулдаунов заклинаний/зелий/вещей"));
         player.openInventory(inv);
     }
@@ -95,9 +96,11 @@ public final class GaidMenus implements Listener {
             ItemStack brew = BrewTree.byTag(tag, null);
             if (brew == null) continue;
             items.add(brew);
-            ItemStack arrows = BrewTree.makeBrewArrows(brew);
-            arrows.setAmount(32);
-            items.add(arrows);
+            if (java.util.Arrays.asList(BrewTree.ARROWABLE).contains(tag)) {
+                ItemStack arrows = BrewTree.makeBrewArrows(brew);
+                arrows.setAmount(32);
+                items.add(arrows);
+            }
         }
         // прочее
         items.add(CraftListener.makeFertilizer());
@@ -236,6 +239,116 @@ public final class GaidMenus implements Listener {
         return raw != null && raw.startsWith("arrow:") ? raw : null;
     }
 
+    // ---------- призыв отрядов ----------
+
+    /** 40 мобовских отрядов для сцен/клипов: [название, иконка, список тип:число…]. */
+    private static final String[][] SQUADS = {
+        {"Когорта: 5 зомби + 3 скелета", "ZOMBIE_SPAWN_EGG", "ZOMBIE:5", "SKELETON:3"},
+        {"Стрелковый отряд: 6 скелетов + 5 пауков", "SKELETON_SPAWN_EGG", "SKELETON:6", "SPIDER:5"},
+        {"Взрывной десант: 4 крипера + 2 ведьмы", "CREEPER_SPAWN_EGG", "CREEPER:4", "WITCH:2"},
+        {"Бродячая орда: 8 зомби", "ZOMBIE_SPAWN_EGG", "ZOMBIE:8"},
+        {"Щиты и мечи: 5 скелетов + 3 крипера", "SKELETON_SPAWN_EGG", "SKELETON:5", "CREEPER:3"},
+        {"Паучье гнездо: 6 пауков + 3 пещерных", "SPIDER_SPAWN_EGG", "SPIDER:6", "CAVE_SPIDER:3"},
+        {"Саббат: 4 ведьмы + 2 скелета", "WITCH_SPAWN_EGG", "WITCH:4", "SKELETON:2"},
+        {"Пустынный авангард: 5 кадавров + 3 зомби", "HUSK_SPAWN_EGG", "HUSK:5", "ZOMBIE:3"},
+        {"Морской дозор: 6 утопленников + 2 стража", "DROWNED_SPAWN_EGG", "DROWNED:6", "GUARDIAN:2"},
+        {"Крылатая рать: 7 фантомов", "PHANTOM_SPAWN_EGG", "PHANTOM:7"},
+        {"Метель: 4 заблудших + 3 скелета", "STRAY_SPAWN_EGG", "STRAY:4", "SKELETON:3"},
+        {"Набег: 5 разбойников + 2 поборника", "PILLAGER_SPAWN_EGG", "PILLAGER:5", "VINDICATOR:2"},
+        {"Ритуал: 3 вызывателя + 4 поборника", "EVOKER_SPAWN_EGG", "EVOKER:3", "VINDICATOR:4"},
+        {"Чешуя: 6 чешуйниц + 4 эндермита", "SILVERFISH_SPAWN_EGG", "SILVERFISH:6", "ENDERMITE:4"},
+        {"Тени Края: 5 эндерменов", "ENDERMAN_SPAWN_EGG", "ENDERMAN:5"},
+        {"Пекло: 4 ифрита + 3 магмовых куба", "BLAZE_SPAWN_EGG", "BLAZE:4", "MAGMA_CUBE:3"},
+        {"Некрогарнизон: 5 иссушителей + 2 ифрита", "WITHER_SKELETON_SPAWN_EGG", "WITHER_SKELETON:5", "BLAZE:2"},
+        {"Бастион: 4 пиглина-громилы + 3 хоглина", "PIGLIN_BRUTE_SPAWN_EGG", "PIGLIN_BRUTE:4", "HOGLIN:3"},
+        {"Пороховая гроза: 5 гастов", "GHAST_SPAWN_EGG", "GHAST:5"},
+        {"Жвачка: 8 слаймов + 4 магмовых", "SLIME_SPAWN_EGG", "SLIME:8", "MAGMA_CUBE:4"},
+        {"Глубинная триада: 6 стражей + 3 утопленника", "GUARDIAN_SPAWN_EGG", "GUARDIAN:6", "DROWNED:3"},
+        {"Занавес: 4 шалкера + 2 эндермена", "SHULKER_SPAWN_EGG", "SHULKER:4", "ENDERMAN:2"},
+        {"Тихий кошмар: 5 досаждателей + 2 вызывателя", "VEX_SPAWN_EGG", "VEX:5", "EVOKER:2"},
+        {"Таран: 3 разорителя + 5 разбойников", "RAVAGER_SPAWN_EGG", "RAVAGER:3", "PILLAGER:5"},
+        {"Труба зовёт: 1 страж + 4 голема? — просто 1 бедрок-страж", "WARDEN_SPAWN_EGG", "WARDEN:1"},
+        {"Зомбипогром: 5 зомбированных пиглинов + 4 пиглина", "ZOMBIFIED_PIGLIN_SPAWN_EGG", "ZOMBIFIED_PIGLIN:5", "PIGLIN:4"},
+        {"Милая ловушка: 7 пещерных пауков", "CAVE_SPIDER_SPAWN_EGG", "CAVE_SPIDER:7"},
+        {"Лёд и кобыла: 3 ледяных + 2 паука", "STRAY_SPAWN_EGG", "STRAY:3", "CAVE_SPIDER:2"},
+        {"Старый лес: 6 скелетов + 2 зомби-гиганта (нет, твари!)", "ZOMBIE_SPAWN_EGG", "SKELETON:6", "ZOMBIE:6"},
+        {"Осада: 5 разбойников + 3 ведьмы + 2 поборника", "PILLAGER_SPAWN_EGG", "PILLAGER:5", "WITCH:3", "VINDICATOR:2"},
+        {"На пастбище: 4 ведьмы + 5 зомби", "WITCH_SPAWN_EGG", "WITCH:4", "ZOMBIE:5"},
+        {"Красные споры: 6 хоглинов + 4 пиглина", "HOGLIN_SPAWN_EGG", "HOGLIN:6", "PIGLIN:4"},
+        {"Вересающий хор: 5 эндерменов + 3 ведьмы", "ENDERMAN_SPAWN_EGG", "ENDERMAN:5", "WITCH:3"},
+        {"Шторм: 6 фантомов + 3 скелета", "PHANTOM_SPAWN_EGG", "PHANTOM:6", "SKELETON:3"},
+        {"Шипастая пасть: 5 утопленников + 5 стражей", "DROWNED_SPAWN_EGG", "DROWNED:5", "GUARDIAN:5"},
+        {"Крик в доме: 4 вызывателя + 4 досаждателя", "EVOKER_SPAWN_EGG", "EVOKER:4", "VEX:4"},
+        {"Тихий отряд: 6 криперов + 2 скелета", "CREEPER_SPAWN_EGG", "CREEPER:6", "SKELETON:2"},
+        {"Пепельный патруль: 7 иссушающих скелетов", "WITHER_SKELETON_SPAWN_EGG", "WITHER_SKELETON:7"},
+        {"Козни подземки: 8 чешуйниц + 3 паука", "SILVERFISH_SPAWN_EGG", "SILVERFISH:8", "CAVE_SPIDER:3"},
+        {"Финальный акт: 1 иссушитель? нет — 1 страж Края? 1 железный голем!", "IRON_GOLEM_SPAWN_EGG", "IRON_GOLEM:1", "ZOMBIE:4"},
+    };
+
+    private void openSquadsMenu(Player player, int page) {
+        int pages = Math.max(1, (SQUADS.length + PER_PAGE - 1) / PER_PAGE);
+        page = Math.max(0, Math.min(page, pages - 1));
+        SquadsHolder holder = new SquadsHolder(page, pages);
+        Inventory inv = Bukkit.createInventory(holder, 54,
+                Msg.color("&9Призыв &8(&e" + (page + 1) + "&7/&e" + pages + "&8)"));
+        holder.inv = inv;
+        int start = page * PER_PAGE;
+        for (int slot = 0; slot < PER_PAGE && start + slot < SQUADS.length; slot++) {
+            String[] squad = SQUADS[start + slot];
+            inv.setItem(slot, button(Material.valueOf(squad[1]), "&9" + squad[0],
+                    "&7Клик — призвать рядом с тобой"));
+        }
+        if (page > 0) inv.setItem(45, button(Material.ARROW, "&7← страница " + page));
+        inv.setItem(49, button(Material.BARRIER, "&7← в корень"));
+        if (page < pages - 1) inv.setItem(53, button(Material.ARROW, "&7страница " + (page + 2) + " →"));
+        player.openInventory(inv);
+    }
+
+    private void summonSquad(Player player, int index) {
+        String[] squad = SQUADS[index];
+        int spawned = 0;
+        for (int i = 2; i < squad.length; i++) {
+            String[] pair = squad[i].split(":");
+            org.bukkit.entity.EntityType type;
+            try {
+                type = org.bukkit.entity.EntityType.valueOf(pair[0]);
+            } catch (IllegalArgumentException ex) {
+                continue;
+            }
+            int count = Integer.parseInt(pair[1]);
+            for (int c = 0; c < count; c++) {
+                double angle = Math.random() * 2 * Math.PI;
+                double dist = 2 + Math.random() * 4;
+                org.bukkit.Location at = player.getLocation().add(
+                        Math.cos(angle) * dist, 1, Math.sin(angle) * dist);
+                org.bukkit.block.Block top = player.getWorld().getHighestBlockAt(at);
+                org.bukkit.entity.Entity entity = player.getWorld().spawnEntity(
+                        top.getLocation().add(0.5, 1, 0.5), type);
+                if (entity instanceof org.bukkit.entity.Monster monster) {
+                    monster.setTarget(player);
+                }
+                spawned++;
+            }
+        }
+        player.getWorld().spawnParticle(org.bukkit.Particle.FLAME, player.getLocation().add(0, 1, 0),
+                40, 2, 1, 2, 0.05);
+        Msg.send(player, "gaid-summon", "%count%", String.valueOf(spawned));
+    }
+
+    private static final class SquadsHolder implements InventoryHolder {
+
+        final int page;
+        final int pages;
+        Inventory inv;
+
+        SquadsHolder(int page, int pages) {
+            this.page = page;
+            this.pages = pages;
+        }
+
+        @Override public Inventory getInventory() { return inv; }
+    }
+
     // ---------- настройки кулдаунов ----------
 
     private static final double[] SCALE_STEPS = {0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0, 4.0};
@@ -302,7 +415,7 @@ public final class GaidMenus implements Listener {
         InventoryHolder holder = event.getInventory().getHolder();
         if (!(holder instanceof RootHolder || holder instanceof BooksHolder
                 || holder instanceof ItemsHolder || holder instanceof ItemPageHolder
-                || holder instanceof CooldownsHolder)) {
+                || holder instanceof CooldownsHolder || holder instanceof SquadsHolder)) {
             return;
         }
         event.setCancelled(true);
@@ -311,9 +424,10 @@ public final class GaidMenus implements Listener {
 
         if (holder instanceof RootHolder) {
             switch (slot) {
-                case 10 -> openBooksMenu(player);
+                case 11 -> openBooksMenu(player);
                 case 12 -> openItemsMenu(player, 0);
-                case 14 -> AdminMenu.openHub(plugin, player);
+                case 13 -> openSquadsMenu(player, 0);
+                case 15 -> AdminMenu.openHub(plugin, player);
                 case 16 -> openCooldownsMenu(player);
                 default -> { }
             }
@@ -352,6 +466,22 @@ public final class GaidMenus implements Listener {
                         .forEach(rest -> player.getWorld().dropItemNaturally(player.getLocation(), rest));
                 Msg.send(player, "gaid-given");
             }
+        } else if (holder instanceof SquadsHolder squads) {
+            if (slot == 49) {
+                openRoot(player);
+                return;
+            }
+            if (slot == 45 && squads.page > 0) {
+                openSquadsMenu(player, squads.page - 1);
+                return;
+            }
+            if (slot == 53 && squads.page < squads.pages - 1) {
+                openSquadsMenu(player, squads.page + 1);
+                return;
+            }
+            if (slot < 0 || slot >= PER_PAGE) return;
+            int index = squads.page * PER_PAGE + slot;
+            if (index < SQUADS.length) summonSquad(player, index);
         } else if (holder instanceof CooldownsHolder) {
             switch (slot) {
                 case 22 -> openRoot(player);

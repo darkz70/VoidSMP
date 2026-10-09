@@ -133,6 +133,12 @@ public final class MagicListener implements Listener {
             me.darkz70.quirks.command.AdminMenu.openHub(plugin, event.getPlayer());
             return;
         }
+        // из открытого инвентаря Q — обычный выброс (не цикл заклинания)
+        if (event.getPlayer().getOpenInventory() != null
+                && event.getPlayer().getOpenInventory().getType()
+                        != org.bukkit.event.inventory.InventoryType.CRAFTING) {
+            return;
+        }
         ItemStack item = event.getItemDrop().getItemStack();
         if (!isFocus(item)) {
             return;

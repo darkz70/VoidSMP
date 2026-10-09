@@ -517,6 +517,38 @@ public final class PotionListener implements Listener {
                     Math.random() < 0.5 ? PotionEffectType.POISON : PotionEffectType.SLOWNESS, t, 1));
             case "forestfeast", "newlife" -> victim.addPotionEffect(
                     new PotionEffect(PotionEffectType.REGENERATION, t, 0));
+            case "manapot" -> victim.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, t, 0));
+            case "archimage" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, t, 0));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, t, 0));
+            }
+            case "greatarch" -> victim.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, t, 1));
+            case "darkmagic" -> victim.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, t, 0));
+            case "lightmagic" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, t, 0));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, t, 0));
+            }
+            case "chick" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, t, 0));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, t, 0));
+            }
+            case "depths" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, t, 0));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, t, 0));
+            }
+            case "panda" -> victim.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, t, 0));
+            case "oceanid" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, t, 1));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, t, 0));
+            }
+            case "albatross" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, t, 1));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, t, 1));
+            }
+            case "nest" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, t, 2));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, t, 3));
+            }
             default -> victim.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, t, 0));
         }
     }
@@ -525,6 +557,45 @@ public final class PotionListener implements Listener {
         victim.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100, stronger ? 1 : 0));
         victim.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 100, stronger ? 1 : 0));
         victim.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, stronger ? 1 : 0));
+    }
+
+    /** Уникальные частицы на питьё каждого зелья. Тихие (без вреда/аддитивы). */
+    private static Particle drinkParticle(String tag) {
+        return switch (tag) {
+            case "doublepoison" -> Particle.WITCH;
+            case "nature" -> Particle.COMPOSTER;
+            case "druid" -> Particle.COMPOSTER;
+            case "naturepoison" -> Particle.MYCELIUM;
+            case "warrior", "gladiator" -> Particle.SWEEP_ATTACK;
+            case "plague" -> Particle.MYCELIUM;
+            case "epidemic" -> Particle.SCULK_SOUL;
+            case "bastion", "fortress" -> Particle.CRIT;
+            case "weightless", "nest" -> Particle.CLOUD;
+            case "angel", "albatross", "chick" -> Particle.END_ROD;
+            case "witherpot", "necro", "darkmagic" -> Particle.SOUL;
+            case "darkpotion" -> Particle.SMOKE;
+            case "lightpotion", "lightmagic" -> Particle.GLOW;
+            case "blindpotion" -> Particle.SQUID_INK;
+            case "nightmare", "madness" -> Particle.PORTAL;
+            case "manapot", "archimage", "greatarch" -> Particle.BUBBLE_COLUMN_UP;
+            case "mushroomspirit" -> Particle.CRIMSON_SPORE;
+            case "forestfeast" -> Particle.HAPPY_VILLAGER;
+            case "newlife" -> Particle.TOTEM_OF_UNDYING;
+            case "depths", "oceanid" -> Particle.FALLING_WATER;
+            case "panda" -> Particle.COMPOSTER;
+            case "samogon", "grandsam" -> Particle.WITCH;
+            case "lucky" -> Particle.HAPPY_VILLAGER;
+            case "unlucky" -> Particle.ANGRY_VILLAGER;
+            default -> Particle.WITCH;
+        };
+    }
+
+    /** Вспышка при питьё каждого зелья (уникальный частикл + кольцо). */
+    private static void drinkFX(Player player, String tag) {
+        Particle particle = drinkParticle(tag);
+        org.bukkit.Location center = player.getLocation().add(0, 1, 0);
+        player.getWorld().spawnParticle(particle, center, 22, 0.4, 0.7, 0.4, 0.035);
+        player.getWorld().spawnParticle(Particle.DRAGON_BREATH, center, 6, 0.25, 0.4, 0.25, 0.02);
     }
 
     private static int sec(double seconds) {
