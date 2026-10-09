@@ -487,7 +487,7 @@ public final class MagicSystem {
         }
         if (noCastActive(player.getUniqueId())) {
             Msg.send(player, "magic-no-cast", "%time%",
-                    ((noCastUntil.getOrDefault(id, 0L) - now) / 1000 + 1) + " с.");
+                    ((noCastUntil.getOrDefault(player.getUniqueId(), 0L) - now) / 1000 + 1) + " с.");
             return;
         }
         int manaCost = spell.mana();

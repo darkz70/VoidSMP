@@ -88,8 +88,7 @@ public final class GaidMenus implements Listener {
         }
         // прочее
         items.add(CraftListener.makeFertilizer());
-        var shard = SoulShards.shard(Quirk.AXE, 1, plugin);
-        if (shard != null) items.add(shard);
+        items.add(SoulShards.makeShard(Quirk.AXE, 1));
         return items;
     }
 

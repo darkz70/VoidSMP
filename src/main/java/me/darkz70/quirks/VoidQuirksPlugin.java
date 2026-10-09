@@ -32,6 +32,8 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     private QuirkStorage storage;
     private QuirkManager quirkManager;
     private MagicSystem magic;
+    private me.darkz70.quirks.command.GaidMenus gaidMenus;
+    private me.darkz70.quirks.command.AdminMenu adminMenu;
     private me.darkz70.quirks.labyrinth.LabyrinthManager labyrinth;
 
     @Override
@@ -90,7 +92,6 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         PluginCommand gaid = getCommand("gaid");
         if (gaid != null) {
             gaid.setExecutor(gaidCommand);
-            gaid.setTabCompleter(gaidCommand);
         }
 
         int interval = Math.max(20, getConfig().getInt("tasks.effects-interval-ticks", 40));
