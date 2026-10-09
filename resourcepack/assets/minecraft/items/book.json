@@ -1,0 +1,90 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/book"
+    },
+    "cases": [
+      {
+        "when": "book_fire",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/book_fire"
+        }
+      },
+      {
+        "when": "book_water",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/book_water"
+        }
+      },
+      {
+        "when": "book_wind",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/book_wind"
+        }
+      },
+      {
+        "when": "book_earth",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/book_earth"
+        }
+      },
+      {
+        "when": "book_dark",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/book_dark"
+        }
+      },
+      {
+        "when": "book_light",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/book_light"
+        }
+      },
+      {
+        "when": "upbook_1",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/upbook_1"
+        }
+      },
+      {
+        "when": "upbook_2",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/upbook_2"
+        }
+      },
+      {
+        "when": "upbook_3",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/upbook_3"
+        }
+      },
+      {
+        "when": "upbook_4",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/upbook_4"
+        }
+      },
+      {
+        "when": "upbook_5",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/upbook_5"
+        }
+      }
+    ]
+  }
+}

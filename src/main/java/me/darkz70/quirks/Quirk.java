@@ -12,7 +12,10 @@ public enum Quirk {
     SCULK("sculk", "Скалк"),
     FARMER("farmer", "Фермер"),
     AMPHIBIAN("amphibian", "Земноводный"),
-    SPIDER("spider", "Паук");
+    SPIDER("spider", "Паук"),
+    /** Техническая причуда 1 уровня: доступ ко всем крафтам плагина.
+     *  Не считается в списках, не снимается «все снять»/зельями. */
+    ADMIN("admin", "Админ");
 
     private final String id;
     private final String display;

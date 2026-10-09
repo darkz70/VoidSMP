@@ -49,6 +49,11 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         labyrinth = new me.darkz70.quirks.labyrinth.LabyrinthManager(this);
         labyrinth.loadIfExists();
 
+        gaidMenus = new me.darkz70.quirks.command.GaidMenus(this);
+        adminMenu = new me.darkz70.quirks.command.AdminMenu(this);
+        Bukkit.getPluginManager().registerEvents(gaidMenus, this);
+        Bukkit.getPluginManager().registerEvents(adminMenu, this);
+
         Bukkit.getPluginManager().registerEvents(new EngineerListener(this), this);
         Bukkit.getPluginManager().registerEvents(new CatListener(this), this);
         Bukkit.getPluginManager().registerEvents(new BedrockListener(this), this);
@@ -110,6 +115,10 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         MaterialLists.load(getConfig(), getLogger());
         Msg.init(this);
         if (magic != null) magic.reloadMults();
+    }
+
+    public me.darkz70.quirks.command.GaidMenus gaidMenus() {
+        return gaidMenus;
     }
 
     public MagicSystem magic() {

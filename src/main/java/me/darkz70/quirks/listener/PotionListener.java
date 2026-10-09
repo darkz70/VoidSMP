@@ -35,6 +35,23 @@ public final class PotionListener implements Listener {
     private static final long DIVINE_PENALTY_DELAY = 2 * 60_000L;
     private static final long DIVINE_PENALTY = 7 * 24 * 60_000L; // 7 игровых суток ≈ 140 мин реального
 
+    /** Чумная аура: uuid → конец */
+    private static final Map<UUID, Long> PLAGUE_UNTIL = new HashMap<>();
+    /** Эпидемия: uuid → конец (для передачи убийце при смерти). */
+    private static final Map<UUID, Long> EPIDEMIC_UNTIL = new HashMap<>();
+    /** Умиротворённые мобы: entity UUID → конец нейтральности. */
+    private static final Map<UUID, Long> PACIFIED_UNTIL = new HashMap<>();
+
+    /** Возвращает конец тика эпидемии (для MagicListener/смертей). */
+    public static long epidemicEnd(UUID id) {
+        return EPIDEMIC_UNTIL.getOrDefault(id, 0L);
+    }
+
+    /** Моб умиротворён зельем природы? */
+    public static boolean isPacified(UUID id) {
+        return PACIFIED_UNTIL.getOrDefault(id, 0L) > System.currentTimeMillis();
+    }
+
     /** вотчеры «никакого вреда/восстановления»: uuid → [конец, накопленный урон] */
     private static final Map<UUID, long[]> WATCH_HARM = new HashMap<>();
     private static final Map<UUID, long[]> WATCH_HEAL = new HashMap<>();
@@ -50,6 +67,24 @@ public final class PotionListener implements Listener {
     }
 
     // ---------- выпивание ----------
+
+    /** Иссушение: 15 секунд нельзя пить лечебные зелья. */
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    public void blockHealingPotions(PlayerItemConsumeEvent event) {
+        if (!plugin.magic().noPotionHealActive(event.getPlayer().getUniqueId())) return;
+        ItemStack item = event.getItem();
+        if (item.getType() == org.bukkit.Material.POTION || item.getType() == org.bukkit.Material.SPLASH_POTION) {
+            String tag = BrewTree.markOf(item);
+            String fam = BrewTree.baseFamily(item);
+            boolean healing = "HEALING".equals(fam) || "REGENERATION".equals(fam)
+                    || "life".equals(tag) || "forestfeast".equals(tag) || "fortress".equals(tag)
+                    || "druid".equals(tag);
+            if (healing) {
+                event.setCancelled(true);
+                Msg.send(event.getPlayer(), "potion-wither-dry");
+            }
+        }
+    }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onConsume(PlayerItemConsumeEvent event) {
@@ -82,11 +117,14 @@ public final class PotionListener implements Listener {
                 int lvl = levelOf(item);
                 boolean boosted = item.getPersistentDataContainer().has(Keys.spellExtra, PersistentDataType.INTEGER);
                 double mult = Math.pow(1.5, lvl - 1) * (boosted ? 2 : 1);
-                player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, sec(5 * mult), 0, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, sec(5 * mult), 1, false, true));
                 player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, sec(2 * mult),
                         boosted ? 1 : 0, false, true));
-                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, sec(3 * mult),
+                int regenTicks = sec(3 * mult);
+                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, regenTicks,
                         boosted ? 1 : 0, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS,
+                        (int) Math.max(20, regenTicks * 0.4), 0, false, true));
                 plugin.notify(player, "potion-samogon", "%level%", String.valueOf(lvl));
             }
             case "deny" -> {
@@ -98,9 +136,15 @@ public final class PotionListener implements Listener {
                 plugin.notify(player, "potion-confirm");
             }
             case "disable" -> {
-                String target = item.getPersistentDataContainer().get(Keys.brewTarget, PersistentDataType.STRING);
-                Quirk quirk = target == null ? null : Quirk.byName(target);
-                if (quirk != null && plugin.quirks().remove(player, quirk)) {
+                boolean any = false;
+                for (Quirk quirk : Quirk.values()) {
+                    if (quirk == Quirk.SCULK || quirk == Quirk.ADMIN) continue; // скалку — антидот; админку не трогаем
+                    if (plugin.quirks().levelOf(player, quirk) > 0) {
+                        plugin.quirks().remove(player, quirk);
+                        any = true;
+                    }
+                }
+                if (any) {
                     player.getWorld().spawnParticle(Particle.WITCH, player.getLocation().add(0, 1, 0),
                             24, 0.4, 0.7, 0.4, 0.04);
                     plugin.notify(player, "potion-quirk-away");
@@ -190,8 +234,295 @@ public final class PotionListener implements Listener {
                 plugin.storage().save();
                 plugin.notify(player, "potion-demagic");
             }
-            default -> { /* neutral/basis/lucky/unlucky/infusion/knowledge/mind — пустышки/автоэффекты */ }
+
+            case "doublepoison" -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 400, 0, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 400, 0, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 400, 0, false, true));
+            }
+            case "nature" -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 30 * 20, 0, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 10 * 20, 0, false, true));
+                for (org.bukkit.entity.Entity nearby : player.getWorld().getNearbyEntities(player.getLocation(), 10, 10, 10)) {
+                    if (nearby instanceof org.bukkit.entity.Mob mob) {
+                        mob.setTarget(null);
+                        PACIFIED_UNTIL.put(nearby.getUniqueId(), now + 20_000);
+                    }
+                }
+                plugin.notify(player, "potion-nature");
+            }
+            case "druid" -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 30 * 20, 1, false, true));
+                strip(player, false);
+                growAround(player, 5);
+                plugin.notify(player, "potion-druid");
+            }
+            case "naturepoison" -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 15 * 20, 1, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 20 * 20, 0, false, true));
+                for (org.bukkit.entity.Entity nearby : player.getWorld().getNearbyEntities(player.getLocation(), 15, 15, 15)) {
+                    enrage(nearby, player);
+                }
+                plugin.notify(player, "potion-naturepoison");
+            }
+            case "warrior" -> {
+                if (!potionCd(player, data, tag, 5 * 60_000, now)) { event.setCancelled(true); return; }
+                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 20 * 20, 1, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 20 * 20, 1, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 10 * 20, 0, false, true));
+                plugin.notify(player, "potion-warrior");
+            }
+            case "gladiator" -> {
+                if (!potionCd(player, data, tag, 15 * 60_000, now)) { event.setCancelled(true); return; }
+                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 30 * 20, 2, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 30 * 20, 2, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 15 * 20, 1, false, true));
+                magic().grantInvuln(player, 10_000);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> player.addPotionEffect(
+                        new PotionEffect(PotionEffectType.WEAKNESS, 30 * 20, 0, false, true)), 30 * 20);
+                plugin.notify(player, "potion-gladiator");
+            }
+            case "plague" -> {
+                PLAGUE_UNTIL.put(player.getUniqueId(), now + 30_000);
+                player.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 30 * 20, 0, false, true));
+                plugin.notify(player, "potion-plague");
+            }
+            case "epidemic" -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 30 * 20, 1, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 30 * 20, 1, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 30 * 20, 0, false, true));
+                EPIDEMIC_UNTIL.put(player.getUniqueId(), now + 30_000);
+                plugin.notify(player, "potion-epidemic");
+            }
+            case "bastion" -> {
+                if (!potionCd(player, data, tag, 10 * 60_000, now)) { event.setCancelled(true); return; }
+                player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 15 * 20, 2, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 15 * 20, 0, false, true));
+                magic().stampRoot(player, 3_000);
+                plugin.notify(player, "potion-bastion");
+            }
+            case "fortress" -> {
+                if (!potionCd(player, data, tag, 20 * 60_000, now)) { event.setCancelled(true); return; }
+                player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 20 * 20, 3, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 20 * 20, 3, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 15 * 20, 1, false, true));
+                plugin.notify(player, "potion-fortress");
+            }
+            case "weightless" -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 30 * 20, 3, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 30 * 20, 2, false, true));
+                magic().stampNoFall(player, 60_000);
+                plugin.notify(player, "potion-weightless");
+            }
+            case "angel" -> {
+                if (!potionCd(player, data, tag, 20 * 60_000, now)) { event.setCancelled(true); return; }
+                magic().flight(player, 15);
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 60 * 20, 0, false, true));
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    if (player.isValid() && !magic().flightActive(player.getUniqueId())) {
+                        player.damage(Math.max(0.0, Math.min(4, player.getHealth() - 0.5))); // 2 сердца
+                    }
+                }, 15 * 20);
+                plugin.notify(player, "potion-angel");
+            }
+            case "witherpot" -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 10 * 20, 1, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 20 * 20, 0, false, true));
+                magic().stampNoPotionHeal(player, 15_000);
+                plugin.notify(player, "potion-witherpot");
+            }
+            case "necro" -> {
+                if (!potionCd(player, data, tag, 15 * 60_000, now)) { event.setCancelled(true); return; }
+                for (int i = 0; i < 3; i++) {
+                    org.bukkit.Location at = player.getLocation().add(Math.random() * 2 - 1, 0, Math.random() * 2 - 1);
+                    org.bukkit.entity.WitherSkeleton mob = player.getWorld().spawn(at, org.bukkit.entity.WitherSkeleton.class);
+                    mob.getPersistentDataContainer().set(Keys.noLoot, PersistentDataType.BYTE, (byte) 1);
+                    magic().summonGuardian(mob, 30_000);
+                }
+                magic().stampNecro(player, 30_000);
+                plugin.notify(player, "potion-necro");
+            }
+            case "darkpotion" -> player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 30 * 20, 0,
+                    false, true));
+            case "lightpotion" -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 60 * 20, 0, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 10 * 20, 0, false, true));
+            }
+            case "blindpotion" -> player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 30 * 20, 0,
+                    false, true));
+            case "nightmare" -> {
+                if (!potionCd(player, data, tag, 10 * 60_000, now)) { event.setCancelled(true); return; }
+                nightmarePack(player, 20 * 20);
+                for (org.bukkit.entity.Entity nearby : player.getWorld().getNearbyEntities(player.getLocation(), 15, 15, 15)) {
+                    if (nearby instanceof Player other && nearby != player) nightmarePack(other, 10 * 20);
+                }
+                plugin.notify(player, "potion-nightmare");
+            }
+            case "madness" -> drinkMadness(player);
+            case "manapot" -> {
+                if (!potionCd(player, data, tag, 40_000, now)) { event.setCancelled(true); return; }
+                magic().addMana(player, 50);
+                plugin.notify(player, "potion-mana");
+            }
+            case "archimage" -> {
+                if (!potionCd(player, data, tag, 5 * 60_000, now)) { event.setCancelled(true); return; }
+                magic().refillMana(player);
+                magic().stampHalfMana(player, 30_000);
+                plugin.notify(player, "potion-archimage");
+            }
+            case "greatarch" -> {
+                if (!potionCd(player, data, tag, 60_000, now)) { event.setCancelled(true); return; }
+                magic().refillMana(player);
+                magic().stampFreeCast(player, 30_000);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> magic().stampNoCast(player, 40_000), 30 * 20);
+                plugin.notify(player, "potion-greatarch");
+            }
+            case "darkmagic" -> {
+                if (!potionCd(player, data, tag, 20 * 60_000, now)) { event.setCancelled(true); return; }
+                magic().stampDarkBoost(player, 60_000);
+                plugin.notify(player, "potion-darkmagic");
+            }
+            case "lightmagic" -> {
+                if (!potionCd(player, data, tag, 20 * 60_000, now)) { event.setCancelled(true); return; }
+                magic().stampLightBoost(player, 60_000);
+                plugin.notify(player, "potion-lightmagic");
+            }
+            case "mushroomspirit" -> {
+                if (!potionCd(player, data, tag, 60_000, now)) { event.setCancelled(true); return; }
+                PotionEffectType[] mood = {PotionEffectType.SPEED, PotionEffectType.STRENGTH,
+                    PotionEffectType.JUMP_BOOST, PotionEffectType.HASTE, PotionEffectType.SLOWNESS,
+                    PotionEffectType.NAUSEA, PotionEffectType.POISON, PotionEffectType.WEAKNESS};
+                PotionEffectType picked = mood[(int) (Math.random() * mood.length)];
+                player.addPotionEffect(new PotionEffect(picked, 30 * 20,
+                        (int) (Math.random() * 3), false, true));
+                plugin.notify(player, "potion-mushroomspirit");
+            }
+            case "forestfeast" -> {
+                if (!potionCd(player, data, tag, 10 * 60_000, now)) { event.setCancelled(true); return; }
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 120 * 20, 1, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 40 * 20, 1, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 20 * 20, 3, false, true));
+                plugin.notify(player, "potion-forestfeast");
+            }
+            case "newlife" -> {
+                if (!potionCd(player, data, tag, 30 * 60_000, now)) { event.setCancelled(true); return; }
+                for (PotionEffectType type : PotionEffectType.values()) player.removePotionEffect(type);
+                magic().resetMagic(player);
+                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 10 * 20, 2, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 120 * 20, 4, false, true));
+                plugin.notify(player, "potion-newlife");
+            }
+            case "chick" -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 20 * 20, 0, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 10 * 20, 0, false, true));
+            }
+            case "depths" -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 45 * 20, 0, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 30 * 20, 0, false, true));
+            }
+            case "panda" -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 10 * 20, 0, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 5 * 20, 0, false, true));
+            }
+            case "oceanid" -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 60 * 20, 1, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 60 * 20, 0, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 30 * 20, 1, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 20 * 20, 0, false, true));
+            }
+            case "albatross" -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 30 * 20, 1, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 30 * 20, 0, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 15 * 20, 1, false, true));
+            }
+            case "nest" -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 60 * 20, 2, false, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 30 * 20, 5, false, true));
+            }
+            default -> { /* neutral/basis/lucky/unlucky/infusion/knowledge/mind/boiledegg — пустышки/автоэффекты */ }
+
         }
+    }
+
+    /** Жёсткий кулдаун зелья (минуты/секунды в ms). false — зелье ещё остывает (пытливый пьяница). */
+    private boolean potionCd(Player player, PlayerData data, String tag, long windowMs, long now) {
+        long end = data.cooldown("potcd." + tag);
+        if (end > now) {
+            long left = (end - now + 999) / 1000;
+            String time = left >= 60 ? ((left + 59) / 60) + " мин." : left + " с.";
+            Msg.send(player, "potion-cd", "%time%", time);
+            return false;
+        }
+        data.setCooldown("potcd." + tag, now + windowMs);
+        plugin.storage().save();
+        return true;
+    }
+
+    /** Эффект наконечной стрелы по тегу зелья (всё упирается в 5 секунд). */
+    public static void applyBrewArrow(org.bukkit.entity.LivingEntity victim, String tag) {
+        int t = 100; // 5 сек
+        switch (tag) {
+            case "doublepoison" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, t, 0));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.POISON, t, 0));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, t, 0));
+            }
+            case "nature" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, t, 0));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, t, 0));
+            }
+            case "druid" -> victim.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, t, 1));
+            case "naturepoison", "plague" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.POISON, t, 1));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, t, 0));
+            }
+            case "warrior" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, t, 0));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, t, 0));
+            }
+            case "gladiator" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, t, 1));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, t, 1));
+            }
+            case "epidemic" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.POISON, t, 1));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, t, 1));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, t, 0));
+            }
+            case "bastion" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, t, 1));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, t, 0));
+            }
+            case "fortress" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, t, 2));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, t, 1));
+            }
+            case "weightless" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, t, 1));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, t, 1));
+            }
+            case "angel" -> victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, t, 1));
+            case "witherpot" -> {
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, t, 1));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, t, 0));
+            }
+            case "necro" -> victim.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, t, 1));
+            case "darkpotion" -> victim.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, t, 0));
+            case "lightpotion" -> victim.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, t, 0));
+            case "blindpotion" -> victim.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, t, 0));
+            case "nightmare", "madness" -> nightmarePackArrow(victim, tag.equals("madness"));
+            case "mushroomspirit" -> victim.addPotionEffect(new PotionEffect(
+                    Math.random() < 0.5 ? PotionEffectType.POISON : PotionEffectType.SLOWNESS, t, 1));
+            case "forestfeast", "newlife" -> victim.addPotionEffect(
+                    new PotionEffect(PotionEffectType.REGENERATION, t, 0));
+            default -> victim.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, t, 0));
+        }
+    }
+
+    private static void nightmarePackArrow(org.bukkit.entity.LivingEntity victim, boolean stronger) {
+        victim.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100, stronger ? 1 : 0));
+        victim.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 100, stronger ? 1 : 0));
+        victim.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, stronger ? 1 : 0));
     }
 
     private static int sec(double seconds) {
@@ -245,6 +576,78 @@ public final class PotionListener implements Listener {
         data.setCooldown(key + ".count", count);
         plugin.storage().save();
         return count <= limit;
+    }
+
+    /** Мгновенный рост растений вокруг (зелье друида). */
+    private static void growAround(Player player, int radius) {
+        org.bukkit.Location c = player.getLocation();
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dy = -2; dy <= 2; dy++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    org.bukkit.block.Block block = c.clone().add(dx, dy, dz).getBlock();
+                    if (block.getBlockData() instanceof org.bukkit.block.data.Ageable) {
+                        block.applyBoneMeal(org.bukkit.block.BlockFace.UP);
+                        block.applyBoneMeal(org.bukkit.block.BlockFace.UP);
+                    }
+                }
+            }
+        }
+        player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation(), 80, radius, 1, radius, 0.02);
+    }
+
+    /** Нейтральные мобы звереют на 30 сек (зелье яда природы — где умеют). */
+    private static void enrage(org.bukkit.entity.Entity entity, Player target) {
+        if (!(entity instanceof org.bukkit.entity.LivingEntity)) return;
+        PACIFIED_UNTIL.remove(entity.getUniqueId());
+        if (entity instanceof org.bukkit.entity.Wolf wolf) {
+            wolf.setAngry(true);
+            wolf.setTarget(target);
+        } else if (entity instanceof org.bukkit.entity.Bee bee) {
+            bee.setTarget(target);
+        } else if (entity instanceof org.bukkit.entity.Monster monster && !(entity instanceof Player)) {
+            // «нейтральные» условно-враждебные (пауки/панда-помощники) предъявляют носителю
+            if (entity.getLocation().distanceSquared(target.getLocation()) < 15 * 15) {
+                monster.setTarget(target);
+            }
+        } else if (entity instanceof org.bukkit.entity.Panda panda) {
+            panda.setMainGene(org.bukkit.entity.Panda.Gene.AGGRESSIVE);
+        }
+    }
+
+    private static void nightmarePack(Player player, int ticks) {
+        player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, ticks, 1, false, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, ticks, 1, false, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, ticks, 1, false, true));
+    }
+
+    /** Зелье безумия: букет дебаффов + 6 случайных телепортов каждые 5 сек. */
+    private void drinkMadness(Player player) {
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 30 * 20, 2, false, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 30 * 20, 2, false, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 30 * 20, 2, false, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 30 * 20, 2, false, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 30 * 20, 2, false, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 30 * 20, 2, false, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 30 * 20, 1, false, true));
+        for (int i = 1; i <= 6; i++) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                if (!player.isValid()) return;
+                double angle = Math.random() * 2 * Math.PI;
+                double dist = Math.random() * 20;
+                org.bukkit.Location at = player.getLocation().add(Math.cos(angle) * dist, 3, Math.sin(angle) * dist);
+                org.bukkit.block.Block top = player.getWorld().getHighestBlockAt(at);
+                player.teleport(top.getLocation().add(0.5, 1, 0.5));
+                player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 60, 0.4, 1, 0.4, 0.5);
+                player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 0.7f);
+            }, i * 5L * 20L);
+        }
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (player.isValid()) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 10 * 20, 0, false, true));
+                Msg.send(player, "potion-madness-end");
+            }
+        }, 30 * 20L);
+        Msg.send(player, "potion-madness");
     }
 
     // ---------- зелье причуды ----------
@@ -338,6 +741,24 @@ public final class PotionListener implements Listener {
         if (healWatch != null) healWatch[1] += Math.round(event.getFinalDamage() * 2);
     }
 
+    /** Эпидемия: смертельная отдача убийце. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onDeath(org.bukkit.event.entity.PlayerDeathEvent event) {
+        Player dead = event.getEntity();
+        if (epidemicEnd(dead.getUniqueId()) <= System.currentTimeMillis()) return;
+        org.bukkit.entity.Entity killerEntity = dead.getLastDamageCause() != null
+                && dead.getLastDamageCause() instanceof org.bukkit.event.entity.EntityDamageByEntityEvent byEntity
+                ? byEntity.getDamager() : null;
+        org.bukkit.entity.Player killer = dead.getKiller();
+        org.bukkit.entity.LivingEntity target = killer != null ? killer
+                : killerEntity instanceof org.bukkit.entity.LivingEntity le ? le : null;
+        if (target == null || target == dead) return;
+        target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 15 * 20, 1, false, true));
+        target.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 15 * 20, 1, false, true));
+        target.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 15 * 20, 0, false, true));
+        dead.getWorld().spawnParticle(Particle.SCULK_SOUL, dead.getLocation(), 60, 1, 1, 1, 0.05);
+    }
+
     /** Тикает из MagicTask раз в секунду. Также чистит временный −2 HP от зелья причуды. */
     public static void tickWatchers(VoidQuirksPlugin plugin, Player player, long now) {
         UUID id = player.getUniqueId();
@@ -356,6 +777,15 @@ public final class PotionListener implements Listener {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 120 * 20, 1, false, true));
                 Msg.send(player, "potion-norestore-gift");
             }
+        }
+        // чума: каждую секунду заражаем всех в 5 блоках
+        if (PLAGUE_UNTIL.getOrDefault(id, 0L) > now) {
+            for (org.bukkit.entity.Entity nearby : player.getWorld().getNearbyEntities(player.getLocation(), 5, 5, 5)) {
+                if (nearby instanceof org.bukkit.entity.LivingEntity victim && nearby != player) {
+                    victim.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 10 * 20, 0, false, true));
+                }
+            }
+            player.getWorld().spawnParticle(Particle.MYCELIUM, player.getLocation(), 8, 1.6, 0.8, 1.6, 0.01);
         }
         PlayerData data = plugin.storage().get(id);
         if (data != null && data.cooldown("qp.hp-end") != 0 && data.cooldown("qp.hp-end") <= now) {

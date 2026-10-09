@@ -67,6 +67,17 @@ public final class CraftListener implements Listener {
         Bukkit.removeRecipe(new NamespacedKey(plugin, "neutral_potion"));
         Bukkit.removeRecipe(new NamespacedKey(plugin, "sculk_antidote"));
 
+        // варёное яйцо: печь / коптильня / костёр
+        addCooking(plugin, "boiled_egg_furnace",
+                new org.bukkit.inventory.FurnaceRecipe(new NamespacedKey(plugin, "boiled_egg_furnace"),
+                        me.darkz70.quirks.mechanic.BrewTree.makeBoiledEgg(), Material.EGG, 0.35f, 200));
+        addCooking(plugin, "boiled_egg_smoking",
+                new org.bukkit.inventory.SmokingRecipe(new NamespacedKey(plugin, "boiled_egg_smoking"),
+                        me.darkz70.quirks.mechanic.BrewTree.makeBoiledEgg(), Material.EGG, 0.35f, 100));
+        addCooking(plugin, "boiled_egg_campfire",
+                new org.bukkit.inventory.CampfireRecipe(new NamespacedKey(plugin, "boiled_egg_campfire"),
+                        me.darkz70.quirks.mechanic.BrewTree.makeBoiledEgg(), Material.EGG, 0.35f, 600));
+
         // удобрение: 2 костной муки (только Фермер видит/крафтит)
         fertilizerKey = new NamespacedKey(plugin, "super_fertilizer");
         ShapelessRecipe fert = new ShapelessRecipe(fertilizerKey, makeFertilizer());
@@ -121,6 +132,12 @@ public final class CraftListener implements Listener {
         up5.addIngredient(Material.AMETHYST_SHARD, 4);
         up5.addIngredient(Material.DIAMOND_BLOCK, 4);
         add(new NamespacedKey(plugin, "up_book_5"), up5);
+    }
+
+    private static void addCooking(VoidQuirksPlugin plugin, String id, org.bukkit.inventory.CookingRecipe<?> recipe) {
+        NamespacedKey key = new NamespacedKey(plugin, id);
+        if (Bukkit.getRecipe(key) != null) Bukkit.removeRecipe(key);
+        Bukkit.addRecipe(recipe);
     }
 
     private static void add(NamespacedKey key, ShapelessRecipe recipe) {
@@ -185,6 +202,9 @@ public final class CraftListener implements Listener {
             meta.lore(lore);
             meta.getPersistentDataContainer().set(Keys.brewMark, PersistentDataType.STRING,
                     "elem-book-" + element.id());
+            var cmd = meta.getCustomModelDataComponent();
+            cmd.setStrings(List.of("book_" + element.id()));
+            meta.setCustomModelDataComponent(cmd);
         });
         return item;
     }
@@ -205,6 +225,9 @@ public final class CraftListener implements Listener {
             meta.displayName(Msg.color(names[tier] + " &7(от " + min + " ур.)"));
             meta.lore(List.of(Msg.color("&7ПКМ — +1 уровень магии.")));
             meta.getPersistentDataContainer().set(Keys.brewMark, PersistentDataType.STRING, "upbook-" + tier);
+            var cmd = meta.getCustomModelDataComponent();
+            cmd.setStrings(List.of("upbook_" + tier));
+            meta.setCustomModelDataComponent(cmd);
         });
         return item;
     }
@@ -232,6 +255,11 @@ public final class CraftListener implements Listener {
         // 2) дерево зелий — скрытый матчинг
         ItemStack brew = BrewTree.match(stacks);
         if (brew != null) {
+            String tag = BrewTree.markOf(brew);
+            // нейтралка и основа — только магам 1+ и Админам
+            if (("neutral".equals(tag) || "basis".equals(tag)) && !seesSecretBasics(player)) {
+                return;
+            }
             inventory.setResult(brew);
             return;
         }
@@ -241,11 +269,23 @@ public final class CraftListener implements Listener {
         ItemStack serverResult = event.getRecipe() == null ? null : event.getRecipe().getResult();
         if (serverResult != null) {
             if (BrewTree.tagged(serverResult, "fertilizer")
-                    && plugin.quirks().levelOf(player, Quirk.FARMER) == 0) {
-                return; // не-фермер не видит удобрение
+                    && plugin.quirks().levelOf(player, Quirk.FARMER) == 0
+                    && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
+                return; // не-фермер (и не Админ) не видит удобрение
+            }
+            String tag = BrewTree.markOf(serverResult);
+            if (tag != null && tag.startsWith("upbook-") && !seesSecretBasics(player)) {
+                return; // книги прокачки — только магам и Админам
             }
             inventory.setResult(serverResult);
         }
+    }
+
+    /** Маги (ур. 1+) и причуда Админ могут видеть/делать нейтралку, основу и улучшатели. */
+    private boolean seesSecretBasics(Player player) {
+        if (plugin.quirks().levelOf(player, Quirk.ADMIN) > 0) return true;
+        var data = plugin.magic().data(player);
+        return data != null && data.magicElement() != null && data.magicLevel() >= 1;
     }
 
     /** Супер-удобрение крафтит только Фермер. */

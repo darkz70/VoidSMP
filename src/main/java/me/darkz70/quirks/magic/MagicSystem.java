@@ -11,6 +11,7 @@ import me.darkz70.quirks.PlayerData;
 import me.darkz70.quirks.Quirk;
 import me.darkz70.quirks.VoidQuirksPlugin;
 
+import me.darkz70.quirks.util.Anims;
 import me.darkz70.quirks.util.Msg;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -63,6 +64,14 @@ public final class MagicSystem {
     private final Map<UUID, Long> leapUntil = new HashMap<>();
     private final Map<UUID, Long> flightUntil = new HashMap<>();
     private final Map<UUID, Long> darkEvadeUntil = new HashMap<>();
+    private final Map<UUID, Long> noCastUntil = new HashMap<>();      // запрет каста (великий архимаг)
+    private final Map<UUID, Long> halfManaUntil = new HashMap<>();    // мана ×0.5 (архимаг/светлая магия)
+    private final Map<UUID, Long> freeCastUntil = new HashMap<>();    // мана 0 (великий архимаг)
+    private final Map<UUID, Long> darkBoostUntil = new HashMap<>();   // тьма x2 урон, цена 1 сердце за каст
+    private final Map<UUID, Long> lightBoostUntil = new HashMap<>();  // свет: лечение x2 + мана ×0.5
+    private final Map<UUID, Long> necroUntil = new HashMap<>();       // некромант: удары по носителю жгут врагов
+    private final Map<UUID, Long> noPotionHealUntil = new HashMap<>();// иссушение: нельзя пить зелья
+    private final Map<UUID, Long> noFallUntil = new HashMap<>();      // ангел/невесомость: нет урона от падения
     private final Map<UUID, double[]> shieldPools = new HashMap<>();
     private final Map<UUID, Long> shieldUntil = new HashMap<>();
     private final List<long[]> blazesExpire = new ArrayList<>(); // [uuidMost, uuidLeast, expiry]
@@ -206,6 +215,7 @@ public final class MagicSystem {
         data.magicElement(element.id());
         data.magicLevel(1);
         data.selectedSpell(0);
+        grantUpgradeBookRecipes(player);
         data.mana(Math.min(data.mana(), maxMana(1)));
         plugin.storage().save();
         Msg.send(player, "magic-learned", "%element%", element.display(), "%emoji%", element.emoji());
@@ -254,8 +264,19 @@ public final class MagicSystem {
             case 4 -> 30;
             default -> 40;
         };
+        int max = switch (tier) {
+            case 1 -> 9;
+            case 2 -> 19;
+            case 3 -> 29;
+            case 4 -> 39;
+            default -> Integer.MAX_VALUE;
+        };
         if (data.magicLevel() < min) {
             Msg.send(player, "magic-book-weak", "%min%", String.valueOf(min));
+            return false;
+        }
+        if (data.magicLevel() > max) {
+            Msg.send(player, "magic-book-capped", "%max%", String.valueOf(max));
             return false;
         }
         data.magicLevel(data.magicLevel() + 1);
@@ -269,10 +290,41 @@ public final class MagicSystem {
     public void resetMagic(Player player) {
         PlayerData data = data(player);
         if (data == null) return;
+        boolean had = data.magicElement() != null;
         data.magicElement(null);
         data.magicLevel(1);
         data.mana(0);
         data.selectedSpell(0);
+        plugin.storage().save();
+        revokeUpgradeBookRecipes(player);
+    }
+
+    /** Книги прокачки видны в книге рецептов только магам (ур. 1+). */
+    public void grantUpgradeBookRecipes(Player player) {
+        for (int tier = 1; tier <= 5; tier++) {
+            player.discoverRecipe(new org.bukkit.NamespacedKey(plugin, "up_book_" + tier));
+        }
+    }
+
+    public void revokeUpgradeBookRecipes(Player player) {
+        for (int tier = 1; tier <= 5; tier++) {
+            player.undiscoverRecipe(new org.bukkit.NamespacedKey(plugin, "up_book_" + tier));
+        }
+    }
+
+    /** Полное восстановление маны. */
+    public void refillMana(Player player) {
+        PlayerData data = data(player);
+        if (data == null || data.magicElement() == null) return;
+        data.mana(maxMana(data.magicLevel()));
+        plugin.storage().save();
+    }
+
+    /** Восстановление amount маны. */
+    public void addMana(Player player, double amount) {
+        PlayerData data = data(player);
+        if (data == null || data.magicElement() == null) return;
+        data.mana(Math.min(maxMana(data.magicLevel()), data.mana() + amount));
         plugin.storage().save();
     }
 
@@ -290,6 +342,7 @@ public final class MagicSystem {
             data.tmpQuirks(sb.toString());
         }
         for (Quirk quirk : Quirk.values()) {
+            if (quirk == Quirk.ADMIN) continue;   // техпричуда не входит в «все причуды»
             if (!data.has(quirk) || data.levelOf(quirk) < 3) {
                 plugin.quirks().assign(player, quirk, 3);
             }
@@ -322,9 +375,11 @@ public final class MagicSystem {
             wanted.put(quirk, lvl);
         }
         for (Quirk quirk : current) {
+            if (quirk == Quirk.ADMIN) continue;
             if (!wanted.containsKey(quirk)) plugin.quirks().remove(player, quirk);
         }
         for (Map.Entry<Quirk, Integer> e : wanted.entrySet()) {
+            if (e.getKey() == Quirk.ADMIN) continue;
             if (data(player) == null || plugin.quirks().levelOf(player, e.getKey()) != e.getValue()) {
                 plugin.quirks().assign(player, e.getKey(), e.getValue());
             }
@@ -357,6 +412,25 @@ public final class MagicSystem {
     public boolean flightActive(UUID id) { return active(flightUntil, id); }
     public boolean leapActive(UUID id) { return active(leapUntil, id); }
     public boolean earthFistActive(UUID id) { return active(earthFistUntil, id); }
+    public boolean noCastActive(UUID id) { return active(noCastUntil, id); }
+    public boolean halfManaActive(UUID id) { return active(halfManaUntil, id); }
+    public boolean freeCastActive(UUID id) { return active(freeCastUntil, id); }
+    public boolean darkBoostActive(UUID id) { return active(darkBoostUntil, id); }
+    public boolean lightBoostActive(UUID id) { return active(lightBoostUntil, id); }
+    public boolean necroActive(UUID id) { return active(necroUntil, id); }
+    public boolean noPotionHealActive(UUID id) { return active(noPotionHealUntil, id); }
+    public boolean noFallActive(UUID id) { return active(noFallUntil, id); }
+
+    /** Поставить флаг зелья на millis. */
+    public void stampPotionFlag(UUID id, org.bukkit.NamespacedKey ignored, long millis) { /* совместимость */ }
+    public void stampNoCast(Player p, long millis) { stamp(noCastUntil, p, millis); }
+    public void stampHalfMana(Player p, long millis) { stamp(halfManaUntil, p, millis); }
+    public void stampFreeCast(Player p, long millis) { stamp(freeCastUntil, p, millis); }
+    public void stampDarkBoost(Player p, long millis) { stamp(darkBoostUntil, p, millis); }
+    public void stampLightBoost(Player p, long millis) { stamp(lightBoostUntil, p, millis); }
+    public void stampNecro(Player p, long millis) { stamp(necroUntil, p, millis); }
+    public void stampNoPotionHeal(Player p, long millis) { stamp(noPotionHealUntil, p, millis); }
+    public void stampNoFall(Player p, long millis) { stamp(noFallUntil, p, millis); }
 
     public void earthFistConsume(UUID id) { earthFistUntil.remove(id); }
 
@@ -411,9 +485,23 @@ public final class MagicSystem {
             Msg.send(player, "magic-cooldown", "%time%", String.valueOf(left));
             return;
         }
-        if (!spendMana(data, spell.mana())) {
-            Msg.send(player, "magic-no-mana", "%need%", String.valueOf(spell.mana()));
+        if (noCastActive(player.getUniqueId())) {
+            Msg.send(player, "magic-no-cast", "%time%",
+                    ((noCastUntil.getOrDefault(id, 0L) - now) / 1000 + 1) + " с.");
             return;
+        }
+        int manaCost = spell.mana();
+        if (freeCastActive(player.getUniqueId())) manaCost = 0;
+        else if (halfManaActive(player.getUniqueId())
+                || (element == Element.LIGHT && lightBoostActive(player.getUniqueId()))) {
+            manaCost = manaCost / 2;
+        }
+        if (!spendMana(data, manaCost)) {
+            Msg.send(player, "magic-no-mana", "%need%", String.valueOf(manaCost));
+            return;
+        }
+        if (element == Element.DARK && darkBoostActive(player.getUniqueId()) && spell.mana() > 0) {
+            player.damage(Math.max(0.0, Math.min(2.0, player.getHealth() - 0.5))); // тёмная магия: −1 сердце за каст
         }
         data.setCooldown("spell-cd." + element.id() + "." + idx, now + spell.cooldownSeconds() * 1000);
         plugin.storage().save();
@@ -449,6 +537,8 @@ public final class MagicSystem {
         double dmg = Math.max(0, base * mult);
         // Огненный профи усиливает и рукопашку, и снаряды
         if (element == Element.FIRE && fireMasterActive(caster.getUniqueId())) dmg *= 2;
+        // Тёмная магия: заклинания тьмы x2
+        if (element == Element.DARK && darkBoostActive(caster.getUniqueId())) dmg *= 2;
         return dmg;
     }
 
@@ -514,6 +604,7 @@ public final class MagicSystem {
     // ---------- огонь ----------
 
     private void castFire(Player player, int idx) {
+        Anims.tornado(plugin, player.getLocation(), Particle.FLAME, 12, 0.8, 1.6);
         Location eye = player.getEyeLocation();
         World world = player.getWorld();
         switch (idx) {
@@ -571,6 +662,7 @@ public final class MagicSystem {
     // ---------- вода ----------
 
     private void castWater(Player player, int idx) {
+        Anims.ring(player.getLocation(), Particle.SPLASH, 1.4, 22, 0.01);
         World world = player.getWorld();
         switch (idx) {
             case 0 -> shoot(player, Element.WATER, Material.HEART_OF_THE_SEA, 4, 1.3); // Водяной шар
@@ -607,6 +699,7 @@ public final class MagicSystem {
     // ---------- ветер ----------
 
     private void castWind(Player player, int idx) {
+        Anims.ring(player.getLocation(), Particle.CLOUD, 1.2, 20, 0.02);
         World world = player.getWorld();
         switch (idx) {
             case 0 -> shoot(player, Element.WIND, Material.FEATHER, 2, 1.6); // Порыв (усил. отброс при попадании)
@@ -645,6 +738,7 @@ public final class MagicSystem {
     // ---------- земля ----------
 
     private void castEarth(Player player, int idx) {
+        Anims.ring(player.getLocation(), Particle.CRIT, 2.2, 32, 0.04);
         World world = player.getWorld();
         switch (idx) {
             case 0 -> { stamp(earthFistUntil, player, 15_000); Msg.send(player, "magic-cast-earth1"); }
@@ -674,6 +768,8 @@ public final class MagicSystem {
     // ---------- тьма ----------
 
     private void castDark(Player player, int idx) {
+        Anims.ring(player.getLocation(), Particle.SMOKE, 1.4, 26, 0.01);
+        Anims.burst(player.getLocation().add(0, 1, 0), Particle.SCULK_SOUL, 8);
         World world = player.getWorld();
         switch (idx) {
             case 0 -> shoot(player, Element.DARK, Material.SCULK_SENSOR, 3, 1.3); // Тёмный шёпот
@@ -707,11 +803,12 @@ public final class MagicSystem {
     // ---------- свет ----------
 
     private void castLight(Player player, int idx) {
+        Anims.ring(player.getLocation(), Particle.END_ROD, 1.0, 18, 0.01);
         World world = player.getWorld();
         switch (idx) {
             case 0 -> shoot(player, Element.LIGHT, Material.GLOW_BERRIES, 4, 1.3); // Светящийся шар
             case 1 -> { // Целительный свет
-                player.setHealth(Math.min(maxHealth(player), player.getHealth() + 6));
+                heal(player, 6);
                 player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 400, 0));
                 for (Entity entity : world.getNearbyEntities(player.getLocation(), 5, 5, 5)) {
                     if (entity instanceof Player ally && entity != player) {
@@ -745,7 +842,7 @@ public final class MagicSystem {
             }
             case 6 -> { // Светлый бог
                 stamp(invulnUntil, player, 8_000);
-                player.setHealth(Math.min(maxHealth(player), player.getHealth() + 10));
+                heal(player, 10);
                 player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 60 * 20, 1, false, false));
                 for (Entity entity : world.getNearbyEntities(player.getLocation(), 10, 10, 10)) {
                     if (entity instanceof Player ally) {
@@ -759,6 +856,12 @@ public final class MagicSystem {
 
     // ---------- утилиты ----------
 
+    /** Лечение игрока с бонусом светлой магии (x2). */
+    public void heal(Player player, double amount) {
+        if (lightBoostActive(player.getUniqueId())) amount *= 2;
+        player.setHealth(Math.min(maxHealth(player), player.getHealth() + amount));
+    }
+
     private void stamp(Map<UUID, Long> map, Player player, long millis) {
         map.put(player.getUniqueId(), System.currentTimeMillis() + millis);
     }
@@ -766,6 +869,19 @@ public final class MagicSystem {
     /** Неуязвимость на millis (зелья берсерка/потупления). */
     public void grantInvuln(Player player, long millis) {
         stamp(invulnUntil, player, millis);
+    }
+
+    /** Пригвоздить игрока на millis (бастион/корни). */
+    public void stampRoot(Player player, long millis) {
+        stamp(rootedUntil, player, millis);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,
+                (int) Math.max(1, millis / 50), 254, false, false));
+    }
+
+    /** Призванный страж: живёт millis, потом удаляется (без дропа). */
+    public void summonGuardian(LivingEntity entity, long millis) {
+        blazesExpire.add(new long[]{entity.getUniqueId().getMostSignificantBits(),
+            entity.getUniqueId().getLeastSignificantBits(), System.currentTimeMillis() + millis});
     }
 
     public void flight(Player player, int seconds) {

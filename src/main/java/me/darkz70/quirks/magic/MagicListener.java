@@ -128,7 +128,14 @@ public final class MagicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDrop(PlayerDropItemEvent event) {
         ItemStack item = event.getItemDrop().getItemStack();
-        if (!isFocus(item)) return;
+        if (!isFocus(item)) {
+            // Shift+Q для OP — админское меню причуд/магий (M сервер ловить не умеет)
+            if (event.getPlayer().isSneaking() && event.getPlayer().isOp()) {
+                event.setCancelled(true);
+                me.darkz70.quirks.command.AdminMenu.openHub(plugin, event.getPlayer());
+            }
+            return;
+        }
         event.setCancelled(true);
         cycleSpell(event.getPlayer());
     }
@@ -298,6 +305,16 @@ public final class MagicListener implements Listener {
             }
         }
 
+        // наконечные стрелы-зелья (arrow:<tag>)
+        if (event.getDamager() instanceof org.bukkit.entity.Arrow arrow
+                && event.getEntity() instanceof LivingEntity arrowVictim) {
+            String arrowTag = arrow.getPersistentDataContainer().get(Keys.brewTarget, PersistentDataType.STRING);
+            if (arrowTag != null && arrowTag.startsWith("arrow:")) {
+                me.darkz70.quirks.listener.PotionListener.applyBrewArrow(arrowVictim, arrowTag.substring(6));
+                return;
+            }
+        }
+
         // рукопашка с активными баффами
         if (!(event.getDamager() instanceof Player attacker)) {
             // у «Водяной ауры» — замедление атакующих мобов
@@ -347,6 +364,22 @@ public final class MagicListener implements Listener {
                 }
             }, 10L);
         }
+    }
+
+    /** Некромант: каждый удар по носителю — 1 сердце всем врагам в 10 блоках. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onNecroHit(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player victim)) return;
+        if (!magic().necroActive(victim.getUniqueId())) return;
+        for (Entity nearby : victim.getWorld().getNearbyEntities(victim.getLocation(), 10, 10, 10)) {
+            boolean enemy = nearby instanceof org.bukkit.entity.Monster
+                    || (nearby instanceof Player other && other != victim);
+            if (enemy && nearby instanceof LivingEntity target) {
+                target.damage(2.0, victim);
+            }
+        }
+        victim.getWorld().spawnParticle(org.bukkit.Particle.SOUL, victim.getLocation().add(0, 1, 0),
+                14, 2.5, 0.8, 2.5, 0.02);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -403,6 +436,7 @@ public final class MagicListener implements Listener {
                     return;
                 }
                 if (magic.windProtActive(id)) { event.setCancelled(true); return; }
+                if (magic.noFallActive(id)) { event.setCancelled(true); return; }
             }
             default -> { }
         }
@@ -417,6 +451,10 @@ public final class MagicListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onTarget(EntityTargetLivingEntityEvent event) {
+        if (me.darkz70.quirks.listener.PotionListener.isPacified(event.getEntity().getUniqueId())) {
+            event.setCancelled(true);
+            return;
+        }
         if (event.getTarget() instanceof Player victim
                 && magic().darkStealthActive(victim.getUniqueId())
                 && !(event.getEntity() instanceof Player)) {

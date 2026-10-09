@@ -109,29 +109,10 @@ public final class BrewTree {
                 "&7Смывает всё плохое.");
     }
 
-    /** Терминальный ингредиент → причуда. */
-    @Nullable
-    public static me.darkz70.quirks.Quirk quirkForTerminal(Material material) {
-        return switch (material) {
-            case DIAMOND_AXE -> me.darkz70.quirks.Quirk.AXE;
-            case DIAMOND_HOE -> me.darkz70.quirks.Quirk.FARMER;
-            case SCULK -> me.darkz70.quirks.Quirk.SCULK;
-            case COD -> me.darkz70.quirks.Quirk.CAT;
-            case TRIDENT -> me.darkz70.quirks.Quirk.AMPHIBIAN;
-            case AMETHYST_CLUSTER -> me.darkz70.quirks.Quirk.BEDROCK;
-            case REDSTONE -> me.darkz70.quirks.Quirk.ENGINEER;
-            case COBWEB -> me.darkz70.quirks.Quirk.SPIDER;
-            default -> null;
-        };
-    }
-
-    /** Зелье отключения конкретной причуды. */
-    public static ItemStack makeDisable(me.darkz70.quirks.Quirk quirk) {
-        ItemStack item = potion("&7Зелье отключения", Color.fromRGB(0x66, 0x44, 0x22), "disable", null,
-                "&8В нём тлеет чужой отклик…");
-        item.editMeta(meta -> meta.getPersistentDataContainer()
-                .set(Keys.brewTarget, PersistentDataType.STRING, quirk.id()));
-        return item;
+    /** Зелье отключения: снимает ВСЕ причуды, кроме скалка (антидот — за скалком). */
+    public static ItemStack makeDisable() {
+        return potion("&7Зелье отключения", Color.fromRGB(0x66, 0x44, 0x22), "disable", null,
+                "&8Судный день для причуд. Скалк не сдаётся.");
     }
 
     /** Зелье причуды: disable + confirm → все 8 причуд 3 ур. на 10 секунд. */
@@ -410,7 +391,8 @@ public final class BrewTree {
 
     static {
         // база дерева (раньше были видимыми рецептами — теперь скрыты)
-        rule(l -> CraftListener.makeNeutral(), potionFam("HARMING"), potionFam("HEALING"));
+        rule(l -> CraftListener.makeNeutral(), potionFam("HARMING"), potionFam("HEALING"),
+                potionFam("HARMING"), potionFam("HEALING"), mat(Material.REDSTONE), mat(Material.GUNPOWDER));
         rule(l -> CraftListener.makeAntidote(), mark("neutral"), mat(Material.RESIN_CLUMP),
                 mat(Material.HONEYCOMB));
         // заражения
@@ -423,12 +405,10 @@ public final class BrewTree {
         rule(l -> makeDeny(), mark("neutral"), mark("neutral"), mark("neutral"), mark("neutral"), mark("neutral"));
         rule(l -> makeConfirm(), mark("neutral"), mark("neutral"), mark("neutral"), mark("neutral"),
                 mark("neutral"), mark("neutral"));
-        // отключения причуды (8 терминальных)
-        for (Material terminal : new Material[]{Material.DIAMOND_AXE, Material.DIAMOND_HOE, Material.SCULK,
-            Material.COD, Material.TRIDENT, Material.AMETHYST_CLUSTER, Material.REDSTONE, Material.COBWEB}) {
-            me.darkz70.quirks.Quirk quirk = quirkForTerminal(terminal);
-            rule(l -> makeDisable(quirk), mark("neutral"), mat(terminal));
-        }
+        // отключение причуд: единый «судный» рецепт (снимает все причуды, кроме скалковой)
+        rule(l -> makeDisable(), mark("neutral"), mat(Material.DIAMOND_AXE), mat(Material.DIAMOND_HOE),
+                mat(Material.COBWEB), mat(Material.SCULK), fishAny(), mat(Material.EMERALD_BLOCK),
+                mat(Material.REDSTONE_BLOCK), mat(Material.TRIDENT));
         // зелье причуды
         rule(l -> makeQuirkAll(), mark("disable"), mark("confirm"));
         // жизни / ускорения / никакого вреда / никакого восстановления
@@ -488,6 +468,217 @@ public final class BrewTree {
         return 1;
     }
 
+    private static Pred fishAny() {
+        return item -> {
+            Material m = item.getType();
+            return m == Material.COD || m == Material.SALMON || m == Material.TROPICAL_FISH
+                    || m == Material.PUFFERFISH;
+        };
+    }
+
+    private static Pred saplingAny() {
+        return item -> item.getType().name().endsWith("_SAPLING")
+                || item.getType() == Material.MANGROVE_PROPAGULE;
+    }
+
+    private static Pred markPrefix(String prefix) {
+        return item -> {
+            String mark = markOf(item);
+            return mark != null && mark.startsWith(prefix);
+        };
+    }
+
+    /** Сделать 32 наконечные стрелы из любого «стрелочного» зелья. */
+    private static ItemStack makeBrewArrows(ItemStack brew) {
+        String tag = markOf(brew);
+        ItemStack arrows = new ItemStack(Material.TIPPED_ARROW, 32);
+        arrows.editMeta(meta -> {
+            if (brew.getItemMeta() instanceof org.bukkit.inventory.meta.PotionMeta pm && pm.getColor() != null) {
+                ((org.bukkit.inventory.meta.PotionMeta) meta).setColor(pm.getColor());
+                if (pm.displayName() != null) meta.displayName(pm.displayName());
+            }
+            meta.getPersistentDataContainer().set(Keys.brewTarget, PersistentDataType.STRING, "arrow:" + tag);
+        });
+        return arrows;
+    }
+
+    // ---------- новые зелья v1.1 ----------
+
+    public static ItemStack makeDoublePoison() {
+        return potion("&2Зелье двойного отравления", Color.fromRGB(0x1E, 0x8E, 0x3D), "doublepoison", null,
+                "&7Тошнота + отравление + тьма.");
+    }
+
+    public static ItemStack makeNature() {
+        return potion("&aЗелье природы", Color.fromRGB(0x3E, 0x94, 0x22), "nature", null,
+                "&7Сытость леса и мир зверей.");
+    }
+
+    public static ItemStack makeDruid() {
+        return potion("&2Зелье друида", Color.fromRGB(0x11, 0x77, 0x33), "druid", null,
+                "&7Кровь Земли: заросли кругом.");
+    }
+
+    public static ItemStack makeNaturePoison() {
+        return potion("&5Зелье яда природы", Color.fromRGB(0x55, 0x22, 0x44), "naturepoison", null,
+                "&7Лес озлоблен.");
+    }
+
+    public static ItemStack makeWarrior() {
+        return potion("&eЗелье воина", Color.fromRGB(0xCC, 0x88, 0x22), "warrior", null,
+                "&7Клинок и ветер в одном флаконе.");
+    }
+
+    public static ItemStack makeGladiator() {
+        return potion("&6Зелье гладиатора", Color.fromRGB(0xBB, 0x66, 0x11), "gladiator", null,
+                "&7Арена одобряет.");
+    }
+
+    public static ItemStack makePlague() {
+        return potion("&5Зелье чумы", Color.fromRGB(0x44, 0x66, 0x22), "plague", null,
+                "&7Ты — источник. Радиус пять.");
+    }
+
+    public static ItemStack makeEpidemic() {
+        return potion("&4&k|] &r&4Зелье эпидемии &4&k[|", Color.fromRGB(0x66, 0x11, 0x11), "epidemic", null,
+                "&7Смертельно и заразно посмертно.");
+    }
+
+    public static ItemStack makeBastion() {
+        return potion("&7Зелье бастиона", Color.fromRGB(0x88, 0x88, 0x88), "bastion", null,
+                "&7Встань истуканом — не пробьют.");
+    }
+
+    public static ItemStack makeFortress() {
+        return potion("&8Зелье крепости", Color.fromRGB(0x55, 0x55, 0x66), "fortress", null,
+                "&7Стены ходячего донжона.");
+    }
+
+    public static ItemStack makeWeightless() {
+        return potion("&fЗелье невесомости", Color.fromRGB(0xEE, 0xF5, 0xFF), "weightless", null,
+                "&7Пух, пыльца, пустота.");
+    }
+
+    public static ItemStack makeAngel() {
+        return potion("&eЗелье ангела", Color.fromRGB(0xFF, 0xEE, 0xAA), "angel", null,
+                "&7Пятнадцать секунд крыльев. Цена — падение.");
+    }
+
+    public static ItemStack makeWitherpot() {
+        return potion("&8Зелье иссушения", Color.fromRGB(0x33, 0x33, 0x3A), "witherpot", null,
+                "&7Кости скрипят внутри.");
+    }
+
+    public static ItemStack makeNecro() {
+        return potion("&5Зелье некроманта", Color.fromRGB(0x22, 0x22, 0x33), "necro", null,
+                "&7Трое легионеров теней за твоей спиной.");
+    }
+
+    public static ItemStack makeDarkPotion() {
+        return potion("&8Зелье тьмы", Color.fromRGB(0x11, 0x11, 0x22), "darkpotion", null,
+                "&7Чернила глубокой пещеры.");
+    }
+
+    public static ItemStack makeLightPotion() {
+        return potion("&eЗелье света", Color.fromRGB(0xFF, 0xF2, 0x99), "lightpotion", null,
+                "&7Ламповый вечер в зелье.");
+    }
+
+    public static ItemStack makeBlindPotion() {
+        return potion("&8Зелье слепоты", Color.fromRGB(0x22, 0x22, 0x28), "blindpotion", null,
+                "&7Темнеет в глазах.");
+    }
+
+    public static ItemStack makeNightmare() {
+        return potion("&5Зелье кошмара", Color.fromRGB(0x33, 0x11, 0x44), "nightmare", null,
+                "&7Плохой сон на донышке.");
+    }
+
+    public static ItemStack makeMadness() {
+        return potion("&4&k!! &r&4Зелье безумия &4&k!!", Color.fromRGB(0x55, 0x11, 0x22), "madness", null,
+                "&7Каждые пять секунд — иной мир.");
+    }
+
+    public static ItemStack makeManaPotion() {
+        return potion("&bЗелье маны", Color.fromRGB(0x33, 0x55, 0xDD), "manapot", null,
+                "&7Пятьдесят капель чистой магии.");
+    }
+
+    public static ItemStack makeArchimage() {
+        return potion("&9Зелье архимага", Color.fromRGB(0x22, 0x33, 0xAA), "archimage", null,
+                "&7Полная мана и пол цены заклинаниям.");
+    }
+
+    public static ItemStack makeGreatArch() {
+        return potion("&3&k<> &r&3Зелье великого архимага &3&k<>", Color.fromRGB(0x11, 0x44, 0x99), "greatarch", null,
+                "&7Тридцать секунд всемогущества — и расселина.");
+    }
+
+    public static ItemStack makeDarkMagic() {
+        return potion("&8Зелье тёмной магии", Color.fromRGB(0x22, 0x11, 0x33), "darkmagic", null,
+                "&7x2 тьмы — по сердцу за каст.");
+    }
+
+    public static ItemStack makeLightMagic() {
+        return potion("&eЗелье светлой магии", Color.fromRGB(0xEE, 0xDD, 0x88), "lightmagic", null,
+                "&7x2 исцеления и пол цены свету.");
+    }
+
+    public static ItemStack makeMushroomSpirit() {
+        return potion("&2Зелье грибного духа", Color.fromRGB(0x66, 0x88, 0x44), "mushroomspirit", null,
+                "&7Грибной дух выберет настроение сам.");
+    }
+
+    public static ItemStack makeForestFeast() {
+        return potion("&6Зелье лесного пира", Color.fromRGB(0xAA, 0x77, 0x22), "forestfeast", null,
+                "&7Пир на весь лес — в одной бутылке.");
+    }
+
+    public static ItemStack makeNewLife() {
+        return potion("&bЗелье новой жизни", Color.fromRGB(0x88, 0xCC, 0xEE), "newlife", null,
+                "&7Собой тут хоронят прошлого.");
+    }
+
+    public static ItemStack makeBoiledEgg() {
+        ItemStack item = new ItemStack(Material.DRIED_KELP);
+        item.editMeta(meta -> {
+            meta.displayName(me.darkz70.quirks.util.Msg.color("&fВарёное яйцо"));
+            meta.lore(List.of(me.darkz70.quirks.util.Msg.color("&7Сварено старательно.")));
+            meta.getPersistentDataContainer().set(Keys.brewMark, PersistentDataType.STRING, "boiledegg");
+        });
+        return item;
+    }
+
+    public static ItemStack makeChick() {
+        return potion("&fЗелье птенца", Color.fromRGB(0xFF, 0xF5, 0xCC), "chick", null,
+                "&7Лёгкость скорлупного крылышка.");
+    }
+
+    public static ItemStack makeDepths() {
+        return potion("&1Зелье глубин", Color.fromRGB(0x11, 0x33, 0x77), "depths", null,
+                "&7В глазах — тёмная вода.");
+    }
+
+    public static ItemStack makePanda() {
+        return potion("&2Зелье панды", Color.fromRGB(0x55, 0x99, 0x44), "panda", null,
+                "&7Бамбук, сон, сытость.");
+    }
+
+    public static ItemStack makeOceanid() {
+        return potion("&3Зелье океанида", Color.fromRGB(0x11, 0x66, 0xAA), "oceanid", null,
+                "&7Дочь моря в гостях.");
+    }
+
+    public static ItemStack makeAlbatross() {
+        return potion("&fЗелье альбатроса", Color.fromRGB(0xDD, 0xE8, 0xF0), "albatross", null,
+                "&7Крыло над волной.");
+    }
+
+    public static ItemStack makeNest() {
+        return potion("&eЗелье воздушного гнезда", Color.fromRGB(0xEE, 0xDD, 0x99), "nest", null,
+                "&7Не говори «мы не такие».");
+    }
+
     /** Совпадает ли матрица с каким-либо правилом. Вернёт результат или null. */
     @Nullable
     public static ItemStack match(List<ItemStack> nonEmptyStacks) {
@@ -512,6 +703,83 @@ public final class BrewTree {
             return rule.make().apply(order);
         }
         return null;
+    }
+
+    static {
+        // двойное отравление
+        rule(l -> makeDoublePoison(), mark("neutral"), potionFam("POISON"), mark("neutral"));
+        // природная ветка (в спеке 10 позиций при сетке 3×3 — 7 саженцев вместо 8)
+        rule(l -> makeNature(), mark("neutral"), saplingAny(), saplingAny(), saplingAny(), saplingAny(),
+                saplingAny(), saplingAny(), saplingAny(), mat(Material.BONE_MEAL));
+        rule(l -> makeDruid(), mark("nature"), potionFam("HEALING"));
+        // яд природы — тег уникальный, чтобы не съелся ниже
+        rule(l -> makeNaturePoison(), mark("nature"), mark("infusion"));
+        // воинская ветка
+        rule(l -> makeWarrior(), mark("neutral"), potionFam("STRENGTH"), potionFam("SWIFTNESS"),
+                mat(Material.IRON_SWORD));
+        rule(l -> makeGladiator(), mark("warrior"), mark("berserk"));
+        // чумная ветка
+        rule(l -> makePlague(), mark("neutral"), potionFam("POISON"), potionFam("HARMING"),
+                mat(Material.SPIDER_EYE), mat(Material.SPIDER_EYE), mat(Material.SPIDER_EYE),
+                mat(Material.SPIDER_EYE));
+        rule(l -> makeEpidemic(), mark("plague"), mark("doublepoison"));
+        // бастионная ветка
+        rule(l -> makeBastion(), mark("neutral"), potionFam("REGENERATION"), mat(Material.SHIELD));
+        rule(l -> makeFortress(), mark("bastion"), mark("life"));
+        // лёгкость
+        rule(l -> makeWeightless(), mark("neutral"), potionFam("SLOW_FALLING"), mat(Material.FEATHER),
+                mat(Material.FEATHER), mat(Material.FEATHER), mat(Material.FEATHER));
+        rule(l -> makeAngel(), mark("weightless"), mark("flypot"));
+        // визер-ветка
+        rule(l -> makeWitherpot(), mark("neutral"), mat(Material.WITHER_SKELETON_SKULL), potionFam("HARMING"));
+        // некромант: спековых 8 костей не влезает в сетку (4 позиции) — 7
+        rule(l -> makeNecro(), mark("witherpot"), mark("darkpotion"), mat(Material.BONE), mat(Material.BONE),
+                mat(Material.BONE), mat(Material.BONE), mat(Material.BONE), mat(Material.BONE), mat(Material.BONE));
+        // базовые «состояния» для кошмара/магий
+        rule(l -> makeDarkPotion(), mark("neutral"), mat(Material.SCULK), mat(Material.GLOW_INK_SAC));
+        rule(l -> makeLightPotion(), mark("neutral"), mat(Material.GLOW_BERRIES), mat(Material.TORCH));
+        rule(l -> makeBlindPotion(), mark("neutral"), mat(Material.INK_SAC));
+        // кошмарная ветка
+        rule(l -> makeNightmare(), mark("neutral"), mark("darkpotion"), mark("blindpotion"),
+                mat(Material.COBWEB), mat(Material.COBWEB), mat(Material.COBWEB), mat(Material.COBWEB));
+        rule(l -> makeMadness(), mark("nightmare"), mark("grandsam"));
+        // маны сосуды
+        rule(l -> makeManaPotion(), mark("neutral"), mat(Material.AMETHYST_SHARD), mat(Material.AMETHYST_SHARD),
+                mat(Material.AMETHYST_SHARD), mat(Material.AMETHYST_SHARD), mark("knowledge"));
+        rule(l -> makeArchimage(), mark("manapot"), mark("mind"));
+        rule(l -> makeGreatArch(), mark("archimage"), mark("basis"), markPrefix("upbook-"));
+        rule(l -> makeDarkMagic(), mark("infusion"), mark("manapot"), mark("darkpotion"), mat(Material.SCULK));
+        rule(l -> makeLightMagic(), mark("infusion"), mark("manapot"), mark("lightpotion"),
+                mat(Material.GLOWSTONE));
+        // грибные сказки
+        rule(l -> makeMushroomSpirit(), mark("infusion"), mark("infusion"), mark("infusion"));
+        rule(l -> makeForestFeast(), mark("infusion"), mark("satpot"), potionFam("HEALING"));
+        rule(l -> makeNewLife(), mark("infusion"), mark("retrain"));
+        // яично-океанская ветка
+        rule(l -> makeChick(), mark("neutral"), mark("boiledegg"));
+        rule(l -> makeDepths(), mark("neutral"), mat(Material.KELP));
+        rule(l -> makePanda(), mark("neutral"), mat(Material.BAMBOO));
+        rule(l -> makeOceanid(), mark("depths"), mark("panda"));
+        rule(l -> makeAlbatross(), mark("chick"), mark("depths"));
+        rule(l -> makeNest(), mark("chick"), potionFam("SLOW_FALLING"));
+        // «стрелочные» зелья: любое новое зелье + 8 стрел = 32 наконечные стрелы (эффекты 5 с)
+        for (String arrowTagRaw : new String[]{"doublepoison", "nature", "druid", "naturepoison", "warrior",
+            "gladiator", "plague", "epidemic", "bastion", "fortress", "weightless", "angel", "witherpot",
+            "necro", "nightmare", "madness", "manapot", "archimage", "greatarch", "darkmagic", "lightmagic",
+            "mushroomspirit", "forestfeast", "newlife", "darkpotion", "lightpotion", "blindpotion"}) {
+            final String arrowTag = arrowTagRaw;
+            rule(l -> makeBrewArrows(findTag(l, arrowTag)),
+                    mark(arrowTag),
+                    mat(Material.ARROW), mat(Material.ARROW), mat(Material.ARROW), mat(Material.ARROW),
+                    mat(Material.ARROW), mat(Material.ARROW), mat(Material.ARROW), mat(Material.ARROW));
+        }
+    }
+
+    private static ItemStack findTag(List<ItemStack> matched, String tag) {
+        for (ItemStack item : matched) {
+            if (tagged(item, tag)) return item;
+        }
+        return matched.get(0);
     }
 
     // ---------- варка ----------
@@ -584,6 +852,40 @@ public final class BrewTree {
             case "miner" -> makeMiner();
             case "dull" -> makeDull();
             case "demagic" -> makeDemagic();
+            case "doublepoison" -> makeDoublePoison();
+            case "nature" -> makeNature();
+            case "druid" -> makeDruid();
+            case "naturepoison" -> makeNaturePoison();
+            case "warrior" -> makeWarrior();
+            case "gladiator" -> makeGladiator();
+            case "plague" -> makePlague();
+            case "epidemic" -> makeEpidemic();
+            case "bastion" -> makeBastion();
+            case "fortress" -> makeFortress();
+            case "weightless" -> makeWeightless();
+            case "angel" -> makeAngel();
+            case "witherpot" -> makeWitherpot();
+            case "necro" -> makeNecro();
+            case "darkpotion" -> makeDarkPotion();
+            case "lightpotion" -> makeLightPotion();
+            case "blindpotion" -> makeBlindPotion();
+            case "nightmare" -> makeNightmare();
+            case "madness" -> makeMadness();
+            case "manapot" -> makeManaPotion();
+            case "archimage" -> makeArchimage();
+            case "greatarch" -> makeGreatArch();
+            case "darkmagic" -> makeDarkMagic();
+            case "lightmagic" -> makeLightMagic();
+            case "mushroomspirit" -> makeMushroomSpirit();
+            case "forestfeast" -> makeForestFeast();
+            case "newlife" -> makeNewLife();
+            case "boiledegg" -> makeBoiledEgg();
+            case "chick" -> makeChick();
+            case "depths" -> makeDepths();
+            case "panda" -> makePanda();
+            case "oceanid" -> makeOceanid();
+            case "albatross" -> makeAlbatross();
+            case "nest" -> makeNest();
             default -> null;
         };
     }
