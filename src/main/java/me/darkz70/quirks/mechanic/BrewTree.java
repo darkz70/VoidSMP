@@ -758,9 +758,8 @@ public final class BrewTree {
                 mat(Material.AMETHYST_SHARD), mat(Material.AMETHYST_SHARD), mark("knowledge"));
         rule(l -> makeArchimage(), mark("manapot"), mark("mind"));
         rule(l -> makeGreatArch(), mark("archimage"), mark("basis"), markPrefix("upbook-"));
-        // Светлый+тёмный фолианты: ВСЯ яично-океанская ветка целиком (7 позиций) — только так
-        rule(l -> makeFoliants(), mark("boiledegg"), mark("chick"), mark("depths"), mark("panda"),
-                mark("oceanid"), mark("albatross"), mark("nest"));
+        // Светлый+тёмный фолианты: вершины яично-океанской ветки — только так (откат к 1.1.1)
+        rule(l -> makeFoliants(), mark("oceanid"), mark("albatross"), mark("nest"));
         rule(l -> makeDarkMagic(), mark("infusion"), mark("manapot"), mark("darkpotion"), mat(Material.SCULK));
         rule(l -> makeLightMagic(), mark("infusion"), mark("manapot"), mark("lightpotion"),
                 mat(Material.GLOWSTONE));
