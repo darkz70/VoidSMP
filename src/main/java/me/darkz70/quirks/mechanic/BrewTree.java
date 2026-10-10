@@ -491,9 +491,9 @@ public final class BrewTree {
         };
     }
 
-    /** Сделать 32 наконечные стрелы из любого «стрелочного» зелья. */
     /** 32 наконечные стрелы по brewed-зелю (PDC «arrow:<tag>» + текстура «arrow_<tag>»). */
-            String tag = markOf(brew);
+    public static ItemStack makeBrewArrows(ItemStack brew) {
+        String tag = markOf(brew);
         if (tag == null) return null;
         ItemStack arrows = new ItemStack(Material.TIPPED_ARROW, 32);
         arrows.editMeta(meta -> {
