@@ -75,6 +75,9 @@ public final class BrewTree {
             meta.lore(List.of(me.darkz70.quirks.util.Msg.color(lore)));
         }
         meta.getPersistentDataContainer().set(Keys.brewMark, PersistentDataType.STRING, tag);
+        var cmd = meta.getCustomModelDataComponent();
+        cmd.setStrings(java.util.List.of("potion_" + tag));
+        meta.setCustomModelDataComponent(cmd);
         item.setItemMeta(meta);
         return item;
     }
@@ -489,15 +492,18 @@ public final class BrewTree {
     }
 
     /** Сделать 32 наконечные стрелы из любого «стрелочного» зелья. */
-    public static ItemStack makeBrewArrows(ItemStack brew) {
-        String tag = markOf(brew);
+    /** 32 наконечные стрелы по brewed-зелю (PDC «arrow:<tag>» + текстура «arrow_<tag>»). */
+            String tag = markOf(brew);
+        if (tag == null) return null;
         ItemStack arrows = new ItemStack(Material.TIPPED_ARROW, 32);
         arrows.editMeta(meta -> {
-            if (brew.getItemMeta() instanceof org.bukkit.inventory.meta.PotionMeta pm && pm.getColor() != null) {
-                ((org.bukkit.inventory.meta.PotionMeta) meta).setColor(pm.getColor());
-                if (pm.displayName() != null) meta.displayName(pm.displayName());
+            if (brew.getItemMeta() != null) {
+                meta.displayName(brew.getItemMeta().displayName());
             }
             meta.getPersistentDataContainer().set(Keys.brewTarget, PersistentDataType.STRING, "arrow:" + tag);
+            org.bukkit.inventory.meta.components.CustomModelDataComponent cmd = meta.getCustomModelDataComponent();
+            cmd.setStrings(java.util.List.of("arrow_" + tag));
+            meta.setCustomModelDataComponent(cmd);
         });
         return arrows;
     }

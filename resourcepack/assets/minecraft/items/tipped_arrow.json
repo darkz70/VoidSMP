@@ -1,0 +1,223 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/tipped_arrow"
+    },
+    "cases": [
+      {
+        "when": "arrow_doublepoison",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_doublepoison"
+        }
+      },
+      {
+        "when": "arrow_nature",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_nature"
+        }
+      },
+      {
+        "when": "arrow_druid",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_druid"
+        }
+      },
+      {
+        "when": "arrow_naturepoison",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_naturepoison"
+        }
+      },
+      {
+        "when": "arrow_warrior",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_warrior"
+        }
+      },
+      {
+        "when": "arrow_gladiator",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_gladiator"
+        }
+      },
+      {
+        "when": "arrow_plague",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_plague"
+        }
+      },
+      {
+        "when": "arrow_epidemic",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_epidemic"
+        }
+      },
+      {
+        "when": "arrow_bastion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_bastion"
+        }
+      },
+      {
+        "when": "arrow_fortress",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_fortress"
+        }
+      },
+      {
+        "when": "arrow_weightless",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_weightless"
+        }
+      },
+      {
+        "when": "arrow_angel",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_angel"
+        }
+      },
+      {
+        "when": "arrow_witherpot",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_witherpot"
+        }
+      },
+      {
+        "when": "arrow_necro",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_necro"
+        }
+      },
+      {
+        "when": "arrow_nightmare",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_nightmare"
+        }
+      },
+      {
+        "when": "arrow_madness",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_madness"
+        }
+      },
+      {
+        "when": "arrow_manapot",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_manapot"
+        }
+      },
+      {
+        "when": "arrow_archimage",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_archimage"
+        }
+      },
+      {
+        "when": "arrow_greatarch",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_greatarch"
+        }
+      },
+      {
+        "when": "arrow_darkmagic",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_darkmagic"
+        }
+      },
+      {
+        "when": "arrow_lightmagic",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_lightmagic"
+        }
+      },
+      {
+        "when": "arrow_mushroomspirit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_mushroomspirit"
+        }
+      },
+      {
+        "when": "arrow_forestfeast",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_forestfeast"
+        }
+      },
+      {
+        "when": "arrow_newlife",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_newlife"
+        }
+      },
+      {
+        "when": "arrow_chick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_chick"
+        }
+      },
+      {
+        "when": "arrow_depths",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_depths"
+        }
+      },
+      {
+        "when": "arrow_panda",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_panda"
+        }
+      },
+      {
+        "when": "arrow_oceanid",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_oceanid"
+        }
+      },
+      {
+        "when": "arrow_albatross",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_albatross"
+        }
+      },
+      {
+        "when": "arrow_nest",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/arrow_nest"
+        }
+      }
+    ]
+  }
+}

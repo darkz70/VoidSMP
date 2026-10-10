@@ -1,0 +1,440 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/potion"
+    },
+    "cases": [
+      {
+        "when": "potion_infect",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_infect"
+        }
+      },
+      {
+        "when": "potion_samogon",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_samogon"
+        }
+      },
+      {
+        "when": "potion_deny",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_deny"
+        }
+      },
+      {
+        "when": "potion_confirm",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_confirm"
+        }
+      },
+      {
+        "when": "potion_disable",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_disable"
+        }
+      },
+      {
+        "when": "potion_quirkall",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_quirkall"
+        }
+      },
+      {
+        "when": "potion_life",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_life"
+        }
+      },
+      {
+        "when": "potion_paces",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_paces"
+        }
+      },
+      {
+        "when": "potion_noharm",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_noharm"
+        }
+      },
+      {
+        "when": "potion_norestore",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_norestore"
+        }
+      },
+      {
+        "when": "potion_flypot",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_flypot"
+        }
+      },
+      {
+        "when": "potion_god",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_god"
+        }
+      },
+      {
+        "when": "potion_berserk",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_berserk"
+        }
+      },
+      {
+        "when": "potion_basis",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_basis"
+        }
+      },
+      {
+        "when": "potion_lucky",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_lucky"
+        }
+      },
+      {
+        "when": "potion_unlucky",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_unlucky"
+        }
+      },
+      {
+        "when": "potion_grandsam",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_grandsam"
+        }
+      },
+      {
+        "when": "potion_return",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_return"
+        }
+      },
+      {
+        "when": "potion_infusion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_infusion"
+        }
+      },
+      {
+        "when": "potion_retrain",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_retrain"
+        }
+      },
+      {
+        "when": "potion_satpot",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_satpot"
+        }
+      },
+      {
+        "when": "potion_knowledge",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_knowledge"
+        }
+      },
+      {
+        "when": "potion_mind",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_mind"
+        }
+      },
+      {
+        "when": "potion_miner",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_miner"
+        }
+      },
+      {
+        "when": "potion_dull",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_dull"
+        }
+      },
+      {
+        "when": "potion_demagic",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_demagic"
+        }
+      },
+      {
+        "when": "potion_doublepoison",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_doublepoison"
+        }
+      },
+      {
+        "when": "potion_nature",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_nature"
+        }
+      },
+      {
+        "when": "potion_druid",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_druid"
+        }
+      },
+      {
+        "when": "potion_naturepoison",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_naturepoison"
+        }
+      },
+      {
+        "when": "potion_warrior",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_warrior"
+        }
+      },
+      {
+        "when": "potion_gladiator",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_gladiator"
+        }
+      },
+      {
+        "when": "potion_plague",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_plague"
+        }
+      },
+      {
+        "when": "potion_epidemic",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_epidemic"
+        }
+      },
+      {
+        "when": "potion_bastion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_bastion"
+        }
+      },
+      {
+        "when": "potion_fortress",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_fortress"
+        }
+      },
+      {
+        "when": "potion_weightless",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_weightless"
+        }
+      },
+      {
+        "when": "potion_angel",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_angel"
+        }
+      },
+      {
+        "when": "potion_witherpot",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_witherpot"
+        }
+      },
+      {
+        "when": "potion_necro",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_necro"
+        }
+      },
+      {
+        "when": "potion_darkpotion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_darkpotion"
+        }
+      },
+      {
+        "when": "potion_lightpotion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_lightpotion"
+        }
+      },
+      {
+        "when": "potion_blindpotion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_blindpotion"
+        }
+      },
+      {
+        "when": "potion_nightmare",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_nightmare"
+        }
+      },
+      {
+        "when": "potion_madness",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_madness"
+        }
+      },
+      {
+        "when": "potion_manapot",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_manapot"
+        }
+      },
+      {
+        "when": "potion_archimage",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_archimage"
+        }
+      },
+      {
+        "when": "potion_greatarch",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_greatarch"
+        }
+      },
+      {
+        "when": "potion_darkmagic",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_darkmagic"
+        }
+      },
+      {
+        "when": "potion_lightmagic",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_lightmagic"
+        }
+      },
+      {
+        "when": "potion_mushroomspirit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_mushroomspirit"
+        }
+      },
+      {
+        "when": "potion_forestfeast",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_forestfeast"
+        }
+      },
+      {
+        "when": "potion_newlife",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_newlife"
+        }
+      },
+      {
+        "when": "potion_chick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_chick"
+        }
+      },
+      {
+        "when": "potion_depths",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_depths"
+        }
+      },
+      {
+        "when": "potion_panda",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_panda"
+        }
+      },
+      {
+        "when": "potion_oceanid",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_oceanid"
+        }
+      },
+      {
+        "when": "potion_albatross",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_albatross"
+        }
+      },
+      {
+        "when": "potion_nest",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_nest"
+        }
+      },
+      {
+        "when": "potion_neutral",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_neutral"
+        }
+      },
+      {
+        "when": "potion_antidote",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/potion_antidote"
+        }
+      }
+    ]
+  }
+}

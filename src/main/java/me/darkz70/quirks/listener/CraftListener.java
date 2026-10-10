@@ -165,6 +165,9 @@ public final class CraftListener implements Listener {
         meta.displayName(Msg.color("&7Нейтрализованное зелье"));
         meta.lore(List.of(Msg.color("&7Тихое, безвредное, почти бесполезное.")));
         meta.getPersistentDataContainer().set(Keys.brewMark, PersistentDataType.STRING, "neutral");
+        var cmdneutral = meta.getCustomModelDataComponent();
+        cmdneutral.setStrings(List.of("potion_neutral"));
+        meta.setCustomModelDataComponent(cmdneutral);
         item.setItemMeta(meta);
         return item;
     }
@@ -177,6 +180,9 @@ public final class CraftListener implements Listener {
         meta.lore(List.of(Msg.color("&7Выпей, чтобы изгнать Скалк любого уровня.")));
         meta.setColor(Color.fromRGB(0x3B, 0xD3, 0x7A));
         meta.getPersistentDataContainer().set(Keys.brewMark, PersistentDataType.STRING, "antidote");
+        var cmdantidote = meta.getCustomModelDataComponent();
+        cmdantidote.setStrings(List.of("potion_antidote"));
+        meta.setCustomModelDataComponent(cmdantidote);
         item.setItemMeta(meta);
         return item;
     }
