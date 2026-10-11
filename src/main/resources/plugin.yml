@@ -1,0 +1,23 @@
+name: VoidFastBoats
+version: '${version}'
+main: ru.voidsmp.fastboats.FastBoatsPlugin
+api-version: '26.2'
+# Optional at load time only: commands stay available if the transport is missing.
+softdepend: [packetevents]
+description: Настраиваемое ускорение лодок на воде
+commands:
+  boatspeed:
+    description: Настройка скорости лодок
+    usage: /boatspeed <число|on|off|reload|debug [ник]>
+    permission: voidfastboats.admin
+  boatdebug:
+    description: Диагностика лодок из игры или консоли
+    usage: /boatdebug [ник]
+    permission: voidfastboats.admin
+permissions:
+  voidfastboats.admin:
+    description: Управление скоростью лодок
+    default: op
+  voidfastboats.use:
+    description: Ускорение лодки для водителя
+    default: true
