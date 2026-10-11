@@ -56,8 +56,9 @@ public final class Msg {
         def("shard-weaker", "%prefix%&7Твоя душа уже носит эту причуду (или сильнее). Осколок сохранён.");
         def("soul-freed", "&d✦ &b%player% &dосвободил душу из клетки лабиринта! Она оставила осколок…");
         def("pack-link", "%prefix%&bРесурспак VoidSMP: &f%link%\n%prefix%&7Пропиши ссылку в server.properties в строку &fresource-pack=&7 и перезапусти.");
+        def("lab-world-ready", "%prefix%&6Мир принят как есть. Туда — /quirk lab tp.");
         def("lab-building", "%prefix%&5Начинаю строить лабиринт душ в мире &f%world%&5… не выключай сервер.");
-        def("lab-created", "%prefix%&dЛабиринт душ построен! Площадь &f%size%&d, клеток с душами: &f%cages%&d. Телепорт: /quirk lab tp");
+        def("lab-created", "%prefix%&6Чистый void-мир '%world%' создан. Загрузи туда свой лабиринт!");
         def("lab-exists", "%prefix%&eЛабиринт уже построен. Телепорт: /quirk lab tp");
         def("lab-prebuilt", "%prefix%&6Готовый мир принят: лабиринт не строим, используем ваш.");
         def("lab-back", "%prefix%&6Возврат из недр завершён. Добро пожаловать наверх!");
