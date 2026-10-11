@@ -297,6 +297,20 @@ public final class MagicSystem {
         data.selectedSpell(0);
         plugin.storage().save();
         revokeUpgradeBookRecipes(player);
+        if (had) {
+            clearActiveStates(player.getUniqueId()); // ауры/стелс гаснут мгновенно
+        }
+    }
+
+    /** Гасим всё живое: таймеры аур/защит/стелса, пулы щитов — чтобы за человеком не гуличали частицы. */
+    private void clearActiveStates(UUID id) {
+        invulnUntil.remove(id); rootedUntil.remove(id);
+        fireAuraUntil.remove(id); fireMasterUntil.remove(id); waterAuraUntil.remove(id);
+        fireProtUntil.remove(id); waterProtUntil.remove(id); windProtUntil.remove(id);
+        lightProtUntil.remove(id); darkStealthUntil.remove(id); lightAuraUntil.remove(id);
+        darkTouchUntil.remove(id); earthFistUntil.remove(id); windDashUntil.remove(id);
+        echoUntil.remove(id); leapUntil.remove(id); flightUntil.remove(id);
+        darkEvadeUntil.remove(id); noCastUntil.remove(id); halfManaUntil.remove(id);
     }
 
     /** Книги прокачки видны в книге рецептов только магам (ур. 1+). */
@@ -1089,6 +1103,8 @@ public final class MagicSystem {
 
     /** Ауры и свет: жжение нежити возле ауры света, пламя возле огненной ауры. */
     public void tickAuras(Player player) {
+        PlayerData d = data(player);
+        if (d == null || d.magicElement() == null) return; // без магии — никаких шлейфов
         UUID id = player.getUniqueId();
         long now = System.currentTimeMillis();
         if (lightAuraActive(id)) {
