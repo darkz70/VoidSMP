@@ -324,6 +324,17 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                 }
                 plugin.labyrinth().teleport(sender, target);
             }
+            case "back" -> {
+                Player target;
+                if (args.length >= 3) {
+                    target = Bukkit.getPlayerExact(args[2]);
+                } else if (sender instanceof Player player) {
+                    target = player;
+                } else {
+                    target = null;
+                }
+                plugin.labyrinth().back(sender, target);
+            }
             default -> Msg.send(sender, "usage");
         }
     }
@@ -352,7 +363,9 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
         } else if (args.length == 2 && args[0].equalsIgnoreCase("lab")) {
             if ("create".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("create");
             if ("tp".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("tp");
-        } else if (args.length == 3 && args[0].equalsIgnoreCase("lab") && args[1].equalsIgnoreCase("tp")) {
+            if ("back".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("back");
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("lab")
+                && (args[1].equalsIgnoreCase("tp") || args[1].equalsIgnoreCase("back"))) {
             addPlayers(out, args[2]);
         } else if (args.length == 2
                 && List.of("set", "remove", "info", "get", "remove_admin", "remove_tmp")

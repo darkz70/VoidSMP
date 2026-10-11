@@ -180,6 +180,7 @@ messages:
   lab-created: "%prefix%&dЛабиринт душ построен! Площадь &f%size%&d, клеток с душами: &f%cages%&d. Телепорт: /quirk lab tp"
   lab-exists: "%prefix%&eЛабиринт уже построен. Телепорт: /quirk lab tp"
   lab-no-world: "%prefix%&cЛабиринт ещё не создан. Сначала /quirk lab create"
+  lab-back: "&6Возврат из недр завершён. Добро пожаловать наверх!"
   lab-tp: "%prefix%&dТы входишь в лабиринт душ…"
   antidote-cured: "%prefix%&2Антидот жжёт вены… чужеродное покидает твоё тело!"
   antidote-none: "%prefix%&7Горьковато. Но и изгонять нечего."

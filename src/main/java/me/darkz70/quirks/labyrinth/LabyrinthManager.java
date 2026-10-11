@@ -37,6 +37,8 @@ public final class LabyrinthManager {
     private record BlockPlace(int x, int y, int z, Material material) {}
 
     private final VoidQuirksPlugin plugin;
+    /** Куда вернуть игрока (запоминается при телепорте в лабиринт). */
+    private final java.util.Map<java.util.UUID, Location> returnPos = new java.util.HashMap<>();
     private final File stateFile;
     private YamlConfiguration state;
 
@@ -170,8 +172,27 @@ public final class LabyrinthManager {
             Msg.send(sender, "target-offline");
             return;
         }
+        returnPos.put(target.getUniqueId(), target.getLocation());
         target.teleport(entrance(world));
         Msg.send(target, "lab-tp");
+    }
+
+    /** /quirk lab back [игрок] — вернуть из лабиринта туда, откуда ушёл (или на спавн). */
+    public void back(CommandSender sender, @Nullable Player target) {
+        if (target == null) {
+            Msg.send(sender, "target-offline");
+            return;
+        }
+        Location back = returnPos.remove(target.getUniqueId());
+        if (back == null || back.getWorld() == null
+                || back.getWorld().getName().equals(worldName())) {
+            back = Bukkit.getWorlds().get(0).getSpawnLocation();
+        }
+        target.teleport(back);
+        Msg.send(target, "lab-back");
+        if (sender != target) {
+            Msg.send(sender, "lab-back", "%player%", target.getName());
+        }
     }
 
     // ---------- постройка ----------
