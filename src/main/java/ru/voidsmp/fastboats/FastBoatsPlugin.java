@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Location;
+import org.bukkit.util.Vector;
 import java.util.Locale;
 import java.util.Objects;
 import org.bukkit.Input;
@@ -35,7 +36,7 @@ public final class FastBoatsPlugin extends JavaPlugin {
             return;
         }
         Objects.requireNonNull(getCommand("boatspeed")).setExecutor(this);
-        getServer().getScheduler().runTaskTimer(this, this::tickBoats, 1L, 1L);
+        getServer().getScheduler().runTaskTimer(this, this::tickBoats, 2L, 2L);
     }
 
     private boolean loadSettings() {
@@ -78,19 +79,36 @@ public final class FastBoatsPlugin extends JavaPlugin {
             }
             double dx = current.getX() - previous.getX();
             double dz = current.getZ() - previous.getZ();
+            // Two-tick position samples reflect client movement, unlike server deltaMovement.
             double distance = Math.hypot(dx, dz);
-            double extra = SpeedMath.extraDistance(distance, multiplier, maxSpeed);
-            if (extra == 0) {
-                diagnostics.put(player.getUniqueId(), "Нет добавки: движение отсутствует, достигнут лимит или скачок позиции. Смещение: "
-                        + String.format(Locale.ROOT, "%.3f", distance) + " блока/тик.");
+            double measuredSpeed = distance / 2.0;
+            double requestedSpeed = SpeedMath.acceleratedSpeed(measuredSpeed, multiplier, maxSpeed);
+            if (requestedSpeed <= measuredSpeed || distance < 0.002) {
+                diagnostics.put(player.getUniqueId(), "Импульс не нужен: нет движения, достигнут лимит или скачок позиции.");
                 continue;
             }
-            boolean moved = BoatMovement.move(boat, dx / distance * extra, dz / distance * extra);
-            // Record the ACTUAL post-teleport position. Never multiply our own previous boost.
-            lastPositions.put(id, boat.getLocation());
-            diagnostics.put(player.getUniqueId(), moved
-                    ? String.format(Locale.ROOT, "Добавка применена: %.3f блока/тик; исходное смещение %.3f.", extra, distance)
-                    : "Добавка заблокирована: препятствие, сущность, незагруженный чанк, граница мира или отмена телепортации.");
+            Input input = player.getCurrentInput();
+            double yaw = Math.toRadians(current.getYaw());
+            int direction = input.isForward() ? 1 : -1;
+            double alongInput = (dx * -Math.sin(yaw) + dz * Math.cos(yaw)) * direction;
+            if (alongInput <= 0) {
+                diagnostics.put(player.getUniqueId(), "Смена направления: ожидаем движения в сторону гребли.");
+                continue;
+            }
+            double vx = dx / distance * requestedSpeed;
+            double vz = dz / distance * requestedSpeed;
+            // Do not add thrust toward nearby obstacles or unloaded chunks.
+            if (!BoatSafety.isPathClear(boat, vx * 2, vz * 2)) {
+                diagnostics.put(player.getUniqueId(), "Разгон приостановлен: препятствие, сущность, граница мира или незагруженный чанк.");
+                lastAttempts.put(player.getUniqueId(), diagnostics.get(player.getUniqueId()));
+                continue;
+            }
+            // No teleportation: allow vanilla movement and collision handling to move the boat.
+            // Preserve vertical physics; never derive horizontal speed from stale server velocity.
+            boat.setVelocity(new Vector(vx, boat.getVelocity().getY(), vz));
+            diagnostics.put(player.getUniqueId(), String.format(Locale.ROOT,
+                    "Замер за 2 тика: %.2f блоков/с при 20 TPS; отправлено %.3f блока/тик.",
+                    measuredSpeed * 20, requestedSpeed));
             lastAttempts.put(player.getUniqueId(), diagnostics.get(player.getUniqueId()));
         }
         lastPositions.keySet().retainAll(tracked);

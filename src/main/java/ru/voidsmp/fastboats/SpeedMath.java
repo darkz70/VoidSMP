@@ -17,10 +17,15 @@ final class SpeedMath {
         return 0.4 * multiplier;
     }
 
-    /** Extra distance only: vanilla movement is left untouched. Ignore teleport-sized jumps. */
-    static double extraDistance(double naturalDistance, double multiplier, double maxSpeed) {
-        if (!Double.isFinite(naturalDistance) || naturalDistance < 0.001
-                || naturalDistance > 1.0 || multiplier <= 1) return 0;
-        return Math.max(0, Math.min(naturalDistance * (multiplier - 1), maxSpeed - naturalDistance));
+    /** One bounded impulse per two-tick sample; never replace real speed with stale velocity. */
+    static double acceleratedSpeed(double measuredSpeed, double multiplier, double maxSpeed) {
+        if (!Double.isFinite(measuredSpeed) || measuredSpeed < 0.001
+                || measuredSpeed > MAX_SPEED * 2) return 0;
+        if (multiplier <= 1) return measuredSpeed;
+        double target = Math.min(limitForMultiplier(multiplier), maxSpeed);
+        if (measuredSpeed >= target) return measuredSpeed;
+        // Even x20 cannot cause an instantaneous jump from vanilla to maximum speed.
+        double step = Math.min(0.08, 0.02 * (multiplier - 1));
+        return Math.min(target, measuredSpeed + step);
     }
 }

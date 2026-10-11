@@ -6,11 +6,11 @@ import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
 
-/** Collision-checked additional movement; never writes client-controlled velocity. */
-final class BoatMovement {
-    private BoatMovement() {}
+/** Conservative look-ahead check before adding thrust. Does not move any entities. */
+final class BoatSafety {
+    private BoatSafety() {}
 
-    static boolean move(Boat boat, double dx, double dz) {
+    static boolean isPathClear(Boat boat, double dx, double dz) {
         Location start = boat.getLocation();
         World world = boat.getWorld();
         BoundingBox swept = boat.getBoundingBox().clone();
@@ -48,8 +48,6 @@ final class BoatMovement {
         }
         Location destination = start.clone().add(dx, 0, dz);
         if (!world.getWorldBorder().isInside(destination)) return false;
-        // Paper 26.2 preserves passengers by default (no deprecated flags required).
-        // Honour cancellation by other plugins. Do not eject/remount passengers.
-        return boat.teleport(destination);
+        return true;
     }
 }
