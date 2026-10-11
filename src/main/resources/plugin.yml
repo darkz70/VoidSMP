@@ -6,7 +6,7 @@ description: Настраиваемое ускорение лодок на во�
 commands:
   boatspeed:
     description: Настройка скорости лодок
-    usage: /boatspeed [1-5|on|off|reload]
+    usage: /boatspeed [1-5|on|off|reload|debug]
     permission: voidfastboats.admin
 permissions:
   voidfastboats.admin:

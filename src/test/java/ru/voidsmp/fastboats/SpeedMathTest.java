@@ -7,6 +7,7 @@ class SpeedMathTest {
     @Test void rejectsInvalidSettings() {
         for (double value : new double[] {Double.NaN, Double.POSITIVE_INFINITY, -1, 0, 5.01}) {
             assertFalse(SpeedMath.inRange(value, 1, 5));
+            assertThrows(IllegalArgumentException.class, () -> SpeedMath.limitForMultiplier(value));
         }
         assertTrue(SpeedMath.inRange(1, 1, 5));
         assertTrue(SpeedMath.inRange(5, 1, 5));
@@ -17,36 +18,34 @@ class SpeedMathTest {
         assertEquals(0.8, SpeedMath.limitForMultiplier(2), 1e-9);
         assertEquals(1.2, SpeedMath.limitForMultiplier(3), 1e-9);
         assertEquals(2.0, SpeedMath.limitForMultiplier(5), 1e-9);
-        for (double value : new double[] {Double.NaN, Double.POSITIVE_INFINITY, 0, 5.01}) {
-            assertThrows(IllegalArgumentException.class, () -> SpeedMath.limitForMultiplier(value));
+    }
+
+    @Test void eightBlocksPerSecondIsNotSlowedDownAtFive() {
+        double natural = 8.0 / 20;
+        double extra = SpeedMath.extraDistance(natural, 5, 2);
+        assertEquals(1.6, extra, 1e-9);
+        assertEquals(40, (natural + extra) * 20, 1e-9);
+    }
+
+    @Test void oneLeavesVanillaMovementAlone() {
+        assertEquals(0, SpeedMath.extraDistance(0.4, 1, 2));
+    }
+
+    @Test void lowCapNeverBrakesVanillaMovement() {
+        assertEquals(0, SpeedMath.extraDistance(0.4, 5, 0.1));
+    }
+
+    @Test void ignoresStationaryBoatsAndPositionJumps() {
+        for (double distance : new double[] {0, 0.0001, -1, 10, Double.NaN, Double.POSITIVE_INFINITY}) {
+            assertEquals(0, SpeedMath.extraDistance(distance, 5, 2));
         }
     }
 
-    @Test void maximumCommandSettingAllowsHigherSpeed() {
-        double[] velocity = {0, 0};
-        for (int i = 0; i < 1000; i++) {
-            velocity = SpeedMath.boost(velocity[0], velocity[1], 0, 1, 5,
-                    SpeedMath.limitForMultiplier(5));
+    @Test void additiveDistanceRespectsBudget() {
+        for (double natural = 0.01; natural <= 1; natural += 0.01) {
+            double extra = SpeedMath.extraDistance(natural, 5, 1.2);
+            assertTrue(extra >= 0);
+            assertTrue(natural + extra <= 1.2 + 1e-9);
         }
-        assertEquals(2.0, Math.hypot(velocity[0], velocity[1]), 1e-9);
-    }
-
-    @Test void forwardAndReverseFollowBoatYaw() {
-        assertArrayEquals(new double[] {0, 0.04}, SpeedMath.boost(0, 0, 0, 1, 2, 1.2), 1e-9);
-        assertArrayEquals(new double[] {-0.04, 0}, SpeedMath.boost(0, 0, 90, 1, 2, 1.2), 1e-9);
-        assertArrayEquals(new double[] {0, -0.04}, SpeedMath.boost(0, 0, 0, -1, 2, 1.2), 1e-9);
-    }
-
-    @Test void repeatedThrustCannotExceedLimit() {
-        double[] velocity = {0, 0};
-        for (int i = 0; i < 10000; i++) {
-            velocity = SpeedMath.boost(velocity[0], velocity[1], 45, 1, 5, 1.2);
-            assertTrue(Math.hypot(velocity[0], velocity[1]) <= 1.2 + 1e-9);
-        }
-    }
-
-    @Test void multiplierAlsoLimitsTargetSpeed() {
-        double[] velocity = SpeedMath.boost(3, 4, 0, 1, 2, 2);
-        assertEquals(0.8, Math.hypot(velocity[0], velocity[1]), 1e-9);
     }
 }

@@ -14,19 +14,10 @@ final class SpeedMath {
         return 0.4 * multiplier;
     }
 
-    // Add thrust rather than multiplying last tick's velocity exponentially.
-    static double[] boost(double x, double z, double yaw, int direction,
-                          double multiplier, double maxSpeed) {
-        double thrust = 0.04 * (multiplier - 1.0) * direction;
-        double radians = Math.toRadians(yaw);
-        x -= Math.sin(radians) * thrust;
-        z += Math.cos(radians) * thrust;
-        double limit = Math.min(0.4 * multiplier, maxSpeed);
-        double speed = Math.hypot(x, z);
-        if (speed > limit) {
-            x = x / speed * limit;
-            z = z / speed * limit;
-        }
-        return new double[] {x, z};
+    /** Extra distance only: vanilla movement is left untouched. Ignore teleport-sized jumps. */
+    static double extraDistance(double naturalDistance, double multiplier, double maxSpeed) {
+        if (!Double.isFinite(naturalDistance) || naturalDistance < 0.001
+                || naturalDistance > 1.0 || multiplier <= 1) return 0;
+        return Math.max(0, Math.min(naturalDistance * (multiplier - 1), maxSpeed - naturalDistance));
     }
 }

@@ -1,6 +1,12 @@
 package ru.voidsmp.fastboats;
 
 import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import org.bukkit.Location;
 import java.util.Locale;
 import java.util.Objects;
 import org.bukkit.Input;
@@ -9,9 +15,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.Vector;
+
 
 public final class FastBoatsPlugin extends JavaPlugin {
+    private final Map<UUID, Location> lastPositions = new HashMap<>();
+    private final Map<UUID, String> diagnostics = new HashMap<>();
+    private final Map<UUID, String> lastAttempts = new HashMap<>();
     private boolean active;
     private double multiplier;
     private double maxSpeed;
@@ -48,23 +57,59 @@ public final class FastBoatsPlugin extends JavaPlugin {
     }
 
     private void tickBoats() {
-        if (!active || multiplier == 1.0) return;
-        // Only online drivers, no full-world entity scans or persistent entity references.
+        diagnostics.clear();
+        Set<UUID> online = new HashSet<>();
+        Set<UUID> tracked = new HashSet<>();
         for (Player player : getServer().getOnlinePlayers()) {
-            if (!(player.getVehicle() instanceof Boat boat) || !boat.isValid()) continue;
-            if (boat.getPassengers().isEmpty() || !boat.getPassengers().getFirst().equals(player)) continue;
-            if (!player.hasPermission("voidfastboats.use")) continue;
-            if (!worlds.isEmpty() && !worlds.contains(boat.getWorld().getName())) continue;
-            if (boat.getStatus() != Boat.Status.IN_WATER) continue;
-            Input input = player.getCurrentInput();
-            int direction = (input.isForward() ? 1 : 0) - (input.isBackward() ? 1 : 0);
-            if (direction == 0) continue;
-            Vector velocity = boat.getVelocity();
-            double[] boosted = SpeedMath.boost(velocity.getX(), velocity.getZ(),
-                    boat.getLocation().getYaw(), direction, multiplier, maxSpeed);
-            // Preserve vertical physics. No teleportation and no forced chunk loading.
-            boat.setVelocity(velocity.setX(boosted[0]).setZ(boosted[1]));
+            online.add(player.getUniqueId());
+            String reason = inactiveReason(player);
+            if (reason != null) {
+                diagnostics.put(player.getUniqueId(), reason);
+                continue;
+            }
+            Boat boat = (Boat) player.getVehicle();
+            UUID id = boat.getUniqueId();
+            tracked.add(id);
+            Location current = boat.getLocation();
+            Location previous = lastPositions.put(id, current);
+            if (previous == null || !previous.getWorld().equals(current.getWorld())) {
+                diagnostics.put(player.getUniqueId(), "Сбор первого образца движения; продолжайте грести.");
+                continue;
+            }
+            double dx = current.getX() - previous.getX();
+            double dz = current.getZ() - previous.getZ();
+            double distance = Math.hypot(dx, dz);
+            double extra = SpeedMath.extraDistance(distance, multiplier, maxSpeed);
+            if (extra == 0) {
+                diagnostics.put(player.getUniqueId(), "Нет добавки: движение отсутствует, достигнут лимит или скачок позиции. Смещение: "
+                        + String.format(Locale.ROOT, "%.3f", distance) + " блока/тик.");
+                continue;
+            }
+            boolean moved = BoatMovement.move(boat, dx / distance * extra, dz / distance * extra);
+            // Record the ACTUAL post-teleport position. Never multiply our own previous boost.
+            lastPositions.put(id, boat.getLocation());
+            diagnostics.put(player.getUniqueId(), moved
+                    ? String.format(Locale.ROOT, "Добавка применена: %.3f блока/тик; исходное смещение %.3f.", extra, distance)
+                    : "Добавка заблокирована: препятствие, сущность, незагруженный чанк, граница мира или отмена телепортации.");
+            lastAttempts.put(player.getUniqueId(), diagnostics.get(player.getUniqueId()));
         }
+        lastPositions.keySet().retainAll(tracked);
+        lastAttempts.keySet().retainAll(online);
+    }
+
+    private String inactiveReason(Player player) {
+        if (!active || multiplier == 1) return "Ускорение выключено или множитель равен 1.";
+        if (!(player.getVehicle() instanceof Boat boat)) return "Вы не в лодке.";
+        if (!boat.isValid()) return "Лодка недействительна.";
+        if (boat.getPassengers().isEmpty() || !boat.getPassengers().getFirst().equals(player)) {
+            return "Вы пассажир, а не водитель.";
+        }
+        if (!player.hasPermission("voidfastboats.use")) return "Нет права voidfastboats.use.";
+        if (!worlds.isEmpty() && !worlds.contains(boat.getWorld().getName())) return "Мир исключён в конфиге.";
+        if (boat.getStatus() != Boat.Status.IN_WATER) return "Лодка не на поверхности воды: " + boat.getStatus();
+        Input input = player.getCurrentInput();
+        if (input.isForward() == input.isBackward()) return "Нажмите вперёд или назад (не одновременно).";
+        return null;
     }
 
     @Override
@@ -76,12 +121,24 @@ public final class FastBoatsPlugin extends JavaPlugin {
         if (args.length == 0) {
             sender.sendMessage("Лодки: " + (active ? "ускорение включено" : "ускорение выключено")
                     + ", множитель " + multiplier + ", лимит " + maxSpeed + " блоков/тик.");
-            sender.sendMessage("/boatspeed <1-5|on|off|reload>");
+            sender.sendMessage("/boatspeed <1-5|on|off|reload|debug>");
             return true;
         }
         if (args.length != 1) return false;
         String value = args[0].toLowerCase(Locale.ROOT);
+        if (value.equals("debug")) {
+            sender.sendMessage("VoidFastBoats " + getPluginMeta().getVersion() + ": "
+                    + (active ? "ON" : "OFF") + ", множитель " + multiplier + ", лимит " + maxSpeed);
+            if (sender instanceof Player player) {
+                sender.sendMessage(diagnostics.getOrDefault(player.getUniqueId(), "Нет данных; подождите тик."));
+                sender.sendMessage("Последняя попытка в этой сессии: " + lastAttempts.getOrDefault(player.getUniqueId(), "ещё не было"));
+            } else {
+                sender.sendMessage("Проверку движения выполняйте в игре, сидя за рулём лодки.");
+            }
+            return true;
+        }
         if (value.equals("reload")) {
+            lastPositions.clear();
             reloadConfig();
             boolean loaded = loadSettings();
             if (!loaded) {
@@ -117,6 +174,7 @@ public final class FastBoatsPlugin extends JavaPlugin {
             getConfig().set("max-speed", maxSpeed);
             getConfig().set("enabled", active);
         }
+        lastPositions.clear();
         saveConfig();
         sender.sendMessage("Настройки сохранены: ускорение " + (active ? "включено" : "выключено")
                 + ", множитель " + multiplier + ", лимит " + maxSpeed + " блоков/тик. Настройка применяется ко всем лодкам в разрешённых мирах.");
@@ -127,7 +185,7 @@ public final class FastBoatsPlugin extends JavaPlugin {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission("voidfastboats.admin") || args.length != 1) return List.of();
         String prefix = args[0].toLowerCase(Locale.ROOT);
-        return List.of("1", "1.5", "2", "3", "5", "on", "off", "reload").stream()
+        return List.of("1", "1.5", "2", "3", "5", "on", "off", "reload", "debug").stream()
                 .filter(value -> value.startsWith(prefix)).toList();
     }
 }
