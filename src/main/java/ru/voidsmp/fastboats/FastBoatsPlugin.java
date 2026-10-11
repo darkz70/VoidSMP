@@ -42,7 +42,7 @@ public final class FastBoatsPlugin extends JavaPlugin {
         if (!getConfig().isBoolean("enabled") || !getConfig().isList("worlds")) return false;
         double nextMultiplier = getConfig().getDouble("multiplier", Double.NaN);
         double nextMax = getConfig().getDouble("max-speed", Double.NaN);
-        if (!SpeedMath.inRange(nextMultiplier, 1, 5) || !SpeedMath.inRange(nextMax, 0.1, 2)) {
+        if (!SpeedMath.inRange(nextMultiplier, 1, SpeedMath.MAX_MULTIPLIER) || !SpeedMath.inRange(nextMax, 0.1, SpeedMath.MAX_SPEED)) {
             return false;
         }
         List<?> configuredWorlds = getConfig().getList("worlds");
@@ -121,7 +121,7 @@ public final class FastBoatsPlugin extends JavaPlugin {
         if (args.length == 0) {
             sender.sendMessage("Лодки: " + (active ? "ускорение включено" : "ускорение выключено")
                     + ", множитель " + multiplier + ", лимит " + maxSpeed + " блоков/тик.");
-            sender.sendMessage("/boatspeed <1-5|on|off|reload|debug>");
+            sender.sendMessage("/boatspeed <1-20|on|off|reload|debug>");
             return true;
         }
         if (args.length != 1) return false;
@@ -149,7 +149,7 @@ public final class FastBoatsPlugin extends JavaPlugin {
                 getConfig().set("worlds", worlds);
             }
             sender.sendMessage(loaded ? "Конфиг лодок перезагружен."
-                    : "Ошибка конфига: проверьте enabled, multiplier (1–5), max-speed (0.1–2) и worlds. Старые настройки сохранены в памяти.");
+                    : "Ошибка конфига: проверьте enabled, multiplier (1–20), max-speed (0.1–8) и worlds. Старые настройки сохранены в памяти.");
             return true;
         }
         if (value.equals("on") || value.equals("off")) {
@@ -160,11 +160,11 @@ public final class FastBoatsPlugin extends JavaPlugin {
             try {
                 requested = Double.parseDouble(value);
             } catch (NumberFormatException exception) {
-                sender.sendMessage("Укажите число от 1 до 5, on, off или reload.");
+                sender.sendMessage("Укажите число от 1 до 20, on, off или reload.");
                 return true;
             }
-            if (!SpeedMath.inRange(requested, 1, 5)) {
-                sender.sendMessage("Множитель должен быть конечным числом от 1 до 5.");
+            if (!SpeedMath.inRange(requested, 1, SpeedMath.MAX_MULTIPLIER)) {
+                sender.sendMessage("Множитель должен быть конечным числом от 1 до 20.");
                 return true;
             }
             multiplier = requested;
@@ -185,7 +185,7 @@ public final class FastBoatsPlugin extends JavaPlugin {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission("voidfastboats.admin") || args.length != 1) return List.of();
         String prefix = args[0].toLowerCase(Locale.ROOT);
-        return List.of("1", "1.5", "2", "3", "5", "on", "off", "reload", "debug").stream()
+        return List.of("1", "1.5", "2", "3", "5", "10", "15", "20", "on", "off", "reload", "debug").stream()
                 .filter(value -> value.startsWith(prefix)).toList();
     }
 }

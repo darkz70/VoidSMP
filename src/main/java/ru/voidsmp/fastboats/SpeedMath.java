@@ -1,6 +1,9 @@
 package ru.voidsmp.fastboats;
 
 final class SpeedMath {
+    static final double MAX_MULTIPLIER = 20;
+    static final double MAX_SPEED = 8;
+
     private SpeedMath() {}
 
     static boolean inRange(double value, double min, double max) {
@@ -8,8 +11,8 @@ final class SpeedMath {
     }
 
     static double limitForMultiplier(double multiplier) {
-        if (!inRange(multiplier, 1, 5)) {
-            throw new IllegalArgumentException("Multiplier must be between 1 and 5");
+        if (!inRange(multiplier, 1, MAX_MULTIPLIER)) {
+            throw new IllegalArgumentException("Multiplier must be between 1 and 20");
         }
         return 0.4 * multiplier;
     }
