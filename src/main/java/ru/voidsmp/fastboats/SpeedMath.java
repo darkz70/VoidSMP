@@ -14,14 +14,19 @@ final class SpeedMath {
         return 0.4 * multiplier;
     }
 
-    static double acceleratedSpeed(double measuredSpeed, double multiplier) {
-        if (!Double.isFinite(measuredSpeed) || measuredSpeed < 0.001) return 0;
-        if (multiplier <= 1) return measuredSpeed;
+    /**
+     * Invert the two-tick water-drag model, rather than endlessly adding a fixed
+     * impulse which friction consumes before the next update. This is a model,
+     * not a guarantee of the observed client speed under network latency.
+     */
+    static double impulseSpeed(double measuredSpeed, double multiplier, boolean forward) {
+        if (!Double.isFinite(measuredSpeed) || measuredSpeed < 0.001 || multiplier <= 1) return 0;
         double target = targetForMultiplier(multiplier);
-        if (measuredSpeed >= target) return measuredSpeed;
-        // Bound acceleration, not the administrator's chosen target speed.
-        double step = Math.min(0.08, 0.02 * (multiplier - 1));
-        return Math.min(target, measuredSpeed + step);
+        if (measuredSpeed > target) return 0; // do not brake existing vanilla motion
+        double desiredAverage = Math.min(target, measuredSpeed + Math.min(0.08, 0.02 * (multiplier - 1)));
+        double paddle = forward ? 0.04 : 0.005;
+        // v1 = 0.9*v + paddle; v2 = 0.9*v1 + paddle.
+        return Math.max(0, (desiredAverage - 1.45 * paddle) / 0.855);
     }
 
     // Bound the COST of checking blocks, not the velocity sent to the client.
