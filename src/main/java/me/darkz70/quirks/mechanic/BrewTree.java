@@ -320,6 +320,9 @@ public final class BrewTree {
             meta.lore(List.of(me.darkz70.quirks.util.Msg.color("&7Помести в верстак с предметом —"),
                     me.darkz70.quirks.util.Msg.color("&7и предмет сможет колдовать.")));
             meta.getPersistentDataContainer().set(Keys.brewMark, PersistentDataType.STRING, "focus-crystal");
+            var cmd = meta.getCustomModelDataComponent();
+            cmd.setStrings(java.util.List.of("focus_crystal"));
+            meta.setCustomModelDataComponent(cmd);
         });
         return item;
     }

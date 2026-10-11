@@ -1,0 +1,19 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/amethyst_shard"
+    },
+    "cases": [
+      {
+        "when": "focus_crystal",
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/focus_crystal"
+        }
+      }
+    ]
+  }
+}
