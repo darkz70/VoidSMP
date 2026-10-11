@@ -1,0 +1,790 @@
+[13:23:48] [ServerMain/INFO]: [bootstrap] Running Java 25 (Java HotSpot(TM) 64-Bit Server VM 25+37-LTS-3491; Oracle Corporation null) on Linux 6.1.0-13-amd64 (amd64)
+[13:23:48] [ServerMain/INFO]: [bootstrap] Loading Paper 26.2-121-main@a2a42c5 (2026-08-29T11:32:25Z) for Minecraft 26.2
+[13:23:48] [ServerMain/INFO]: [PluginInitializerManager] Initializing plugins...
+[13:23:48] [ServerMain/ERROR]: [DirectoryProviderSource] Error preparing plugin context: Directory 'plugins/Drop Head 2.2 (26.1-26.2).jar' failed to update!
+java.lang.RuntimeException: Directory 'plugins/Drop Head 2.2 (26.1-26.2).jar' failed to update!
+	at io.papermc.paper.plugin.provider.source.FileProviderSource.prepareContext(FileProviderSource.java:55) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.plugin.provider.source.DirectoryProviderSource.lambda$prepareContext$0(DirectoryProviderSource.java:44) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186) ~[?:?]
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:197) ~[?:?]
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:214) ~[?:?]
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133) ~[?:?]
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1939) ~[?:?]
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570) ~[?:?]
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560) ~[?:?]
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:153) ~[?:?]
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:176) ~[?:?]
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265) ~[?:?]
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:632) ~[?:?]
+	at io.papermc.paper.plugin.provider.source.DirectoryProviderSource.walkFiles(DirectoryProviderSource.java:70) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.plugin.provider.source.DirectoryProviderSource.prepareContext(DirectoryProviderSource.java:42) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.plugin.provider.source.DirectoryProviderSource.prepareContext(DirectoryProviderSource.java:17) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.plugin.util.EntrypointUtil.registerProvidersFromSource(EntrypointUtil.java:14) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.plugin.PluginInitializerManager.load(PluginInitializerManager.java:104) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.Main.main(Main.java:113) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.PaperBootstrap.boot(PaperBootstrap.java:25) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at org.bukkit.craftbukkit.Main.main(Main.java:204) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paperclip.Paperclip.lambda$main$0(Paperclip.java:42) ~[?:?]
+	at java.base/java.lang.Thread.run(Thread.java:1474) ~[?:?]
+Caused by: org.bukkit.plugin.InvalidPluginException: java.lang.IllegalArgumentException: plugins/Drop Head 2.2 (26.1-26.2).jar does not contain a paper-plugin.yml or plugin.yml! Could not determine plugin type, cannot load a plugin from it!
+	at io.papermc.paper.plugin.provider.source.FileProviderSource.checkUpdate(FileProviderSource.java:130) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.plugin.provider.source.FileProviderSource.prepareContext(FileProviderSource.java:53) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	... 22 more
+Caused by: java.lang.IllegalArgumentException: plugins/Drop Head 2.2 (26.1-26.2).jar does not contain a paper-plugin.yml or plugin.yml! Could not determine plugin type, cannot load a plugin from it!
+	at io.papermc.paper.plugin.provider.source.FileProviderSource.getPluginName(FileProviderSource.java:139) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.plugin.provider.source.FileProviderSource.checkUpdate(FileProviderSource.java:100) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	... 23 more
+[13:23:48] [ServerMain/ERROR]: [DirectoryProviderSource] Error preparing plugin context: Directory 'plugins/orbital-strike-1.0.0.jar' failed to update!
+java.lang.RuntimeException: Directory 'plugins/orbital-strike-1.0.0.jar' failed to update!
+	at io.papermc.paper.plugin.provider.source.FileProviderSource.prepareContext(FileProviderSource.java:55) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.plugin.provider.source.DirectoryProviderSource.lambda$prepareContext$0(DirectoryProviderSource.java:44) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186) ~[?:?]
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:197) ~[?:?]
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:214) ~[?:?]
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133) ~[?:?]
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1939) ~[?:?]
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570) ~[?:?]
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560) ~[?:?]
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:153) ~[?:?]
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:176) ~[?:?]
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265) ~[?:?]
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:632) ~[?:?]
+	at io.papermc.paper.plugin.provider.source.DirectoryProviderSource.walkFiles(DirectoryProviderSource.java:70) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.plugin.provider.source.DirectoryProviderSource.prepareContext(DirectoryProviderSource.java:42) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.plugin.provider.source.DirectoryProviderSource.prepareContext(DirectoryProviderSource.java:17) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.plugin.util.EntrypointUtil.registerProvidersFromSource(EntrypointUtil.java:14) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.plugin.PluginInitializerManager.load(PluginInitializerManager.java:104) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.Main.main(Main.java:113) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.PaperBootstrap.boot(PaperBootstrap.java:25) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at org.bukkit.craftbukkit.Main.main(Main.java:204) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paperclip.Paperclip.lambda$main$0(Paperclip.java:42) ~[?:?]
+	at java.base/java.lang.Thread.run(Thread.java:1474) ~[?:?]
+Caused by: org.bukkit.plugin.InvalidPluginException: java.lang.IllegalArgumentException: plugins/orbital-strike-1.0.0.jar does not contain a paper-plugin.yml or plugin.yml! Could not determine plugin type, cannot load a plugin from it!
+	at io.papermc.paper.plugin.provider.source.FileProviderSource.checkUpdate(FileProviderSource.java:130) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.plugin.provider.source.FileProviderSource.prepareContext(FileProviderSource.java:53) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	... 22 more
+Caused by: java.lang.IllegalArgumentException: plugins/orbital-strike-1.0.0.jar does not contain a paper-plugin.yml or plugin.yml! Could not determine plugin type, cannot load a plugin from it!
+	at io.papermc.paper.plugin.provider.source.FileProviderSource.getPluginName(FileProviderSource.java:139) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.plugin.provider.source.FileProviderSource.checkUpdate(FileProviderSource.java:100) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	... 23 more
+[13:23:49] [DefaultMetadataResolver-0-1/INFO]: [MavenLibraryResolver] Downloading https://maven.lavalink.dev/releases/dev/lavalink/youtube/common/b33460b38ad13b5cd07da75e46444397cf0ea2df-SNAPSHOT/maven-metadata.xml
+[13:23:49] [DefaultMetadataResolver-0-0/INFO]: [MavenLibraryResolver] Downloading https://maven-central.storage-download.googleapis.com/maven2/dev/lavalink/youtube/common/b33460b38ad13b5cd07da75e46444397cf0ea2df-SNAPSHOT/maven-metadata.xml
+[13:23:49] [ServerMain/INFO]: [PluginInitializerManager] Initialized 39 plugins
+[13:23:49] [ServerMain/INFO]: [PluginInitializerManager] Paper plugins (2):
+ - CustomDiscs (2.7.0), emotecraft (3.4.0-b.build.165)
+[13:23:49] [ServerMain/INFO]: [PluginInitializerManager] Bukkit plugins (37):
+ - AxiomPaper (6.0.1+26.2), Citizens (2.0.43-SNAPSHOT (build 4239)), CoreProtect (24.1), DeathCoords (V1.0), Denizen (1.3.3-SNAPSHOT (build 7302-DEV)), EndPortalTimer (2.9), ExecutableCrafting (1.26.9.22), ExecutableItems (7.26.9.22), FasterMinecarts (1.0), InvSeePlusPlus (0.31.19), ItemEdit (3.7.10), ItemLimiter (1.1.0), LegacyFreecam (2.0.0), LuckPerms (5.5.71), Maintenance (5.1.0), MinecartTrains (1.4.3), MinerTrack (2.1.2.0), PatPatPlugin (1.2.5+0268419), PlaceholderAPI (2.12.3), ProtocolLib (5.4.0), SCore (5.26.9.22), SimpleLogin (1.16.7), SkinsRestorer (15.12.6), Sleeper (1.10.8), StatusDC (1.0), TAB (6.1.2), The_Note_Plugin (1.0), Vanish (0.1), VoidFastBoats (1.0.3), VoidQuirks (1.4.0), WorldEdit (7.4.5+7590-b8dc4c1), customcrafting (5.0-alpha.4.0.0), packetevents (2.13.0), scafall (1.0-alpha.2.0), voicechat (2.6.21), voicechat_interaction (1.0.3), voicemessages (1.0.12)
+[13:23:52] [DataConverter MCTypeRegistry init thread/INFO]: [ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry] Initialising converters for DataConverter...
+[13:23:52] [ServerMain/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, profilesHost=https://api.mojang.com, name=PROD]
+[13:23:53] [DataConverter MCTypeRegistry init thread/INFO]: [ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry] Finished initialising converters for DataConverter in 673,4ms
+[13:23:54] [ServerMain/INFO]: Loaded 1585 recipes
+[13:23:54] [ServerMain/INFO]: Loaded 1688 advancements
+[13:23:54] [Server thread/INFO]: Starting minecraft server version 26.2
+[13:23:54] [Server thread/INFO]: Loading properties
+[13:23:54] [Server thread/INFO]: This server is running Paper version 26.2-121-main@a2a42c5 (2026-08-29T11:32:25Z) (Implementing API version 26.2.build.121-stable)
+[13:23:54] [Server thread/INFO]: [spark] This server bundles the spark profiler. For more information please visit https://docs.papermc.io/paper/profiling
+[13:23:54] [Server thread/INFO]: Server Ping Player Sample Count: 12
+[13:23:54] [Server thread/INFO]: Using 4 threads for Netty based IO
+[13:23:54] [Server thread/INFO]: [MoonriseCommon] Paper is using 1 worker threads, 1 I/O threads
+[13:23:55] [Server thread/INFO]: Default game type: SURVIVAL
+[13:23:55] [Server thread/INFO]: Generating keypair
+[13:23:55] [Server thread/INFO]: Starting Minecraft server on 0.0.0.0:25930
+[13:23:55] [Server thread/INFO]: Paper: Using libdeflate (Linux x86_64) compression from Velocity.
+[13:23:55] [Server thread/INFO]: Paper: Using OpenSSL 3.x.x (Linux x86_64) cipher from Velocity.
+[13:23:55] [Server thread/ERROR]: [ModernPluginLoadingStrategy] Could not load 'plugins/MinecartTrains-1.4.3.jar' in 'plugins'
+org.bukkit.plugin.UnknownDependencyException: Unknown/missing dependency plugins: [PuddingAPI]. Please download and install these plugins to run 'MinecartTrains'.
+	at io.papermc.paper.plugin.entrypoint.strategy.modern.ModernPluginLoadingStrategy.loadProviders(ModernPluginLoadingStrategy.java:82) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.plugin.storage.SimpleProviderStorage.enter(SimpleProviderStorage.java:38) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at io.papermc.paper.plugin.entrypoint.LaunchEntryPointHandler.enter(LaunchEntryPointHandler.java:39) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at org.bukkit.craftbukkit.CraftServer.loadPlugins(CraftServer.java:549) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.dedicated.DedicatedServer.initServer(DedicatedServer.java:297) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1266) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:303) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at java.base/java.lang.Thread.run(Thread.java:1474) ~[?:?]
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loading 4 libraries... please wait
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-all/4.1.118.Final/netty-all-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-buffer/4.1.118.Final/netty-buffer-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-codec/4.1.118.Final/netty-codec-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-codec-dns/4.1.118.Final/netty-codec-dns-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-codec-haproxy/4.1.118.Final/netty-codec-haproxy-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-codec-http/4.1.118.Final/netty-codec-http-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-codec-http2/4.1.118.Final/netty-codec-http2-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-codec-memcache/4.1.118.Final/netty-codec-memcache-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-codec-mqtt/4.1.118.Final/netty-codec-mqtt-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-codec-redis/4.1.118.Final/netty-codec-redis-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-codec-smtp/4.1.118.Final/netty-codec-smtp-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-codec-socks/4.1.118.Final/netty-codec-socks-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-codec-stomp/4.1.118.Final/netty-codec-stomp-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-codec-xml/4.1.118.Final/netty-codec-xml-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-common/4.1.118.Final/netty-common-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-handler/4.1.118.Final/netty-handler-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-transport-native-unix-common/4.1.118.Final/netty-transport-native-unix-common-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-handler-proxy/4.1.118.Final/netty-handler-proxy-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-handler-ssl-ocsp/4.1.118.Final/netty-handler-ssl-ocsp-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-resolver/4.1.118.Final/netty-resolver-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-resolver-dns/4.1.118.Final/netty-resolver-dns-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-transport/4.1.118.Final/netty-transport-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-transport-rxtx/4.1.118.Final/netty-transport-rxtx-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-transport-sctp/4.1.118.Final/netty-transport-sctp-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-transport-udt/4.1.118.Final/netty-transport-udt-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-transport-classes-epoll/4.1.118.Final/netty-transport-classes-epoll-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-transport-classes-kqueue/4.1.118.Final/netty-transport-classes-kqueue-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-resolver-dns-classes-macos/4.1.118.Final/netty-resolver-dns-classes-macos-4.1.118.Final.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-transport-native-epoll/4.1.118.Final/netty-transport-native-epoll-4.1.118.Final-linux-x86_64.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-transport-native-epoll/4.1.118.Final/netty-transport-native-epoll-4.1.118.Final-linux-aarch_64.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-transport-native-epoll/4.1.118.Final/netty-transport-native-epoll-4.1.118.Final-linux-riscv64.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-transport-native-kqueue/4.1.118.Final/netty-transport-native-kqueue-4.1.118.Final-osx-x86_64.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-transport-native-kqueue/4.1.118.Final/netty-transport-native-kqueue-4.1.118.Final-osx-aarch_64.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-resolver-dns-native-macos/4.1.118.Final/netty-resolver-dns-native-macos-4.1.118.Final-osx-x86_64.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/io/netty/netty-resolver-dns-native-macos/4.1.118.Final/netty-resolver-dns-native-macos-4.1.118.Final-osx-aarch_64.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/net/kyori/adventure-text-minimessage/4.17.0/adventure-text-minimessage-4.17.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/net/kyori/adventure-api/4.17.0/adventure-api-4.17.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/net/kyori/adventure-key/4.17.0/adventure-key-4.17.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/net/kyori/examination-api/1.3.0/examination-api-1.3.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/net/kyori/examination-string/1.3.0/examination-string-1.3.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/org/jetbrains/annotations/24.1.0/annotations-24.1.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [SCore] Loaded library /home/container/libraries/net/kyori/adventure-text-serializer-legacy/4.17.0/adventure-text-serializer-legacy-4.17.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loading 15 libraries... please wait
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/org/jetbrains/kotlin/kotlin-stdlib-jdk8/2.3.10/kotlin-stdlib-jdk8-2.3.10.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/org/jetbrains/kotlin/kotlin-stdlib/2.3.10/kotlin-stdlib-2.3.10.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/org/jetbrains/kotlin/kotlin-stdlib-jdk7/2.3.10/kotlin-stdlib-jdk7-2.3.10.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/org/jetbrains/kotlin/kotlin-reflect/2.3.10/kotlin-reflect-2.3.10.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/org/jetbrains/annotations/23.0.0/annotations-23.0.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/com/typesafe/config/1.3.1/config-1.3.1.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/org/jetbrains/exposed/exposed-core/1.1.1/exposed-core-1.1.1.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.10.2/kotlinx-coroutines-core-jvm-1.10.2.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/org/jetbrains/kotlinx/kotlinx-datetime-jvm/0.7.1-0.6.x-compat/kotlinx-datetime-jvm-0.7.1-0.6.x-compat.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/org/jetbrains/exposed/exposed-jdbc/1.1.1/exposed-jdbc-1.1.1.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/org/jetbrains/exposed/exposed-json/1.1.1/exposed-json-1.1.1.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.9.0/kotlinx-serialization-json-jvm-1.9.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.9.0/kotlinx-serialization-core-jvm-1.9.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/adventure-api/5.1.1/adventure-api-5.1.1.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/adventure-key/5.1.1/adventure-key-5.1.1.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/adventure-text-minimessage/4.10.0/adventure-text-minimessage-4.10.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/adventure-platform-bukkit/4.4.1/adventure-platform-bukkit-4.4.1.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/adventure-platform-api/4.4.1/adventure-platform-api-4.4.1.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/adventure-text-serializer-bungeecord/4.4.1/adventure-text-serializer-bungeecord-4.4.1.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/adventure-text-serializer-legacy/4.21.0/adventure-text-serializer-legacy-4.21.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/adventure-nbt/4.21.0/adventure-nbt-4.21.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/examination-api/1.3.0/examination-api-1.3.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/examination-string/1.3.0/examination-string-1.3.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/adventure-text-serializer-gson/4.21.0/adventure-text-serializer-gson-4.21.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/adventure-text-serializer-json/4.21.0/adventure-text-serializer-json-4.21.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/option/1.1.0/option-1.1.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/com/google/auto/service/auto-service-annotations/1.1.1/auto-service-annotations-1.1.1.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/adventure-text-serializer-commons/4.21.0/adventure-text-serializer-commons-4.21.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/adventure-text-serializer-gson-legacy-impl/4.21.0/adventure-text-serializer-gson-legacy-impl-4.21.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/adventure-text-serializer-json-legacy-impl/4.21.0/adventure-text-serializer-json-legacy-impl-4.21.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/adventure-platform-facet/4.4.1/adventure-platform-facet-4.4.1.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/net/kyori/adventure-platform-viaversion/4.4.1/adventure-platform-viaversion-4.4.1.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/com/fasterxml/jackson/module/jackson-module-kotlin/2.13.0/jackson-module-kotlin-2.13.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/com/fasterxml/jackson/core/jackson-databind/2.15.4/jackson-databind-2.15.4.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/com/fasterxml/jackson/core/jackson-annotations/2.15.4/jackson-annotations-2.15.4.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [scafall] Loaded library /home/container/libraries/com/fasterxml/jackson/core/jackson-core/2.15.4/jackson-core-2.15.4.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [Citizens] Loading 4 libraries... please wait
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [Citizens] Loaded library /home/container/libraries/ch/ethz/globis/phtree/phtree/2.8.2/phtree-2.8.2.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [Citizens] Loaded library /home/container/libraries/org/joml/joml/1.10.9/joml-1.10.9.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [Citizens] Loaded library /home/container/libraries/it/unimi/dsi/fastutil/8.5.16/fastutil-8.5.16.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [Citizens] Loaded library /home/container/libraries/team/unnamed/mocha/3.0.0/mocha-3.0.0.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [Citizens] Loaded library /home/container/libraries/org/javassist/javassist/3.30.2-GA/javassist-3.30.2-GA.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [Citizens] Loaded library /home/container/libraries/org/jetbrains/annotations/24.0.1/annotations-24.0.1.jar
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [LegacyFreecam Plugin] Loading 1 libraries... please wait
+[13:23:55] [Server thread/INFO]: [SpigotLibraryLoader] [LegacyFreecam Plugin] Loaded library /home/container/libraries/dev/jorel/commandapi-paper-shade/12.1.0/commandapi-paper-shade-12.1.0.jar
+[13:23:55] [Server thread/WARN]: [org.bukkit.craftbukkit.legacy.CraftLegacy] Initializing Legacy Material Support. Unless you have legacy plugins and/or data this is a bug!
+[13:24:02] [Server thread/WARN]: Legacy plugin The_Note_Plugin v1.0 does not specify an api-version.
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loading 5 libraries... please wait
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/adventure-api/5.1.1/adventure-api-5.1.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/adventure-key/5.1.1/adventure-key-5.1.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/org/jetbrains/annotations/26.1.0/annotations-26.1.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/adventure-platform-bukkit/4.4.1/adventure-platform-bukkit-4.4.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/adventure-platform-api/4.4.1/adventure-platform-api-4.4.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/adventure-text-serializer-bungeecord/4.4.1/adventure-text-serializer-bungeecord-4.4.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/adventure-nbt/4.21.0/adventure-nbt-4.21.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/examination-api/1.3.0/examination-api-1.3.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/examination-string/1.3.0/examination-string-1.3.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/adventure-text-serializer-gson-legacy-impl/4.21.0/adventure-text-serializer-gson-legacy-impl-4.21.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/adventure-text-serializer-json-legacy-impl/4.21.0/adventure-text-serializer-json-legacy-impl-4.21.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/adventure-platform-facet/4.4.1/adventure-platform-facet-4.4.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/adventure-platform-viaversion/4.4.1/adventure-platform-viaversion-4.4.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/adventure-text-minimessage/5.1.1/adventure-text-minimessage-5.1.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/adventure-text-serializer-gson/5.1.1/adventure-text-serializer-gson-5.1.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/adventure-text-serializer-json/5.1.1/adventure-text-serializer-json-5.1.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/option/1.1.0/option-1.1.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/com/google/code/gson/gson/2.13.2/gson-2.13.2.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/com/google/errorprone/error_prone_annotations/2.41.0/error_prone_annotations-2.41.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/com/google/auto/service/auto-service-annotations/1.1.1/auto-service-annotations-1.1.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/adventure-text-serializer-commons/5.1.1/adventure-text-serializer-commons-5.1.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [ItemEdit] Loaded library /home/container/libraries/net/kyori/adventure-text-serializer-legacy/5.1.1/adventure-text-serializer-legacy-5.1.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loading 10 libraries... please wait
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/com/h2database/h2/2.2.224/h2-2.2.224.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/org/mariadb/jdbc/mariadb-java-client/3.3.1/mariadb-java-client-3.3.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/com/github/waffle/waffle-jna/3.3.0/waffle-jna-3.3.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/net/java/dev/jna/jna/5.13.0/jna-5.13.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/net/java/dev/jna/jna-platform/5.13.0/jna-platform-5.13.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/org/slf4j/jcl-over-slf4j/2.0.7/jcl-over-slf4j-2.0.7.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/org/slf4j/slf4j-api/2.0.7/slf4j-api-2.0.7.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/com/google/protobuf/protobuf-java/3.21.9/protobuf-java-3.21.9.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/com/oracle/database/jdbc/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/com/oracle/database/jdbc/ucp/12.2.0.1/ucp-12.2.0.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/com/oracle/database/security/oraclepki/12.2.0.1/oraclepki-12.2.0.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/com/oracle/database/security/osdt_cert/12.2.0.1/osdt_cert-12.2.0.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/com/oracle/database/security/osdt_core/12.2.0.1/osdt_core-12.2.0.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/com/oracle/database/ha/simplefan/12.2.0.1/simplefan-12.2.0.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/com/oracle/database/ha/ons/12.2.0.1/ons-12.2.0.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/org/postgresql/postgresql/42.7.7/postgresql-42.7.7.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/org/checkerframework/checker-qual/3.49.3/checker-qual-3.49.3.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/org/xerial/sqlite-jdbc/3.50.1.0/sqlite-jdbc-3.50.1.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/com/microsoft/sqlserver/mssql-jdbc/9.4.1.jre8/mssql-jdbc-9.4.1.jre8.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/com/typesafe/config/1.3.1/config-1.3.1.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/com/github/ben-manes/caffeine/caffeine/3.2.0/caffeine-3.2.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/com/google/errorprone/error_prone_annotations/2.36.0/error_prone_annotations-2.36.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/org/bstats/bstats-bukkit/3.0.0/bstats-bukkit-3.0.0.jar
+[13:24:02] [Server thread/INFO]: [SpigotLibraryLoader] [customcrafting] Loaded library /home/container/libraries/org/bstats/bstats-base/3.0.0/bstats-base-3.0.0.jar
+[13:24:03] [Server thread/INFO]: [customcrafting] Loading configurations...
+[13:24:03] [Server thread/INFO]: [SpigotLibraryLoader] [Denizen] Loading 2 libraries... please wait
+[13:24:03] [Server thread/INFO]: [SpigotLibraryLoader] [Denizen] Loaded library /home/container/libraries/org/mongodb/mongodb-driver-sync/4.8.1/mongodb-driver-sync-4.8.1.jar
+[13:24:03] [Server thread/INFO]: [SpigotLibraryLoader] [Denizen] Loaded library /home/container/libraries/org/mongodb/bson/4.8.1/bson-4.8.1.jar
+[13:24:03] [Server thread/INFO]: [SpigotLibraryLoader] [Denizen] Loaded library /home/container/libraries/org/mongodb/mongodb-driver-core/4.8.1/mongodb-driver-core-4.8.1.jar
+[13:24:03] [Server thread/INFO]: [SpigotLibraryLoader] [Denizen] Loaded library /home/container/libraries/org/mongodb/bson-record-codec/4.8.1/bson-record-codec-4.8.1.jar
+[13:24:03] [Server thread/INFO]: [SpigotLibraryLoader] [Denizen] Loaded library /home/container/libraries/redis/clients/jedis/4.3.1/jedis-4.3.1.jar
+[13:24:03] [Server thread/INFO]: [SpigotLibraryLoader] [Denizen] Loaded library /home/container/libraries/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar
+[13:24:03] [Server thread/INFO]: [SpigotLibraryLoader] [Denizen] Loaded library /home/container/libraries/org/apache/commons/commons-pool2/2.11.1/commons-pool2-2.11.1.jar
+[13:24:03] [Server thread/INFO]: [SpigotLibraryLoader] [Denizen] Loaded library /home/container/libraries/org/json/json/20220320/json-20220320.jar
+[13:24:03] [Server thread/INFO]: [SpigotLibraryLoader] [Denizen] Loaded library /home/container/libraries/com/google/code/gson/gson/2.8.9/gson-2.8.9.jar
+[13:24:03] [Server thread/INFO]: [ProtocolLib] Loading server plugin ProtocolLib v5.4.0
+[13:24:03] [Server thread/WARN]: [ProtocolLib] Version (MC: 26.2.0) has not yet been tested! Proceed with caution.
+[13:24:03] [Server thread/INFO]: [PlaceholderAPI] Loading server plugin PlaceholderAPI v2.12.3
+[13:24:03] [Server thread/INFO]: [WorldEdit] Loading server plugin WorldEdit v7.4.5+7590-b8dc4c1
+[13:24:04] [Server thread/INFO]: Got request to register class com.sk89q.worldedit.bukkit.BukkitServerInterface with WorldEdit [com.sk89q.worldedit.extension.platform.PlatformManager@594986a7]
+[13:24:04] [Server thread/INFO]: [SCore] Loading server plugin SCore v5.26.9.22
+[13:24:04] [Server thread/INFO]: [packetevents] Loading server plugin packetevents v2.13.0
+[13:24:04] [Server thread/INFO]: [packetevents] Loading packetevents...
+[13:24:06] [Server thread/INFO]: [packetevents] Loaded packetevents v2.13.0
+[13:24:06] [Server thread/INFO]: [voicechat] Loading server plugin voicechat v2.6.21
+[13:24:06] [Server thread/INFO]: [CoreProtect] Loading server plugin CoreProtect v24.1
+[13:24:06] [Server thread/INFO]: [LuckPerms] Loading server plugin LuckPerms v5.5.71
+[13:24:06] [Server thread/INFO]: [LuckPerms] Loading configuration...
+[13:24:06] [Server thread/INFO]: [ExecutableItems] Loading server plugin ExecutableItems v7.26.9.22
+[13:24:06] [Server thread/INFO]: [scafall] Loading server plugin scafall v1.0-alpha.2.0
+[13:24:06] [Server thread/INFO]: [Citizens] Loading server plugin Citizens v2.0.43-SNAPSHOT (build 4239)
+[13:24:06] [Server thread/INFO]: [LegacyFreecam Plugin] Loading server plugin LegacyFreecam v2.0.0
+[13:24:06] [Server thread/INFO]: [CustomDiscs] Loading server plugin CustomDiscs v2.7.0
+[13:24:06] [Server thread/INFO]: [voicechat_interaction] Loading server plugin voicechat_interaction v1.0.3
+[13:24:06] [Server thread/INFO]: [SimpleLogin] Loading server plugin SimpleLogin v1.16.7
+[13:24:06] [Server thread/INFO]: [VoidQuirks] Loading server plugin VoidQuirks v1.4.0
+[13:24:06] [Server thread/INFO]: [PatPatPlugin] Loading server plugin PatPatPlugin v1.2.5+0268419
+[13:24:06] [Server thread/INFO]: [Vanish] Loading server plugin Vanish v0.1
+[13:24:06] [Server thread/INFO]: [voicemessages] Loading server plugin voicemessages v1.0.12
+[13:24:06] [Server thread/INFO]: [AxiomPaper] Loading server plugin AxiomPaper v6.0.1+26.2
+[13:24:06] [Server thread/INFO]: [StatusDC] Loading server plugin StatusDC v1.0
+[13:24:06] [Server thread/INFO]: [The_Note_Plugin] Loading server plugin The_Note_Plugin v1.0
+[13:24:06] [Server thread/INFO]: [InvSee++] Loading server plugin InvSeePlusPlus v0.31.19
+[13:24:06] [Server thread/INFO]: [SkinsRestorer] Loading server plugin SkinsRestorer v15.12.6
+[13:24:06] [Server thread/INFO]: [emotecraft] Loading server plugin emotecraft v3.4.0-b.build.165
+[13:24:06] [Server thread/INFO]: [Emotecraft] Loading Emotecraft as a paper plugin...
+[13:24:06] [Server thread/INFO]: [ExecutableCrafting] Loading server plugin ExecutableCrafting v1.26.9.22
+[13:24:06] [Server thread/INFO]: [Sleeper] Loading server plugin Sleeper v1.10.8
+[13:24:06] [Server thread/INFO]: [DeathCoords] Loading server plugin DeathCoords vV1.0
+[13:24:06] [Server thread/INFO]: [ItemEdit] Loading server plugin ItemEdit v3.7.10
+[13:24:06] [Server thread/INFO]: [Maintenance] Loading server plugin Maintenance v5.1.0
+[13:24:06] [Server thread/INFO]: [customcrafting] Loading server plugin customcrafting v5.0-alpha.4.0.0
+[13:24:06] [Server thread/INFO]: [customcrafting] Loading configurations...
+[13:24:06] [Server thread/INFO]: [customcrafting] [Resources] Construct sources: Local default (filter=Filter (includes=(namespaces=[], paths=[], regex=[]), excludes=null), overwrite=false, propagateSaved=false)
+[13:24:06] [Server thread/INFO]: [customcrafting] [Resources] Construct sources: Local custom (filter=Filter (includes=(namespaces=[customcrafting], paths=[], regex=[]), excludes=null), overwrite=true, propagateSaved=false)
+[13:24:06] [Server thread/INFO]: [TAB] Loading server plugin TAB v6.1.2
+[13:24:06] [Server thread/INFO]: [MinerTrack] Loading server plugin MinerTrack v2.1.2.0
+[13:24:06] [Server thread/INFO]: [Denizen] Loading server plugin Denizen v1.3.3-SNAPSHOT (build 7302-DEV)
+[13:24:06] [Server thread/INFO]: [FasterMinecarts] Loading server plugin FasterMinecarts v1.0
+[13:24:06] [Server thread/INFO]: [EndPortalTimer] Loading server plugin EndPortalTimer v2.9
+[13:24:06] [Server thread/INFO]: [ItemLimiter] Loading server plugin ItemLimiter v1.1.0
+[13:24:06] [Server thread/INFO]: [VoidFastBoats] Loading server plugin VoidFastBoats v1.0.3
+[13:24:06] [Server thread/INFO]: [ProtocolLib] Enabling ProtocolLib v5.4.0
+[13:24:06] [Server thread/INFO]: [WorldEdit] Enabling WorldEdit v7.4.5+7590-b8dc4c1
+[13:24:06] [Server thread/INFO]: Registering commands with com.sk89q.worldedit.bukkit.BukkitServerInterface
+[13:24:06] [Server thread/INFO]: WEPIF: Using the Bukkit Permissions API.
+[13:24:06] [Server thread/INFO]: Using com.sk89q.worldedit.bukkit.adapter.impl.v26_2.PaperweightAdapter as the Bukkit adapter
+[13:24:06] [Server thread/INFO]: [LuckPerms] Enabling LuckPerms v5.5.71
+[13:24:07] [Server thread/INFO]:         __    
+[13:24:07] [Server thread/INFO]:   |    |__)   LuckPerms v5.5.71
+[13:24:07] [Server thread/INFO]:   |___ |      Running on Bukkit - Paper
+[13:24:07] [Server thread/INFO]: 
+[13:24:07] [Server thread/INFO]: [LuckPerms] Loading storage provider... [H2]
+[13:24:07] [Server thread/INFO]: [LuckPerms] Loading internal permission managers...
+[13:24:08] [Server thread/INFO]: [LuckPerms] Performing initial data load...
+[13:24:08] [Server thread/INFO]: [LuckPerms] Successfully enabled. (took 1221ms)
+[13:24:08] [Server thread/INFO]: [scafall] Enabling scafall v1.0-alpha.2.0
+[13:24:08] [Server thread/INFO]: [scafall] Detecting dependencies...
+[13:24:08] [Server thread/INFO]: [scafall]    ExecutableItems: loaded
+[13:24:08] [Server thread/INFO]: [scafall]    Denizen: loaded
+[13:24:08] [Server thread/INFO]: [SkinsRestorer] Enabling SkinsRestorer v15.12.6
+[13:24:09] [Server thread/INFO]: [SkinsRestorer] Running on Minecraft 26.2.0.
+[13:24:09] [Server thread/INFO]: [SkinsRestorer] Using paper join listener!
+[13:24:09] [Server thread/INFO]: [PlaceholderAPI] Successfully registered internal expansion: skinsrestorer [15.12.6]
+[13:24:09] [Server thread/INFO]: [SkinsRestorer] PlaceholderAPI expansion registered!
+[13:24:09] [Server thread/WARN]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[13:24:09] [Server thread/WARN]: The server will make no attempt to authenticate usernames. Beware.
+[13:24:09] [Server thread/WARN]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[13:24:09] [Server thread/WARN]: To change this, set "online-mode" to "true" in the server.properties file.
+[13:24:09] [Server thread/INFO]: Preparing level "world"
+[13:24:09] [Folia Async Scheduler Thread #1/INFO]: [SkinsRestorer] ----------------------------------------------
+[13:24:09] [Folia Async Scheduler Thread #1/INFO]: [SkinsRestorer]     +===================+
+[13:24:09] [Folia Async Scheduler Thread #1/INFO]: [SkinsRestorer]     |   SkinsRestorer   |
+[13:24:09] [Folia Async Scheduler Thread #1/INFO]: [SkinsRestorer]     |-------------------|
+[13:24:09] [Folia Async Scheduler Thread #1/INFO]: [SkinsRestorer]     |  Standalone Mode  |
+[13:24:09] [Folia Async Scheduler Thread #1/INFO]: [SkinsRestorer]     +===================+
+[13:24:09] [Folia Async Scheduler Thread #1/INFO]: [SkinsRestorer] ----------------------------------------------
+[13:24:09] [Folia Async Scheduler Thread #1/INFO]: [SkinsRestorer]     Version: 15.12.6
+[13:24:09] [Folia Async Scheduler Thread #1/INFO]: [SkinsRestorer]     Commit: c8c321f
+[13:24:09] [Folia Async Scheduler Thread #1/INFO]: [SkinsRestorer]     This is the latest version!
+[13:24:09] [Folia Async Scheduler Thread #1/INFO]: [SkinsRestorer] ----------------------------------------------
+[13:24:09] [Folia Async Scheduler Thread #1/INFO]: [SkinsRestorer] Do you have issues? Read our troubleshooting guide: https://skinsrestorer.net/docs/troubleshooting
+[13:24:09] [Folia Async Scheduler Thread #1/INFO]: [SkinsRestorer] Want to support SkinsRestorer or receive priority support? Become a supporter: https://skinsrestorer.net/pricing
+[13:24:09] [Server thread/INFO]: Loading 0 persistent chunks for level 'minecraft:overworld'...
+[13:24:09] [Server thread/INFO]: Preparing spawn area: 100%
+[13:24:09] [Server thread/INFO]: Prepared spawn area in 1 ms
+[13:24:09] [Server thread/INFO]: Loading 0 persistent chunks for level 'minecraft:the_nether'...
+[13:24:09] [Server thread/INFO]: Prepared spawn area in 0 ms
+[13:24:09] [Server thread/INFO]: Loading 0 persistent chunks for level 'minecraft:the_end'...
+[13:24:09] [Server thread/INFO]: Prepared spawn area in 0 ms
+[13:24:09] [Server thread/INFO]: Done preparing level "world" (0.300s)
+[13:24:09] [Server thread/INFO]: [PlaceholderAPI] Enabling PlaceholderAPI v2.12.3
+[13:24:09] [Server thread/INFO]: [PlaceholderAPI] Fetching available expansion information...
+[13:24:09] [Server thread/INFO]: [SCore] Enabling SCore v5.26.9.22
+[13:24:09] [Server thread/INFO]: SCore The library part of SCore is initializing ... (by SCore)
+[13:24:09] [Server thread/INFO]: SCore ExecutableItems hooked !  (7.26.9.22) Load After
+[13:24:09] [Server thread/INFO]: SCore PlaceholderAPI hooked !  (2.12.3)  Load Before
+[13:24:09] [Server thread/INFO]: SCore CoreProtect hooked !  (24.1) Load After
+[13:24:09] [Server thread/INFO]: SCore packetevents hooked !  (2.13.0) Load After
+[13:24:09] [Server thread/INFO]: SCore ProtocolLib hooked !
+[13:24:09] [Server thread/INFO]: SCore Locale setup: EN
+[13:24:09] [Server thread/INFO]: SCore TAB hooked !  (6.1.2) Load After
+[13:24:09] [Server thread/INFO]: SCore CustomCrafting hooked !  (5.0-alpha.4.0.0) Load After
+[13:24:09] [Server thread/INFO]: SCore WorldEdit hooked !  (7.4.5+7590-b8dc4c1)  Load Before
+[13:24:09] [Server thread/INFO]: SCore Language of the editor setup on EN
+[13:24:09] [Server thread/INFO]: SCore will connect to the database hosted: In Local
+[13:24:09] [Server thread/INFO]: SCore Connection to the db...
+[13:24:09] [Server thread/INFO]: SCore will connect to the database hosted: In Local
+[13:24:09] [Server thread/INFO]: SCore Creating table SecurityOP if not exists...
+[13:24:09] [Server thread/INFO]: SCore Creating table Commands if not exists...
+[13:24:09] [Server thread/INFO]: SCore Creating table Cooldowns if not exists...
+[13:24:09] [Server thread/INFO]: SCore Creating table Commands Player if not exists...
+[13:24:09] [Server thread/INFO]: SCore Creating table Commands Entity if not exists...
+[13:24:09] [Server thread/INFO]: SCore Creating table Commands Block if not exists...
+[13:24:09] [Server thread/INFO]: SCore Creating table UsePerDay if not exists...
+[13:24:09] [Server thread/INFO]: SCore Creating table AbsorptionQuery if not exists...
+[13:24:09] [Server thread/INFO]: SCore Creating table ATemporaryAttributesQuery if not exists...
+[13:24:09] [Server thread/INFO]: SCore SCore loaded 0 delayed commands saved
+[13:24:09] [Server thread/INFO]: ================ SCore ================
+[13:24:09] [Server thread/INFO]: SCore is running on Folia
+[13:24:09] [Server thread/INFO]: SCore is running on Paper or fork
+[13:24:09] [Server thread/INFO]: SCore Version of the server 26.2-121-a2a42c5 (MC: 26.2) !
+[13:24:09] [Server thread/INFO]: SCore Language for in-game messages setup on EN
+[13:24:10] [Server thread/INFO]: SCore SCore loaded 1 variables from local files !
+[13:24:10] [Server thread/INFO]: [SCore] CustomListsManager: Loaded entity list 'ANNOYING_MOBS' with 3 entries
+[13:24:10] [Server thread/INFO]: [SCore] CustomListsManager: Loaded entity list 'HOSTILE_MOBS' with 4 entries
+[13:24:10] [Server thread/INFO]: [SCore] CustomListsManager: Loaded block list 'STUPID_BLOCKS' with 3 entries
+[13:24:10] [Server thread/INFO]: [SCore] CustomListsManager: Loaded block list 'ORES' with 5 entries
+[13:24:10] [Server thread/INFO]: [SCore] CustomListsManager: Loaded 2 entity lists and 2 block lists
+[13:24:10] [Server thread/INFO]: [PlaceholderAPI] Successfully registered internal expansion: SCore [1.0.0]
+[13:24:10] [Server thread/INFO]: ================ SCore ================
+[13:24:10] [Server thread/INFO]: [packetevents] Enabling packetevents v2.13.0
+[13:24:10] [packetevents-update-check-thread/INFO]: [packetevents] Checking for updates, please wait...
+[13:24:10] [Server thread/INFO]: [voicechat] Enabling voicechat v2.6.21
+[13:24:10] [Server thread/INFO]: [voicechat] Initializing compatibility for version 26.2.build.121-stable
+[13:24:10] [Server thread/INFO]: [voicechat] Compatibility version 20
+[13:24:10] [packetevents-update-check-thread/INFO]: [packetevents] There is an update available! Your version: 2.13.0 | Latest release: 2.14.0
+[13:24:10] [Server thread/INFO]: [voicechat] Successfully initialized commodore command completion
+[13:24:10] [Server thread/INFO]: [PlaceholderAPI] Successfully registered internal expansion: voicechat [2.6.21]
+[13:24:10] [Server thread/INFO]: [voicechat] Successfully registered PlaceholderAPI expansion
+[13:24:10] [Server thread/INFO]: [CoreProtect] Enabling CoreProtect v24.1
+[13:24:10] [Server thread/INFO]: [CoreProtect] CoreProtect Community Edition has been successfully enabled! 
+[13:24:10] [Server thread/INFO]: [CoreProtect] Using SQLite for data storage.
+[13:24:10] [Server thread/INFO]: --------------------
+[13:24:10] [Server thread/INFO]: [CoreProtect] Enjoy CoreProtect? Join our Discord!
+[13:24:10] [Server thread/INFO]: [CoreProtect] Discord: www.coreprotect.net/discord/
+[13:24:10] [Server thread/INFO]: --------------------
+[13:24:10] [Server thread/INFO]: [ExecutableItems] Enabling ExecutableItems v7.26.9.22
+[13:24:10] [Server thread/INFO]: ================ ExecutableItems ================
+[13:24:10] [Server thread/INFO]: Injector com.ssomar.score.pack.custom.PackHttpInjector registered (TPack selfhosting)
+[13:24:11] [Server thread/INFO]: ExecutableItems Amount of Executable Items configurations loaded: 84
+[13:24:11] [Server thread/INFO]: ExecutableItems Items with display conditions :  
+[13:24:11] [Server thread/INFO]: ================ ExecutableItems ================
+[13:24:11] [Server thread/INFO]: [scafall] Initializing dependency scaffolding:executableitems
+[13:24:11] [Server thread/INFO]: [customcrafting] [Ingredient Manager] Registering 0 ingredients
+[13:24:11] [Server thread/INFO]: [customcrafting] [Recipe Manager] Verifying 0 recipes
+[13:24:11] [Server thread/INFO]: [PlaceholderAPI] Successfully registered internal expansion: ExecutableItems [1.0.0]
+[13:24:12] [Server thread/INFO]: [Citizens] Enabling Citizens v2.0.43-SNAPSHOT (build 4239)
+[13:24:12] [Server thread/INFO]: [Citizens] Detected system language [[ru]]. If you'd like you can contribute to Citizens translations via our Discord! https://discord.gg/Q6pZGSR
+[13:24:12] [Server thread/INFO]: [Citizens] Loaded 2 templates.
+[13:24:12] [Server thread/INFO]: [PlaceholderAPI] Successfully registered internal expansion: citizens [1.0.0]
+[13:24:12] [Server thread/INFO]: [LegacyFreecam Plugin] Enabling LegacyFreecam v2.0.0
+[13:24:12] [Server thread/INFO]: [CustomDiscs] Enabling CustomDiscs v2.7.0
+[13:24:12] [Server thread/INFO]: [CustomDiscs] Successfully enabled voicechat hook
+[13:24:12] [Server thread/INFO]: [voicechat_interaction] Enabling voicechat_interaction v1.0.3
+[13:24:12] [Server thread/INFO]: [voicechat_interaction] Configuration loaded successfully
+[13:24:12] [Server thread/INFO]: [voicechat_interaction] Successfully registered voicechat_interaction event bridge
+[13:24:12] [Server thread/INFO]: [voicechat_interaction] Commands registered successfully
+[13:24:12] [Server thread/INFO]: [voicechat_interaction] VoiceChat Interaction plugin successfully enabled!
+[13:24:12] [Server thread/INFO]: [SimpleLogin] Enabling SimpleLogin v1.16.7
+[13:24:12] [Server thread/INFO]: [SimpleLogin] SimpleLogin enabled!
+[13:24:12] [Server thread/INFO]: [VoidQuirks] Enabling VoidQuirks v1.4.0
+[13:24:12] [Server thread/WARN]: [org.bukkit.configuration.file.YamlConstructor] duplicate keys found : gaid-summon
+[13:24:12] [Server thread/WARN]: [org.bukkit.configuration.file.YamlConstructor] duplicate keys found : gaid-given
+[13:24:12] [Server thread/WARN]: [org.bukkit.configuration.file.YamlConstructor] duplicate keys found : target-offline
+[13:24:12] [Server thread/WARN]: [org.bukkit.configuration.file.YamlConstructor] duplicate keys found : gaid-summon
+[13:24:12] [Server thread/WARN]: [org.bukkit.configuration.file.YamlConstructor] duplicate keys found : gaid-given
+[13:24:12] [Server thread/WARN]: [org.bukkit.configuration.file.YamlConstructor] duplicate keys found : target-offline
+[13:24:12] [ForkJoinPool.commonPool-worker-3/INFO]: [SimpleLogin] Plugin is up to date (1.16.7)
+[13:24:12] [Server thread/INFO]: [VoidQuirks] VoidQuirks включён. Причуд в базе: 0
+[13:24:12] [Server thread/INFO]: [PatPatPlugin] Enabling PatPatPlugin v1.2.5+0268419
+[13:24:12] [Server thread/INFO]: [patpat-plugin] Plugin started
+[13:24:12] [Server thread/INFO]: [Vanish] Enabling Vanish v0.1
+[13:24:12] [Server thread/INFO]: [voicemessages] Enabling voicemessages v1.0.12
+[13:24:12] [Server thread/INFO]: [AxiomPaper] Enabling AxiomPaper v6.0.1+26.2
+[13:24:12] [Server thread/INFO]: [AxiomPaper] LuckPerms integration enabled
+[13:24:12] [Server thread/INFO]: [AxiomPaper] CoreProtect integration enabled
+[13:24:12] [Server thread/INFO]: [StatusDC] Enabling StatusDC v1.0
+[13:24:12] [Server thread/INFO]: [PlaceholderAPI] Successfully registered internal expansion: statusdc [1.0]
+[13:24:12] [Server thread/INFO]: [StatusDC] &a✔ PlaceholderAPI обнаружен. Зарегистрированы плейсхолдеры: &f%statussmp_*%
+[13:24:12] [Server thread/INFO]: [The_Note_Plugin] Enabling The_Note_Plugin v1.0*
+[13:24:12] [Server thread/INFO]: [The_Note_Plugin] NotePaperPlugin has been enabled
+[13:24:12] [Server thread/INFO]: [InvSee++] Enabling InvSeePlusPlus v0.31.19
+[13:24:12] [Server thread/INFO]: [InvSee++] Detected server software: Paper version 26.2
+[13:24:12] [Server thread/INFO]: [emotecraft] Enabling emotecraft v3.4.0-b.build.165
+[13:24:12] [Server thread/INFO]: [ExecutableCrafting] Enabling ExecutableCrafting v1.26.9.22
+[13:24:12] [Server thread/INFO]: ================ ExecutableCrafting ================
+[13:24:12] [Server thread/INFO]: ExecutableCrafting Amount of Recipes Groups configurations loaded: 0
+[13:24:12] [Server thread/INFO]: ExecutableCrafting Amount of Recipes configurations loaded: 0
+[13:24:12] [Server thread/INFO]: ExecutableCrafting Amount of Recipe's books loaded: 3
+[13:24:12] [Server thread/INFO]: ================ ExecutableCrafting ================
+[13:24:12] [Server thread/INFO]: [Sleeper] Enabling Sleeper v1.10.8
+[13:24:12] [Server thread/INFO]: [Sleeper] Sleeper Version 1.10.8 Has Been Enabled!
+[13:24:12] [Server thread/INFO]: [Sleeper] Found no plugin integrations.
+[13:24:12] [Server thread/INFO]: [DeathCoords] Enabling DeathCoords vV1.0
+[13:24:12] [Server thread/INFO]: [ItemEdit] Enabling ItemEdit v3.7.10
+[13:24:12] [Server thread/INFO]: [ItemEdit] Hooking into MiniMessageAPI see https://webui.advntr.dev/
+[13:24:13] [Server thread/INFO]: [ItemEdit] Selected Storage Type: YAML
+[13:24:13] [Server thread/INFO]: [ItemEdit] Unable to hook into Vault
+[13:24:13] [Server thread/INFO]: [ItemEdit] Hooking into PlaceHolderAPI
+[13:24:13] [Server thread/INFO]: [ItemEdit] placeholders:
+[13:24:13] [Server thread/INFO]: [ItemEdit]   %itemedit_amount_<{itemid}>_[{slot}]_[{player}]%
+[13:24:13] [Server thread/INFO]: [ItemEdit]     shows how many itemid player has on slot
+[13:24:13] [Server thread/INFO]: [ItemEdit]     <{itemid}> for item id on serveritem
+[13:24:13] [Server thread/INFO]: [ItemEdit]     [{slot}] for the slot where the item should be counted, by default inventory
+[13:24:13] [Server thread/INFO]: [ItemEdit]       Values: inventory (include offhand), equip (include offhand), inventoryandequip (include offhand), hand, offhand, head, chest, legs, feet
+[13:24:13] [Server thread/INFO]: [ItemEdit]     [{player}] for the player, by default self
+[13:24:13] [Server thread/INFO]: [ItemEdit]     example: %itemedit_amount_{my_item_id}_{hand}%
+[13:24:13] [Server thread/INFO]: [PlaceholderAPI] Successfully registered internal expansion: itemedit [1.0]
+[13:24:13] [Server thread/INFO]: [ItemEdit] # Enabled (took 75 ms)
+[13:24:13] [Server thread/INFO]: [Maintenance] Enabling Maintenance v5.1.0
+[13:24:13] [Server thread/INFO]: [customcrafting] Enabling customcrafting v5.0-alpha.4.0.0
+[13:24:13] [Server thread/INFO]: [TAB] Enabling TAB v6.1.2
+[13:24:13] [Server thread/INFO]: [TAB] Found NMS implementation: me.neznamy.tab.platforms.bukkit.paper_26_2.NMSImplementationProvider
+[13:24:13] [Server thread/INFO]: [TAB] Enabled in 103ms
+[13:24:13] [Server thread/INFO]: [MinerTrack] Enabling MinerTrack v2.1.2.0
+[13:24:13] [Server thread/INFO]: [MinerTrack] Loaded group configuration: end (end.yml)
+[13:24:13] [Server thread/INFO]: [MinerTrack] Loaded group configuration: nether (nether.yml)
+[13:24:13] [Server thread/INFO]: [MinerTrack] Loaded group configuration: overworld (overworld.yml)
+[13:24:13] [Server thread/INFO]: [MinerTrack] Built world-to-group mapping from xray.worlds: {minecraft:overworld=overworld, minecraft:the_nether=nether, minecraft:the_end=end} (default unnamed -> overworld)
+[13:24:13] [Server thread/INFO]: [MinerTrack] Loaded group configurations (3 active):
+[13:24:13] [Server thread/INFO]: [MinerTrack]  - nether: worlds=[minecraft:the_nether], patterns=[]
+[13:24:13] [Server thread/INFO]: [MinerTrack]  - end: worlds=[minecraft:the_end], patterns=[]
+[13:24:13] [Server thread/INFO]: [MinerTrack]  - overworld: worlds=[minecraft:overworld], patterns=[]
+[13:24:13] [Server thread/INFO]: [MinerTrack] Default unnamed group (all_unnamed_world): overworld
+[13:24:13] [Server thread/WARN]: [MinerTrack] Could not save de.yml to plugins/MinerTrack/Translations/de.yml because de.yml already exists.
+[13:24:13] [Server thread/WARN]: [MinerTrack] Could not save fr.yml to plugins/MinerTrack/Translations/fr.yml because fr.yml already exists.
+[13:24:13] [Server thread/WARN]: [MinerTrack] Could not save ru.yml to plugins/MinerTrack/Translations/ru.yml because ru.yml already exists.
+[13:24:13] [Server thread/WARN]: [MinerTrack] Could not save zh_cn.yml to plugins/MinerTrack/Translations/zh_cn.yml because zh_cn.yml already exists.
+[13:24:13] [Server thread/INFO]: [MinerTrack] Core initialized for version 2.1.2.0
+[13:24:13] [Server thread/INFO]: ----[MinerTrack v2.1.2.0 ]-----------
+[13:24:13] [Server thread/INFO]: MinerTrack Anti-XRay Enabled!
+[13:24:13] [Server thread/INFO]: 
+[13:24:13] [Server thread/INFO]: Authors: Author87668
+[13:24:13] [Server thread/INFO]: Original Author: Author87668
+[13:24:13] [Server thread/INFO]: Contributors: Author87668, Zhang12334, Thomas, xiaoyueyoqwq
+[13:24:13] [Server thread/INFO]: 
+[13:24:13] [Server thread/INFO]: Thanks for your use!
+[13:24:13] [Server thread/INFO]: -----------------------------------------
+[13:24:13] [Server thread/INFO]: [MinerTrack] MinerTrack (BukkitPlatform) enabled.
+[13:24:13] [Server thread/INFO]: [Denizen] Enabling Denizen v1.3.3-SNAPSHOT (build 7302-DEV)
+[13:24:13] [Server thread/INFO]: +> [DenizenCore] Initializing Denizen Core v1.91.0-SNAPSHOT (Build 1416), impl for Spigot v1.3.3-SNAPSHOT (build 7302-DEV) 
+[13:24:13] [Server thread/INFO]: +> [Denizen] Running on java version: 25 
+[13:24:13] [Server thread/INFO]: +> [Denizen] Running on fully supported Java 25. 
+[13:24:13] [Server thread/INFO]: +> [Denizen] +-------------------------+ 
+[13:24:13] [Server thread/INFO]: +> [Denizen]  Denizen  scriptable minecraft 
+[13:24:13] [Server thread/INFO]: +> [Denizen]  
+[13:24:13] [Server thread/INFO]: +> [Denizen] by: The DenizenScript team 
+[13:24:13] [Server thread/INFO]: +> [Denizen] Chat with us at: https://discord.gg/Q6pZGSR 
+[13:24:13] [Server thread/INFO]: +> [Denizen] Or learn more at: https://denizenscript.com 
+[13:24:13] [Server thread/INFO]: +> [Denizen] version: 1.3.3-SNAPSHOT (build 7302-DEV) 
+[13:24:13] [Server thread/INFO]: +> [Denizen] +-------------------------+ 
+[13:24:13] [Server thread/INFO]:  ERROR!
+                 Error Message: Null named player afa0688e-6bf2-425f-8cc6-37b946c9b512 - may be file corruption, or player data imported from non-bukkit server? 
+[13:24:13] [Server thread/INFO]: Additional Error Info: Null named player da186709-dca4-4e19-8535-f8c4517a201b - may be file corruption, or player data imported from non-bukkit server? 
+[13:24:13] [Server thread/INFO]: +> [Denizen] Legacy Spigot name support enabled. This may be unnecessary; see config.yml for more information. 
+[13:24:13] [Server thread/INFO]: +> [TriggerRegistry] Loaded 4 core triggers 
+[13:24:14] [Server thread/INFO]: +> [PaperModule] Loading Paper support module... 
+[13:24:14] [Server thread/INFO]: +> [Denizen] Loaded 153 core commands and 30 core object types, at 963ms from start. 
+[13:24:14] [Server thread/INFO]: +> [ScriptHelper] No scripts in /plugins/Denizen/scripts/ to load! 
+[13:24:14] [Server thread/INFO]: +> [ScriptRegistry] Loading 0 script files... 
+[13:24:14] [Server thread/INFO]: +> [DenizenCore] Scripts loaded! File load took 1ms, processing 36ms. 
+[13:24:14] [Server thread/INFO]: +> [Denizen] Final full init took 1026ms. 
+[13:24:14] [Server thread/INFO]: [scafall] Initializing dependency scaffolding:denizen
+[13:24:14] [Server thread/INFO]: [customcrafting] [Ingredient Manager] Registering 0 ingredients
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] Verifying 0 recipes
+[13:24:14] [Server thread/INFO]: [customcrafting] [Resources] plugins/customcrafting/resources: Initiate resource loading with listeners: [com.wolfyscript.customcrafting.core.recipe.RecipeManagerCommon@54a3a5ef]
+[13:24:14] [Server thread/INFO]: [customcrafting] [Resources] plugins/customcrafting/resources: Preparing resources...
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] Exporting default recipes...
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] Default recipes exported to plugins/customcrafting/resources/default/recipes
+[13:24:14] [Server thread/INFO]: [customcrafting] [Resources] plugins/customcrafting/resources: Loading resources...
+[13:24:14] [Server thread/INFO]: [customcrafting] Read files in plugins/customcrafting/resources/default/recipes
+[13:24:14] [Server thread/INFO]: [customcrafting] Loading recipes: customcrafting:stick_to_torch_campfire
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] loaded: customcrafting:stick_to_torch_campfire -> Recipe Cooking (0) campfire in 60 ticks from {[ref(1 vanilla(1 minecraft:stick [{}]))] or [], exact, (remains=(ignore=(vanilla=false, others=false)))} on soul: false or normal: true to {[ref(1 vanilla(1 minecraft:torch [{}]))] or [], modified by [], runs [commands [particle minecraft:flame ~ ~ ~ 0 0 0 0.04 50]] and bulk []}, giving 0.0xp, if []
+[13:24:14] [Server thread/INFO]: [customcrafting] Loading recipes: customcrafting:raw_iron_block_to_iron_block_random_blasting
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] loaded: customcrafting:raw_iron_block_to_iron_block_random_blasting -> Recipe Cooking (0) blasting in 100 ticks from {[ref(1 vanilla(1 minecraft:raw_iron_block [{}]))] or [], exact, (remains=(ignore=(vanilla=false, others=false)))} to {[ref(1 vanilla(1 minecraft:iron_block [{}])), ref(1 vanilla(1 minecraft:iron_block [{}])), ref(2 vanilla(1 minecraft:iron_block [{}])), ref(3 vanilla(1 minecraft:iron_block [{}]))] or [], modified by [], runs [] and bulk []}, giving 0.0xp, if []
+[13:24:14] [Server thread/INFO]: [customcrafting] Loading recipes: customcrafting:oak_palette_selection_stonecutter
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] loaded: customcrafting:oak_palette_selection_stonecutter -> com.wolfyscript.customcrafting.core.recipe.CustomRecipeStonecuttingImpl@59fa2fa3
+[13:24:14] [Server thread/INFO]: [customcrafting] Loading recipes: customcrafting:burned_beef_campfire
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] loaded: customcrafting:burned_beef_campfire -> Recipe Cooking (0) campfire in 60 ticks from {[ref(1 vanilla(1 minecraft:cooked_beef [{}]))] or [], exact, (ref(1 vanilla(1 minecraft:beef [{}])))} on soul: true or normal: true to {[ref(1 vanilla(1 minecraft:charcoal [{}]))] or [], modified by [], runs [] and bulk []}, giving 0.0xp, if []
+[13:24:14] [Server thread/INFO]: [customcrafting] Loading recipes: customcrafting:golden_apple_random_crafting
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] loaded: customcrafting:golden_apple_random_crafting -> crafting (-200) with shape ([GGG, GAG, GGG], (horizontal=false, vertical=false, rotate=false), 3x3, [G, A]: [0, 0, 0, 0, 1, 0, 0, 0, 0]) with {A={[ref(1 vanilla(1 minecraft:apple [{}]))] or [], (mustContain=[], mustNotContain=[]), (remains=(ignore=(vanilla=false, others=false)))}, G={[ref(1 vanilla(1 minecraft:gold_block [{}]))] or [], (mustContain=[], mustNotContain=[]), (remains=(ignore=(vanilla=false, others=false)))}} producing {[ref(1 vanilla(1 minecraft:golden_apple [{}])), ref(1 vanilla(1 minecraft:golden_apple [{}])), ref(1 vanilla(1 minecraft:golden_apple [{}])), ref(1 vanilla(1 minecraft:golden_apple [{}])), ref(1 vanilla(1 minecraft:golden_apple [{}])), ref(1 vanilla(1 minecraft:golden_apple [{}])), ref(1 vanilla(1 minecraft:golden_apple [{}])), ref(1 vanilla(1 minecraft:enchanted_golden_apple [{}]))] or [], modified by [], runs [] and bulk []} if []
+[13:24:14] [Server thread/INFO]: [customcrafting] Loading recipes: customcrafting:rotten_flesh_to_leather_smelting
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] loaded: customcrafting:rotten_flesh_to_leather_smelting -> Recipe Cooking (0) smelting in 100 ticks from {[ref(1 vanilla(1 minecraft:rotten_flesh [{}]))] or [], exact, (remains=(ignore=(vanilla=false, others=false)))} to {[ref(1 vanilla(1 minecraft:leather [{}]))] or [], modified by [], runs [commands [effect give @p[distance=..4] minecraft:nausea 20 2]] and bulk []}, giving 0.0xp, if []
+[13:24:14] [Server thread/INFO]: [customcrafting] Loading recipes: customcrafting:protection_suspicious_stew
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] loaded: customcrafting:protection_suspicious_stew -> crafting (0) with shapeless [{[ref(1 vanilla(1 minecraft:enchanted_golden_apple [{}]))] or [], exact, (remains=(ignore=(vanilla=false, others=false)))}, {[ref(1 vanilla(1 minecraft:golden_apple [{}]))] or [], exact, (remains=(ignore=(vanilla=false, others=false)))}, {[ref(1 vanilla(1 minecraft:golden_carrot [{}]))] or [], exact, (remains=(ignore=(vanilla=false, others=false)))}, {[ref(1 vanilla(1 minecraft:bowl [{}]))] or [], exact, (remains=(ignore=(vanilla=false, others=false)))}] producing {[ref(1 vanilla(1 minecraft:suspicious_stew [{minecraft:suspicious_stew_effects=>SuspiciousStewEffects[effects=[Entry[effect=Reference{ResourceKey[minecraft:mob_effect / minecraft:regeneration]=net.minecraft.world.effect.RegenerationMobEffect@40b2186d}, duration=600], Entry[effect=Reference{ResourceKey[minecraft:mob_effect / minecraft:absorption]=net.minecraft.world.effect.AbsorptionMobEffect@b015ad4}, duration=4800], Entry[effect=Reference{ResourceKey[minecraft:mob_effect / minecraft:fire_resistance]=net.minecraft.world.effect.MobEffect@51bdb8eb}, duration=8000], Entry[effect=Reference{ResourceKey[minecraft:mob_effect / minecraft:resistance]=net.minecraft.world.effect.MobEffect@6ac4f94a}, duration=8000]]]}]))] or [], modified by [], runs [commands [effect give @e[distance=..4] minecraft:absorption 20 4 false]] and bulk []} if []
+[13:24:14] [Server thread/INFO]: [customcrafting] Loading recipes: customcrafting:repair_netherite_sword_with_amethyst
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] loaded: customcrafting:repair_netherite_sword_with_amethyst -> Repairing (0) {[ref(1 vanilla(1 minecraft:netherite_sword [{}]))] or [], (mustContain=[], mustNotContain=[]), (remains=(ignore=(vanilla=false, others=false)))} with {[ref(1 vanilla(1 minecraft:amethyst_shard [{}]))] or [], exact, (remains=(ignore=(vanilla=false, others=false)))} if [] producing (formatted: true, prefix: null, suffix: null, cost: 40, increase: false), null, com.wolfyscript.customcrafting.core.recipe.procedure.ProcedureItemRepairImpl@65b9ccfa, null)
+[13:24:14] [Server thread/INFO]: [customcrafting] Loading recipes: customcrafting:upgrade_netherite_sword_with_nether_star
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] loaded: customcrafting:upgrade_netherite_sword_with_nether_star -> smithing (0), template=null, base={[ref(1 vanilla(1 minecraft:netherite_sword [{}]))] or [], exact, (remains=(ignore=(vanilla=false, others=false)))}, addition={[ref(1 vanilla(1 minecraft:nether_star [{}]))] or [], exact, (remains=(ignore=(vanilla=false, others=false)))}, copying (preserve [], exclude [minecraft:attribute_modifiers, minecraft:max_damage]), producing {[ref(1 vanilla(1 minecraft:netherite_sword [{minecraft:attribute_modifiers=>ItemAttributeModifiers[modifiers=[Entry[attribute=Reference{ResourceKey[minecraft:attribute / minecraft:attack_damage]=net.minecraft.world.entity.ai.attributes.RangedAttribute@1028a9de}, modifier=AttributeModifier[id=minecraft:base_attack_damage, amount=11.0, operation=ADD_VALUE], slot=HAND, display=Default[]], Entry[attribute=Reference{ResourceKey[minecraft:attribute / minecraft:attack_speed]=net.minecraft.world.entity.ai.attributes.RangedAttribute@3719a80b}, modifier=AttributeModifier[id=minecraft:base_attack_speed, amount=2.0, operation=ADD_VALUE], slot=HAND, display=Default[]]]]}]))] or [], modified by [], runs [] and bulk []} if []
+[13:24:14] [Server thread/INFO]: [customcrafting] Loading recipes: customcrafting:disenchant_netherite_sword_custom
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] loaded: customcrafting:disenchant_netherite_sword_custom -> com.wolfyscript.customcrafting.core.recipe.CustomRecipeGrindingImpl@78c1e448
+[13:24:14] [Server thread/INFO]: [customcrafting] Loading recipes: customcrafting:disenchant_netherite_chestplate_with_ghast_tear_grinding
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] loaded: customcrafting:disenchant_netherite_chestplate_with_ghast_tear_grinding -> com.wolfyscript.customcrafting.core.recipe.CustomRecipeGrindingImpl@2c71811d
+[13:24:14] [Server thread/INFO]: [customcrafting] Loading recipes: customcrafting:enchanted_golden_apple
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] loaded: customcrafting:enchanted_golden_apple -> crafting (200) with shape ([GGG, GAG, GGG], (horizontal=false, vertical=false, rotate=false), 3x3, [G, A]: [0, 0, 0, 0, 1, 0, 0, 0, 0]) with {A={[ref(1 vanilla(1 minecraft:apple [{}]))] or [], (mustContain=[minecraft:item_name], mustNotContain=[]), (modifier=[])}, G={[ref(1 vanilla(1 minecraft:gold_block [{}]))] or [], (mustContain=[], mustNotContain=[]), (ref(1 vanilla(1 minecraft:apple [{}])))}} producing {[ref(1 vanilla(1 minecraft:enchanted_golden_apple [{}]))] or [], modified by [], runs [commands [effect give @s minecraft:weakness 20 2 false, effect give @s minecraft:blindness 20 2 false]] and bulk []} if []
+[13:24:14] [Server thread/INFO]: [customcrafting] Loading recipes: customcrafting:debug_stick
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] loaded: customcrafting:debug_stick -> crafting (0) with shape ([  A,  B , G  ], trimmed, (horizontal=true, vertical=true, rotate=true), 3x3, [A, B, G]: [-1, -1, 0, -1, 1, -1, 2, -1, -1], [0, -1, -1, -1, 1, -1, -1, -1, 2], [2, -1, -1, -1, 1, -1, -1, -1, 0], [-1, -1, 2, -1, 1, -1, 0, -1, -1]) with {A={[ref(1 vanilla(1 minecraft:nether_star [{}]))] or [], exact, (remains=(ignore=(vanilla=false, others=false)))}, B={[ref(1 vanilla(1 minecraft:netherite_ingot [{}]))] or [], exact, (remains=(ignore=(vanilla=false, others=false)))}, G={[ref(1 vanilla(1 minecraft:stick [{}]))] or [], exact, (remains=(ignore=(vanilla=false, others=false)))}} producing {[ref(1 vanilla(1 minecraft:debug_stick [{}]))] or [], modified by [], runs [] and bulk []} if []
+[13:24:14] [Server thread/INFO]: [customcrafting] Loading recipes: customcrafting:rotten_flesh_to_leather_smoking
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] loaded: customcrafting:rotten_flesh_to_leather_smoking -> Recipe Cooking (0) smoking in 40 ticks from {[ref(1 vanilla(1 minecraft:rotten_flesh [{}]))] or [], exact, (remains=(ignore=(vanilla=false, others=false)))} to {[ref(1 vanilla(1 minecraft:leather [{}]))] or [], modified by [], runs [commands [effect give @p[distance=..4] minecraft:poison 10 2, effect give @p[distance=..6] minecraft:nausea 40 2]] and bulk []}, giving 0.0xp, if []
+[13:24:14] [Server thread/INFO]: [customcrafting] Loading recipes: customcrafting:pufferfish_bucket_crafting
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] loaded: customcrafting:pufferfish_bucket_crafting -> crafting (0) with shape ([G, A], trimmed, (horizontal=false, vertical=false, rotate=false), 1x2, [G, A]: [0, 1]) with {A={[ref(1 vanilla(1 minecraft:water_bucket [{}]))] or [], exact, (remains=(ignore=(vanilla=true, others=true)))}, G={[ref(1 vanilla(1 minecraft:pufferfish [{}]))] or [], exact, (remains=(ignore=(vanilla=false, others=false)))}} producing {[ref(1 vanilla(1 minecraft:pufferfish_bucket [{}]))] or [], modified by [], runs [] and bulk []} if []
+[13:24:14] [Server thread/INFO]: [customcrafting] Loading recipes: customcrafting:stick_to_soul_torch_soul_campfire
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] loaded: customcrafting:stick_to_soul_torch_soul_campfire -> Recipe Cooking (0) campfire in 60 ticks from {[ref(1 vanilla(1 minecraft:stick [{}]))] or [], exact, (remains=(ignore=(vanilla=false, others=false)))} on soul: true or normal: false to {[ref(1 vanilla(1 minecraft:soul_torch [{}]))] or [], modified by [], runs [commands [particle minecraft:soul_fire_flame ~ ~ ~ 0 0 0 0.04 50]] and bulk []}, giving 0.0xp, if []
+[13:24:14] [Server thread/INFO]: [customcrafting] Read files in plugins/customcrafting/resources/custom/recipes
+[13:24:14] [Server thread/INFO]: [customcrafting] [Resources] plugins/customcrafting/resources: Finalize resources...
+[13:24:14] [Server thread/INFO]: [customcrafting] [Recipe Manager] Verifying 16 recipes
+[13:24:14] [Server thread/INFO]: [FasterMinecarts] Enabling FasterMinecarts v1.0
+[13:24:14] [Server thread/INFO]: [FasterMinecarts] FasterMinecarts enabled! Max speed = 10.0
+[13:24:14] [Server thread/INFO]: [EndPortalTimer] Enabling EndPortalTimer v2.9
+[13:24:14] [Server thread/INFO]: [EndPortalTimer] === EndPortalTimer Version Compatibility ===
+[13:24:14] [Server thread/INFO]: [EndPortalTimer] Server Version: 26.2
+[13:24:14] [Server thread/INFO]: [EndPortalTimer] Minimum Required: 1.20.0
+[13:24:14] [Server thread/INFO]: [EndPortalTimer] Maximum Tested: 26.2
+[13:24:14] [Server thread/INFO]: [EndPortalTimer] Supported Release Lines: 1.20.x, 1.21.x, 26.1.x, 26.2.x
+[13:24:14] [Server thread/INFO]: [EndPortalTimer] =============================================
+[13:24:14] [Server thread/INFO]: [EndPortalTimer] Minecraft version 26.2 is compatible with EndPortalTimer
+[13:24:14] [Server thread/INFO]: [EndPortalTimer] §aEndPortalTimer has been enabled!
+[13:24:14] [Server thread/INFO]: [ItemLimiter] Enabling ItemLimiter v1.1.0
+[13:24:14] [Server thread/INFO]: [VoidFastBoats] Enabling VoidFastBoats v1.0.3
+[13:24:14] [Server thread/ERROR]: [VoidFastBoats] Некорректный config.yml. Исправьте настройки и перезапустите плагин.
+[13:24:14] [Server thread/INFO]: [VoidFastBoats] Disabling VoidFastBoats v1.0.3
+[13:24:15] [Server thread/INFO]: [spark] Starting background profiler...
+[13:24:15] [Server thread/INFO]: [PlaceholderAPI] Placeholder expansion registration initializing...
+[13:24:15] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[13:24:15] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[13:24:15] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[13:24:15] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[13:24:15] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[13:24:15] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[13:24:15] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[13:24:15] [Server thread/INFO]: Running delayed init tasks
+[13:24:15] [Server thread/INFO]: [CoreProtect] WorldEdit logging successfully initialized.
+[13:24:15] [Server thread/INFO]: [Citizens] Loaded 0 NPCs.
+[13:24:15] [Server thread/INFO]: +> [ScriptEvent] Processed 0 script event paths. 
+[13:24:15] [Server thread/INFO]: +> [Denizen] +-------------------------+ 
+[13:24:15] [Server thread/INFO]: +> [Denizen] Denizen fully loaded at: 2026/10/11 13:24:13 
+[13:24:15] [Server thread/INFO]: Done (27.206s)! For help, type "help"
+[13:24:15] [Server thread/INFO]: [voicechat] Loading plugins
+[13:24:15] [Server thread/INFO]: [voicechat] Loaded 2 plugin(s)
+[13:24:15] [Server thread/INFO]: [voicechat] Initializing plugins
+[13:24:15] [Server thread/INFO]: [voicechat] Initialized 2 plugin(s)
+[13:24:15] [Server thread/INFO]: [voicechat] Registering events for 'customdiscs'
+[13:24:15] [Server thread/INFO]: [voicechat] Registering events for 'voicechat_interaction'
+[13:24:15] [Server thread/WARN]: [voicechat] Running in offline mode - Voice chat encryption is not secure!
+[13:24:15] [VoiceChatServerThread/INFO]: [voicechat] Using server-ip as bind address: 0.0.0.0
+[13:24:15] [VoiceChatServerThread/INFO]: [voicechat] Voice chat server started at 0.0.0.0:25930
+[13:24:15] [Server thread/INFO]: [voicechat_interaction] Voice chat server integration established
+[13:24:15] [Server thread/INFO]: 0 placeholder hook(s) registered!
+[13:24:15] [Paper Async Task Handler Thread - 1/INFO]: *** Currently you are 12 builds behind ***
+[13:24:15] [Paper Async Task Handler Thread - 1/INFO]: *** It is highly recommended to download the latest build from https://papermc.io/downloads/paper ***
+[13:24:32] [User Authenticator #0/INFO]: UUID of player verte_vakala is e6bff0c6-bb7c-37c5-8531-a8fcd395d250
+[13:24:32] [Server thread/INFO]: [HorriblePlayerLoginEventHack] You have plugins listening to the PlayerLoginEvent, this will cause re-configuration APIs to be unavailable: [LuckPerms, Denizen, Maintenance, ProtocolLib]
+[13:24:34] [Server thread/INFO]: [Emotecraft] Sending configuration packets...
+[13:24:34] [Netty Epoll IO #2/WARN]: [Emotecraft] Client doesn't support emotes, ignoring!
+[13:24:35] [Server thread/INFO]: verte_vakala joined the game
+[13:24:35] [Server thread/INFO]: verte_vakala[/195.58.152.18:37051] logged in with entity id 1 at ([minecraft:overworld]-900.8938081222162, 63.835320693163204, -464.13987964815294)
+[13:24:35] [Server thread/INFO]: [voicechat] Received secret request of verte_vakala (20)
+[13:24:35] [Folia Async Scheduler Thread #4/INFO]: Pack hosted at: http://65.21.70.32:25930/score/ExecutableItems_Pack (with external IP)
+[13:24:35] [Server thread/INFO]: [voicechat] Sent secret to verte_vakala
+[13:25:04] [Server thread/INFO]: verte_vakala issued server command: /boatspeed 80
+[13:25:04] [Server thread/ERROR]: Command exception: /boatspeed 80
+org.bukkit.command.CommandException: Cannot execute command 'boatspeed' in plugin VoidFastBoats v1.0.3 - plugin is disabled.
+	at org.bukkit.command.PluginCommand.execute(PluginCommand.java:37) ~[paper-api-26.2.build.121-stable.jar:?]
+	at io.papermc.paper.command.brigadier.bukkit.BukkitCommandNode$BukkitBrigCommand.run(BukkitCommandNode.java:83) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at com.mojang.brigadier.context.ContextChain.runExecutable(ContextChain.java:73) ~[brigadier-1.3.10.jar:?]
+	at net.minecraft.commands.execution.tasks.ExecuteCommand.execute(ExecuteCommand.java:30) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.commands.execution.tasks.ExecuteCommand.execute(ExecuteCommand.java:13) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.commands.execution.UnboundEntryAction.lambda$bind$0(UnboundEntryAction.java:8) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.commands.execution.CommandQueueEntry.execute(CommandQueueEntry.java:5) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.commands.execution.ExecutionContext.runCommandQueue(ExecutionContext.java:104) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.commands.Commands.executeCommandInContext(Commands.java:470) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.commands.Commands.performCommand(Commands.java:378) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.commands.Commands.performCommand(Commands.java:366) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.network.ServerGamePacketListenerImpl.performUnsignedChatCommand(ServerGamePacketListenerImpl.java:2406) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.network.ServerGamePacketListenerImpl.lambda$handleChatCommand$0(ServerGamePacketListenerImpl.java:2379) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.TickTask.run(TickTask.java:18) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.util.thread.BlockableEventLoop.doRunTask(BlockableEventLoop.java:207) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.util.thread.ReentrantBlockableEventLoop.doRunTask(ReentrantBlockableEventLoop.java:24) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.MinecraftServer.doRunTask(MinecraftServer.java:1534) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.MinecraftServer.doRunTask(MinecraftServer.java:192) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.util.thread.BlockableEventLoop.pollTask(BlockableEventLoop.java:182) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.MinecraftServer.pollTaskInternal(MinecraftServer.java:1514) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.MinecraftServer.pollTask(MinecraftServer.java:1508) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.MinecraftServer.recordTaskExecutionTimeWhileWaiting(MinecraftServer.java:1238) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1354) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:303) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at java.base/java.lang.Thread.run(Thread.java:1474) ~[?:?]
+[13:25:18] [Server thread/INFO]: verte_vakala issued server command: /boatspeed 20
+[13:25:18] [Server thread/ERROR]: Command exception: /boatspeed 20
+org.bukkit.command.CommandException: Cannot execute command 'boatspeed' in plugin VoidFastBoats v1.0.3 - plugin is disabled.
+	at org.bukkit.command.PluginCommand.execute(PluginCommand.java:37) ~[paper-api-26.2.build.121-stable.jar:?]
+	at io.papermc.paper.command.brigadier.bukkit.BukkitCommandNode$BukkitBrigCommand.run(BukkitCommandNode.java:83) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at com.mojang.brigadier.context.ContextChain.runExecutable(ContextChain.java:73) ~[brigadier-1.3.10.jar:?]
+	at net.minecraft.commands.execution.tasks.ExecuteCommand.execute(ExecuteCommand.java:30) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.commands.execution.tasks.ExecuteCommand.execute(ExecuteCommand.java:13) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.commands.execution.UnboundEntryAction.lambda$bind$0(UnboundEntryAction.java:8) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.commands.execution.CommandQueueEntry.execute(CommandQueueEntry.java:5) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.commands.execution.ExecutionContext.runCommandQueue(ExecutionContext.java:104) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.commands.Commands.executeCommandInContext(Commands.java:470) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.commands.Commands.performCommand(Commands.java:378) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.commands.Commands.performCommand(Commands.java:366) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.network.ServerGamePacketListenerImpl.performUnsignedChatCommand(ServerGamePacketListenerImpl.java:2406) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.network.ServerGamePacketListenerImpl.lambda$handleChatCommand$0(ServerGamePacketListenerImpl.java:2379) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.TickTask.run(TickTask.java:18) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.util.thread.BlockableEventLoop.doRunTask(BlockableEventLoop.java:207) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.util.thread.ReentrantBlockableEventLoop.doRunTask(ReentrantBlockableEventLoop.java:24) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.MinecraftServer.doRunTask(MinecraftServer.java:1534) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.MinecraftServer.doRunTask(MinecraftServer.java:192) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.util.thread.BlockableEventLoop.pollTask(BlockableEventLoop.java:182) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.MinecraftServer.pollTaskInternal(MinecraftServer.java:1514) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.MinecraftServer.pollTask(MinecraftServer.java:1508) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.MinecraftServer.recordTaskExecutionTimeWhileWaiting(MinecraftServer.java:1238) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1354) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:303) ~[paper-26.2.jar:26.2-121-a2a42c5]
+	at java.base/java.lang.Thread.run(Thread.java:1474) ~[?:?]
+[13:29:36] [Server thread/INFO]: Stopping the server
+[13:29:36] [Server thread/INFO]: Stopping server
+[13:29:36] [Server thread/INFO]: [ItemLimiter] Disabling ItemLimiter v1.1.0
+[13:29:36] [Server thread/INFO]: [EndPortalTimer] Disabling EndPortalTimer v2.9
+[13:29:36] [Server thread/INFO]: [EndPortalTimer] §eEndPortalTimer has been disabled!
+[13:29:36] [Server thread/INFO]: [FasterMinecarts] Disabling FasterMinecarts v1.0
+[13:29:36] [Server thread/INFO]: [Denizen] Disabling Denizen v1.3.3-SNAPSHOT (build 7302-DEV)
+[13:29:36] [Server thread/INFO]: [Denizen]  v1.3.3-SNAPSHOT (build 7302-DEV) disabled.
+[13:29:36] [Server thread/INFO]: [MinerTrack] Disabling MinerTrack v2.1.2.0
+[13:29:36] [Server thread/INFO]: [MinerTrack] MinerTrack (BukkitPlatform) disabled.
+[13:29:36] [Server thread/INFO]: [TAB] Disabling TAB v6.1.2
+[13:29:36] [Server thread/INFO]: [TAB] Disabled in 1ms
+[13:29:36] [Server thread/INFO]: [customcrafting] Disabling customcrafting v5.0-alpha.4.0.0
+[13:29:36] [Server thread/INFO]: [Maintenance] Disabling Maintenance v5.1.0
+[13:29:36] [Server thread/INFO]: [ItemEdit] Disabling ItemEdit v3.7.10
+[13:29:36] [Server thread/INFO]: [PlaceholderAPI] Unregistered placeholder expansion itemedit
+[13:29:36] [Server thread/INFO]: [PlaceholderAPI] Reason: required plugin ItemEdit was disabled.
+[13:29:36] [Server thread/INFO]: [DeathCoords] Disabling DeathCoords vV1.0
+[13:29:36] [Server thread/INFO]: [Sleeper] Disabling Sleeper v1.10.8
+[13:29:36] [Server thread/INFO]: [Sleeper] Sleeper Has Been Disabled!
+[13:29:36] [Server thread/INFO]: [ExecutableCrafting] Disabling ExecutableCrafting v1.26.9.22
+[13:29:36] [Server thread/INFO]: [emotecraft] Disabling emotecraft v3.4.0-b.build.165
+[13:29:36] [Server thread/WARN]: [Emotecraft] Emotecraft does not support disabling by PlugMan and similar plugins
+[13:29:36] [Server thread/INFO]: [SkinsRestorer] Disabling SkinsRestorer v15.12.6
+[13:29:36] [Server thread/INFO]: [InvSee++] Disabling InvSeePlusPlus v0.31.19
+[13:29:36] [Server thread/INFO]: [The_Note_Plugin] Disabling The_Note_Plugin v1.0
+[13:29:36] [Server thread/INFO]: [The_Note_Plugin] NotePaperPlugin has been disabled
+[13:29:36] [Server thread/INFO]: [StatusDC] Disabling StatusDC v1.0
+[13:29:36] [Server thread/INFO]: [AxiomPaper] Disabling AxiomPaper v6.0.1+26.2
+[13:29:36] [Server thread/INFO]: [voicemessages] Disabling voicemessages v1.0.12
+[13:29:36] [Server thread/INFO]: [Vanish] Disabling Vanish v0.1
+[13:29:36] [Server thread/INFO]: [PatPatPlugin] Disabling PatPatPlugin v1.2.5+0268419
+[13:29:36] [Server thread/INFO]: [VoidQuirks] Disabling VoidQuirks v1.4.0
+[13:29:36] [Server thread/INFO]: [SimpleLogin] Disabling SimpleLogin v1.16.7
+[13:29:36] [Server thread/INFO]: [voicechat_interaction] Disabling voicechat_interaction v1.0.3
+[13:29:36] [Server thread/INFO]: [voicechat_interaction] Successfully unregistered voicechat_interaction event bridge
+[13:29:36] [Server thread/INFO]: [CustomDiscs] Disabling CustomDiscs v2.7.0
+[13:29:36] [Server thread/INFO]: [CustomDiscs] Successfully disabled CustomDiscs plugin
+[13:29:36] [Server thread/INFO]: [LegacyFreecam Plugin] Disabling LegacyFreecam v2.0.0
+[13:29:36] [Server thread/INFO]: [Citizens] Disabling Citizens v2.0.43-SNAPSHOT (build 4239)
+[13:29:36] [Server thread/INFO]: [scafall] Disabling scafall v1.0-alpha.2.0
+[13:29:36] [Server thread/INFO]: [ExecutableItems] Disabling ExecutableItems v7.26.9.22
+[13:29:36] [Server thread/INFO]: Injector com.ssomar.score.pack.custom.PackHttpInjector unregistered (TPack selfhosting)
+[13:29:36] [Server thread/INFO]: [LuckPerms] Disabling LuckPerms v5.5.71
+[13:29:36] [Server thread/INFO]: [LuckPerms] Starting shutdown process...
+[13:29:36] [Server thread/INFO]: [LuckPerms] Closing storage...
+[13:29:36] [Server thread/INFO]: [LuckPerms] Goodbye!
+[13:29:36] [Server thread/INFO]: [CoreProtect] Disabling CoreProtect v24.1
+[13:29:36] [Server thread/INFO]: [CoreProtect] Finishing up data logging. Please wait...
+[13:29:37] [Server thread/INFO]: [CoreProtect] Success! Disabled CoreProtect v24.1
+[13:29:37] [Server thread/INFO]: [voicechat] Disabling voicechat v2.6.21
+[13:29:37] [Server thread/INFO]: [packetevents] Disabling packetevents v2.13.0
+[13:29:37] [Server thread/INFO]: [SCore] Disabling SCore v5.26.9.22
+[13:29:37] [Server thread/INFO]: SCore Save UsagePerDay....
+[13:29:37] [Server thread/INFO]: SCore Save UsagePerDay done !
+[13:29:37] [Server thread/INFO]: SCore Save Commands...
+[13:29:37] [Server thread/INFO]: SCore Save Commands done !
+[13:29:37] [Server thread/INFO]: SCore Save Cooldowns...
+[13:29:37] [Server thread/INFO]: SCore 0 cooldowns saved
+[13:29:37] [Server thread/INFO]: SCore Save Cooldowns done !
+[13:29:37] [Server thread/INFO]: SCore Run delayed saving tasks...
+[13:29:37] [Server thread/INFO]: SCore Run delayed saving tasks done !
+[13:29:37] [Server thread/INFO]: SCore Clear scheduled tasks...
+[13:29:37] [Server thread/INFO]: SCore Clear scheduled tasks done !
+[13:29:37] [Server thread/INFO]: [WorldEdit] Disabling WorldEdit v7.4.5+7590-b8dc4c1
+[13:29:37] [Server thread/INFO]: Unregistering com.sk89q.worldedit.bukkit.BukkitServerInterface from WorldEdit
+[13:29:37] [Server thread/INFO]: [PlaceholderAPI] Disabling PlaceholderAPI v2.12.3
+[13:29:37] [Server thread/INFO]: [ProtocolLib] Disabling ProtocolLib v5.4.0
+[13:29:37] [Server thread/INFO]: Saving players
+[13:29:37] [Server thread/INFO]: verte_vakala lost connection: Disconnected
+[13:29:37] [Server thread/INFO]: verte_vakala left the game
+[13:29:37] [Server thread/INFO]: Saving worlds
+[13:29:37] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[13:29:37] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk system to halt for world 'minecraft:overworld'
+[13:29:37] [Server thread/INFO]: [ChunkHolderManager] Halted chunk system for world 'minecraft:overworld'
+[13:29:37] [Server thread/INFO]: [ChunkHolderManager] Saving all chunkholders for world 'minecraft:overworld'
+[13:29:38] [Server thread/INFO]: [ChunkHolderManager] Saved 651 block chunks, 667 entity chunks, 0 poi chunks in world 'minecraft:overworld' in 0,69s
+[13:29:38] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk I/O to halt for world 'minecraft:overworld'
+[13:29:38] [Server thread/INFO]: [ChunkHolderManager] Halted I/O scheduler for world 'minecraft:overworld'
+[13:29:38] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[13:29:38] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk system to halt for world 'minecraft:the_nether'
+[13:29:38] [Server thread/INFO]: [ChunkHolderManager] Halted chunk system for world 'minecraft:the_nether'
+[13:29:38] [Server thread/INFO]: [ChunkHolderManager] Saving all chunkholders for world 'minecraft:the_nether'
+[13:29:38] [Server thread/INFO]: [ChunkHolderManager] Saved 0 block chunks, 0 entity chunks, 0 poi chunks in world 'minecraft:the_nether' in 0,00s
+[13:29:38] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk I/O to halt for world 'minecraft:the_nether'
+[13:29:38] [Server thread/INFO]: [ChunkHolderManager] Halted I/O scheduler for world 'minecraft:the_nether'
+[13:29:38] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[13:29:38] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk system to halt for world 'minecraft:the_end'
+[13:29:38] [Server thread/INFO]: [ChunkHolderManager] Halted chunk system for world 'minecraft:the_end'
+[13:29:38] [Server thread/INFO]: [ChunkHolderManager] Saving all chunkholders for world 'minecraft:the_end'
+[13:29:38] [Server thread/INFO]: [ChunkHolderManager] Saved 0 block chunks, 0 entity chunks, 0 poi chunks in world 'minecraft:the_end' in 0,00s
+[13:29:38] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk I/O to halt for world 'minecraft:the_end'
+[13:29:38] [Server thread/INFO]: [ChunkHolderManager] Halted I/O scheduler for world 'minecraft:the_end'
+[13:29:38] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[13:29:38] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[13:29:38] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[13:29:38] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[13:29:38] [Server thread/INFO]: Waiting for all RegionFile I/O tasks to complete...
+[13:29:38] [Server thread/INFO]: All RegionFile I/O tasks to complete
+[13:29:38] [Server thread/INFO]: [MoonriseCommon] Awaiting termination of worker pool for up to 60s...
+[13:29:38] [Server thread/INFO]: [MoonriseCommon] Awaiting termination of I/O pool for up to 60s...
