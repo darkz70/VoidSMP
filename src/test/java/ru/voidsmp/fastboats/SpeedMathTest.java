@@ -5,51 +5,41 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SpeedMathTest {
     @Test void rejectsInvalidSettings() {
-        for (double value : new double[] {Double.NaN, Double.POSITIVE_INFINITY, -1, 0, 20.01}) {
-            assertFalse(SpeedMath.inRange(value, 1, SpeedMath.MAX_MULTIPLIER));
-            assertThrows(IllegalArgumentException.class, () -> SpeedMath.limitForMultiplier(value));
+        for (double value : new double[] {Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, -1, 0, 0.99}) {
+            assertFalse(SpeedMath.validMultiplier(value));
+            assertThrows(IllegalArgumentException.class, () -> SpeedMath.targetForMultiplier(value));
         }
-        assertTrue(SpeedMath.inRange(1, 1, SpeedMath.MAX_MULTIPLIER));
-        assertTrue(SpeedMath.inRange(20, 1, SpeedMath.MAX_MULTIPLIER));
     }
 
-    @Test void commandLimitTracksMultiplier() {
-        assertEquals(0.8, SpeedMath.limitForMultiplier(2), 1e-9);
-        assertEquals(2, SpeedMath.limitForMultiplier(5), 1e-9);
-        assertEquals(8, SpeedMath.limitForMultiplier(20), 1e-9);
-    }
-
-    @Test void eightBlocksPerSecondIsNotReplacedWithSmallServerVelocity() {
-        assertEquals(0.48, SpeedMath.acceleratedSpeed(8.0 / 20, 5, 2), 1e-9);
-    }
-
-    @Test void twentyDoesNotInstantlyJumpToMaximum() {
-        assertEquals(0.48, SpeedMath.acceleratedSpeed(0.4, 20, 8), 1e-9);
-    }
-
-    @Test void oneAndLowCapsDoNotBrake() {
-        assertEquals(0.4, SpeedMath.acceleratedSpeed(0.4, 1, 2));
-        assertEquals(0.4, SpeedMath.acceleratedSpeed(0.4, 5, 0.1));
-    }
-
-    @Test void stationaryAndTeleportSizedSamplesDoNotGetBoosted() {
-        assertEquals(0, SpeedMath.acceleratedSpeed(0, 20, 8));
-        assertEquals(0, SpeedMath.acceleratedSpeed(17, 20, 8));
-        assertEquals(0, SpeedMath.acceleratedSpeed(Double.NaN, 20, 8));
-    }
-
-    @Test void everyImpulseIsBoundedAndEventuallyReachesTargetInIdealModel() {
-        for (int multiplier = 2; multiplier <= 20; multiplier++) {
-            double target = SpeedMath.limitForMultiplier(multiplier);
-            double speed = 0.4;
-            for (int i = 0; i < 1000; i++) {
-                double next = SpeedMath.acceleratedSpeed(speed, multiplier, target);
-                assertTrue(next >= speed);
-                assertTrue(next - speed <= 0.08 + 1e-9);
-                assertTrue(next <= target);
-                speed = next;
-            }
-            assertEquals(target, speed, 1e-9);
+    @Test void acceptsValuesAboveOldLimits() {
+        for (double value : new double[] {1, 20.01, 50, 80, 100, 1000, Double.MAX_VALUE}) {
+            assertTrue(SpeedMath.validMultiplier(value));
+            assertTrue(Double.isFinite(SpeedMath.targetForMultiplier(value)));
         }
+        assertEquals(32, SpeedMath.targetForMultiplier(80), 1e-9);
+    }
+
+    @Test void doesNotBrakeOrJumpInstantlyToTarget() {
+        assertEquals(0.48, SpeedMath.acceleratedSpeed(0.4, 80), 1e-9);
+        assertEquals(0.4, SpeedMath.acceleratedSpeed(0.4, 1));
+        assertEquals(2, SpeedMath.acceleratedSpeed(2, 2));
+    }
+
+    @Test void oldEightAndSixteenBlockLimitsAreGone() {
+        assertEquals(17.08, SpeedMath.acceleratedSpeed(17, 80), 1e-9);
+        assertEquals(31.98, SpeedMath.acceleratedSpeed(31.9, 80), 1e-9);
+        assertEquals(32, SpeedMath.acceleratedSpeed(31.99, 80), 1e-9);
+    }
+
+    @Test void invalidMeasurementsDoNotGetBoosted() {
+        assertEquals(0, SpeedMath.acceleratedSpeed(0, 80));
+        assertEquals(0, SpeedMath.acceleratedSpeed(Double.NaN, 80));
+        assertEquals(0, SpeedMath.acceleratedSpeed(Double.POSITIVE_INFINITY, 80));
+    }
+
+    @Test void scanWorkRemainsBoundedWithoutClampingVelocity() {
+        assertEquals(2, SpeedMath.lookAheadDistance(1));
+        assertEquals(16, SpeedMath.lookAheadDistance(Double.MAX_VALUE));
+        assertTrue(SpeedMath.acceleratedSpeed(30, 100) > 30);
     }
 }

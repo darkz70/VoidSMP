@@ -24,37 +24,42 @@ public final class FastBoatsPlugin extends JavaPlugin {
     private final Map<UUID, String> lastAttempts = new HashMap<>();
     private boolean active;
     private double multiplier;
-    private double maxSpeed;
+    private double targetSpeed;
+    private boolean settingsValid;
+    private String configError = "";
     private List<String> worlds = List.of();
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        if (!loadSettings()) {
-            getLogger().severe("Некорректный config.yml. Исправьте настройки и перезапустите плагин.");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
+        settingsValid = loadSettings();
+        if (!settingsValid) {
+            active = false;
+            getLogger().severe("Разгон выключен: " + configError + ". Исправьте config.yml и выполните /boatspeed reload.");
         }
         Objects.requireNonNull(getCommand("boatspeed")).setExecutor(this);
         getServer().getScheduler().runTaskTimer(this, this::tickBoats, 2L, 2L);
     }
 
     private boolean loadSettings() {
-        if (!getConfig().isBoolean("enabled") || !getConfig().isList("worlds")) return false;
+        if (!getConfig().isBoolean("enabled")) return invalidConfig("enabled", "true или false");
         double nextMultiplier = getConfig().getDouble("multiplier", Double.NaN);
-        double nextMax = getConfig().getDouble("max-speed", Double.NaN);
-        if (!SpeedMath.inRange(nextMultiplier, 1, SpeedMath.MAX_MULTIPLIER) || !SpeedMath.inRange(nextMax, 0.1, SpeedMath.MAX_SPEED)) {
-            return false;
-        }
+        if (!SpeedMath.validMultiplier(nextMultiplier)) return invalidConfig("multiplier", "конечное число >= 1");
         List<?> configuredWorlds = getConfig().getList("worlds");
         if (configuredWorlds == null || configuredWorlds.stream().anyMatch(w -> !(w instanceof String))) {
-            return false;
+            return invalidConfig("worlds", "список имён миров, например []");
         }
         active = getConfig().getBoolean("enabled");
         multiplier = nextMultiplier;
-        maxSpeed = nextMax;
+        targetSpeed = SpeedMath.targetForMultiplier(nextMultiplier);
         worlds = List.copyOf(getConfig().getStringList("worlds"));
+        configError = "";
         return true;
+    }
+
+    private boolean invalidConfig(String key, String expected) {
+        configError = "Поле " + key + ": ожидалось " + expected + ", получено " + getConfig().get(key);
+        return false;
     }
 
     private void tickBoats() {
@@ -82,9 +87,9 @@ public final class FastBoatsPlugin extends JavaPlugin {
             // Two-tick position samples reflect client movement, unlike server deltaMovement.
             double distance = Math.hypot(dx, dz);
             double measuredSpeed = distance / 2.0;
-            double requestedSpeed = SpeedMath.acceleratedSpeed(measuredSpeed, multiplier, maxSpeed);
+            double requestedSpeed = SpeedMath.acceleratedSpeed(measuredSpeed, multiplier);
             if (requestedSpeed <= measuredSpeed || distance < 0.002) {
-                diagnostics.put(player.getUniqueId(), "Импульс не нужен: нет движения, достигнут лимит или скачок позиции.");
+                diagnostics.put(player.getUniqueId(), "Импульс не нужен: нет движения или достигнута выбранная скорость.");
                 continue;
             }
             Input input = player.getCurrentInput();
@@ -98,7 +103,8 @@ public final class FastBoatsPlugin extends JavaPlugin {
             double vx = dx / distance * requestedSpeed;
             double vz = dz / distance * requestedSpeed;
             // Do not add thrust toward nearby obstacles or unloaded chunks.
-            if (!BoatSafety.isPathClear(boat, vx * 2, vz * 2)) {
+            if (!BoatSafety.isPathClear(boat, dx / distance * SpeedMath.lookAheadDistance(requestedSpeed),
+                    dz / distance * SpeedMath.lookAheadDistance(requestedSpeed))) {
                 diagnostics.put(player.getUniqueId(), "Разгон приостановлен: препятствие, сущность, граница мира или незагруженный чанк.");
                 lastAttempts.put(player.getUniqueId(), diagnostics.get(player.getUniqueId()));
                 continue;
@@ -137,16 +143,18 @@ public final class FastBoatsPlugin extends JavaPlugin {
             return true;
         }
         if (args.length == 0) {
+            if (!configError.isEmpty()) sender.sendMessage("Ошибка конфига: " + configError);
             sender.sendMessage("Лодки: " + (active ? "ускорение включено" : "ускорение выключено")
-                    + ", множитель " + multiplier + ", лимит " + maxSpeed + " блоков/тик.");
-            sender.sendMessage("/boatspeed <1-20|on|off|reload|debug>");
+                    + ", множитель " + multiplier + ", целевая скорость " + targetSpeed + " блоков/тик.");
+            sender.sendMessage("/boatspeed <число>=1|on|off|reload|debug>");
             return true;
         }
         if (args.length != 1) return false;
         String value = args[0].toLowerCase(Locale.ROOT);
         if (value.equals("debug")) {
             sender.sendMessage("VoidFastBoats " + getPluginMeta().getVersion() + ": "
-                    + (active ? "ON" : "OFF") + ", множитель " + multiplier + ", лимит " + maxSpeed);
+                    + (active ? "ON" : "OFF") + ", множитель " + multiplier + ", целевая скорость " + targetSpeed);
+            if (!configError.isEmpty()) sender.sendMessage("Ошибка конфига: " + configError);
             if (sender instanceof Player player) {
                 sender.sendMessage(diagnostics.getOrDefault(player.getUniqueId(), "Нет данных; подождите тик."));
                 sender.sendMessage("Последняя попытка в этой сессии: " + lastAttempts.getOrDefault(player.getUniqueId(), "ещё не было"));
@@ -159,15 +167,20 @@ public final class FastBoatsPlugin extends JavaPlugin {
             lastPositions.clear();
             reloadConfig();
             boolean loaded = loadSettings();
-            if (!loaded) {
-                // Restore in-memory config too, so subsequent commands cannot save invalid values.
-                getConfig().set("enabled", active);
-                getConfig().set("multiplier", multiplier);
-                getConfig().set("max-speed", maxSpeed);
-                getConfig().set("worlds", worlds);
-            }
+            if (loaded) settingsValid = true;
+            // Validation is atomic: a failed reload keeps the previous working settings.
             sender.sendMessage(loaded ? "Конфиг лодок перезагружен."
-                    : "Ошибка конфига: проверьте enabled, multiplier (1–20), max-speed (0.1–8) и worlds. Старые настройки сохранены в памяти.");
+                    : "Ошибка конфига: " + configError + ". Предыдущие настройки остались в памяти.");
+            return true;
+        }
+        if (!configError.isEmpty()) {
+            if (value.equals("off")) {
+                active = false;
+                lastPositions.clear();
+                sender.sendMessage("Разгон выключен в памяти. Конфиг с ошибкой не перезаписан.");
+                return true;
+            }
+            sender.sendMessage("Сначала исправьте config.yml: " + configError + ". Затем /boatspeed reload.");
             return true;
         }
         if (value.equals("on") || value.equals("off")) {
@@ -178,24 +191,25 @@ public final class FastBoatsPlugin extends JavaPlugin {
             try {
                 requested = Double.parseDouble(value);
             } catch (NumberFormatException exception) {
-                sender.sendMessage("Укажите число от 1 до 20, on, off или reload.");
+                sender.sendMessage("Укажите конечное число >= 1, on, off, reload или debug.");
                 return true;
             }
-            if (!SpeedMath.inRange(requested, 1, SpeedMath.MAX_MULTIPLIER)) {
-                sender.sendMessage("Множитель должен быть конечным числом от 1 до 20.");
+            if (!SpeedMath.validMultiplier(requested)) {
+                sender.sendMessage("Множитель должен быть конечным числом >= 1, без верхнего предела.");
                 return true;
             }
             multiplier = requested;
-            maxSpeed = SpeedMath.limitForMultiplier(requested);
+            targetSpeed = SpeedMath.targetForMultiplier(requested);
             active = true;
             getConfig().set("multiplier", multiplier);
-            getConfig().set("max-speed", maxSpeed);
+
             getConfig().set("enabled", active);
         }
         lastPositions.clear();
+        getConfig().set("max-speed", null); // Obsolete setting, no longer used.
         saveConfig();
         sender.sendMessage("Настройки сохранены: ускорение " + (active ? "включено" : "выключено")
-                + ", множитель " + multiplier + ", лимит " + maxSpeed + " блоков/тик. Настройка применяется ко всем лодкам в разрешённых мирах.");
+                + ", множитель " + multiplier + ", целевая скорость " + targetSpeed + " блоков/тик. Настройка применяется ко всем лодкам в разрешённых мирах.");
         return true;
     }
 
@@ -203,7 +217,7 @@ public final class FastBoatsPlugin extends JavaPlugin {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission("voidfastboats.admin") || args.length != 1) return List.of();
         String prefix = args[0].toLowerCase(Locale.ROOT);
-        return List.of("1", "1.5", "2", "3", "5", "10", "15", "20", "on", "off", "reload", "debug").stream()
+        return List.of("1", "1.5", "2", "3", "5", "10", "15", "20", "50", "80", "100", "on", "off", "reload", "debug").stream()
                 .filter(value -> value.startsWith(prefix)).toList();
     }
 }
