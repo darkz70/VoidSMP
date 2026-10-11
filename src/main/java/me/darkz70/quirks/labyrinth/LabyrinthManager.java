@@ -76,7 +76,8 @@ public final class LabyrinthManager {
     }
 
     public boolean isBuilt() {
-        return state.getBoolean("labyrinth.built");
+        return state.getBoolean("labyrinth.built")
+                || plugin.getConfig().getBoolean("labyrinth.prebuilt", false);
     }
 
     private void setBuilt(boolean built) {
@@ -98,8 +99,16 @@ public final class LabyrinthManager {
         return (index / 2) * cellSize() + (index % 2);
     }
 
-    /** Точка входа (центр начальной ячейки). */
+    /** Точка входа (центр начальной ячейки, либо явная точка из конфига). */
     public Location entrance(World world) {
+        org.bukkit.configuration.ConfigurationSection sec = plugin.getConfig()
+                .getConfigurationSection("labyrinth.entrance");
+        if (sec != null) {
+            return new Location(world,
+                    sec.getDouble("x", 2.5),
+                    sec.getDouble("y", floorY() + 1),
+                    sec.getDouble("z", 2.5), 180f, 0f);
+        }
         return new Location(world, 2.5, floorY() + 1, 2.5, 180f, 0f);
     }
 
@@ -109,7 +118,7 @@ public final class LabyrinthManager {
     public void loadIfExists() {
         File dir = new File(Bukkit.getWorldContainer(), worldName());
         if (!dir.isDirectory() || world() != null) return;
-        World world = createWorldObject();
+        World world = createWorldObject(true);
         if (world != null) {
             plugin.getLogger().info("Мир лабиринта загружен: " + worldName());
             purgeDragons(world);
@@ -127,9 +136,16 @@ public final class LabyrinthManager {
 
     @Nullable
     private World createWorldObject() {
+        return createWorldObject(false);
+    }
+
+    @Nullable
+    private World createWorldObject(boolean existing) {
         WorldCreator creator = new WorldCreator(worldName());
-        creator.environment(World.Environment.THE_END); // тьма преисподней
-        creator.generator(new VoidWorldGenerator());
+        if (!existing) {
+            creator.environment(World.Environment.THE_END); // тьма преисподней
+            creator.generator(new VoidWorldGenerator());
+        } // иначе: мир со своими генерацией/структурами — берём как есть (level.dat главный)
         try {
             return creator.createWorld();
         } catch (Exception ex) {
@@ -147,6 +163,11 @@ public final class LabyrinthManager {
         }
         World world = world() != null ? world() : createWorldObject();
         if (world == null) {
+            return;
+        }
+        if (plugin.getConfig().getBoolean("labyrinth.prebuilt", false)) {
+            setBuilt(true);
+            Msg.send(sender, "lab-prebuilt");
             return;
         }
         Msg.send(sender, "lab-building", "%world%", worldName());

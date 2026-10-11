@@ -59,6 +59,7 @@ public final class Msg {
         def("lab-building", "%prefix%&5Начинаю строить лабиринт душ в мире &f%world%&5… не выключай сервер.");
         def("lab-created", "%prefix%&dЛабиринт душ построен! Площадь &f%size%&d, клеток с душами: &f%cages%&d. Телепорт: /quirk lab tp");
         def("lab-exists", "%prefix%&eЛабиринт уже построен. Телепорт: /quirk lab tp");
+        def("lab-prebuilt", "%prefix%&6Готовый мир принят: лабиринт не строим, используем ваш.");
         def("lab-back", "%prefix%&6Возврат из недр завершён. Добро пожаловать наверх!");
         def("lab-no-world", "%prefix%&cЛабиринт ещё не создан. Сначала /quirk lab create");
         def("lab-tp", "%prefix%&dТы входишь в лабиринт душ…");
