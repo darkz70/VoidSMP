@@ -13,6 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.command.CommandSender;
+import org.bukkit.GameRule;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -103,7 +104,7 @@ public final class LabyrinthManager {
     private World createWorldObject(boolean existing) {
         WorldCreator creator = new WorldCreator(worldName());
         if (!existing) {
-            creator.environment(World.Environment.THE_END); // тьма преисподней
+            creator.environment(World.Environment.NORMAL); // обычное небо, пустой верхний мир
             creator.generator(new VoidWorldGenerator());
         } // иначе: чужой мир со своими генерацией/структурами — берём как есть
         try {
@@ -134,8 +135,9 @@ public final class LabyrinthManager {
             Msg.send(sender, "lab-prebuilt");
             return;
         }
-        // свежий void: тишина и покой, без строений и правил навязь
-        world.setTime(13000L);
+        // свежий void: спокойный день, без строений и правил навязь
+        world.setTime(6000L);
+        world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
         setBuilt(true);
         Msg.send(sender, "lab-created", "%world%", worldName());
     }
