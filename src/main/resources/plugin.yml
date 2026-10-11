@@ -1,0 +1,17 @@
+name: VoidFastBoats
+version: '${version}'
+main: ru.voidsmp.fastboats.FastBoatsPlugin
+api-version: '26.2'
+description: Настраиваемое ускорение лодок на воде
+commands:
+  boatspeed:
+    description: Настройка скорости лодок
+    usage: /boatspeed [1-5|on|off|reload]
+    permission: voidfastboats.admin
+permissions:
+  voidfastboats.admin:
+    description: Управление скоростью лодок
+    default: op
+  voidfastboats.use:
+    description: Ускорение лодки для водителя
+    default: true
