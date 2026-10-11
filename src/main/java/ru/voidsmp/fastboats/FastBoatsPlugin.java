@@ -111,11 +111,15 @@ public final class FastBoatsPlugin extends JavaPlugin {
                 return true;
             }
             multiplier = requested;
+            maxSpeed = SpeedMath.limitForMultiplier(requested);
+            active = true;
             getConfig().set("multiplier", multiplier);
+            getConfig().set("max-speed", maxSpeed);
+            getConfig().set("enabled", active);
         }
         saveConfig();
         sender.sendMessage("Настройки сохранены: ускорение " + (active ? "включено" : "выключено")
-                + ", множитель " + multiplier + ".");
+                + ", множитель " + multiplier + ", лимит " + maxSpeed + " блоков/тик. Настройка применяется ко всем лодкам в разрешённых мирах.");
         return true;
     }
 

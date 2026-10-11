@@ -7,6 +7,13 @@ final class SpeedMath {
         return Double.isFinite(value) && value >= min && value <= max;
     }
 
+    static double limitForMultiplier(double multiplier) {
+        if (!inRange(multiplier, 1, 5)) {
+            throw new IllegalArgumentException("Multiplier must be between 1 and 5");
+        }
+        return 0.4 * multiplier;
+    }
+
     // Add thrust rather than multiplying last tick's velocity exponentially.
     static double[] boost(double x, double z, double yaw, int direction,
                           double multiplier, double maxSpeed) {
