@@ -29,6 +29,10 @@ jobs:
           mvn --batch-mode --no-transfer-progress --errors clean package 2>&1 | tee maven-build.log
           build_status=${PIPESTATUS[0]}
           if [ "$build_status" -ne 0 ]; then
+            first_error=$(grep -m 1 '^\[ERROR\]' maven-build.log || true)
+            if [ -n "$first_error" ]; then
+              echo "::error title=Maven build details::$first_error"
+            fi
             {
               echo '### Maven build failure details'
               echo '```text'
