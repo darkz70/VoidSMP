@@ -17,7 +17,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Monster;
-import org.bukkit.entity.Phantom;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Rabbit;
 import org.bukkit.entity.Wolf;
@@ -63,9 +62,6 @@ public final class ZayceKrolTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            phantomFear(player);
-        }
         for (World world : Bukkit.getWorlds()) {
             for (Rabbit rabbit : world.getEntitiesByClass(Rabbit.class)) {
                 if (!ZayceKrol.isZayce(rabbit) || !rabbit.isValid()) continue;
@@ -304,22 +300,6 @@ public final class ZayceKrolTask extends BukkitRunnable {
         for (int i = 0; i < amount; i++) {
             Rabbit rabbit = world.spawn(where.clone().add((Math.random() - 0.5) * 4, 1.5, (Math.random() - 0.5) * 4), Rabbit.class);
             ZayceKrol.convert(rabbit, role);
-        }
-    }
-
-    // ---------- фантомы боятся Кота (ур. 1+) ----------
-
-    private void phantomFear(Player player) {
-        if (plugin.quirks().levelOf(player, Quirk.CAT) < 1) return;
-        double radius = plugin.getConfig().getDouble("zaycekrol.phantom-fear-radius", 24);
-        for (Entity entity : player.getNearbyEntities(radius, radius, radius)) {
-            if (!(entity instanceof Phantom phantom)) continue;
-            Vector away = phantom.getLocation().toVector().subtract(player.getLocation().toVector());
-            away.setY(0.4);
-            if (away.lengthSquared() > 0.01) {
-                phantom.setVelocity(away.normalize().multiply(1.2));
-            }
-            phantom.setTarget(null);
         }
     }
 

@@ -16,6 +16,7 @@ scan:
     radius-3: 15     # зона ~31x31
     tnt-radius: 25   # зона ~51x51 для ТНТ (3 уровень)
   cat:
+  phantom-fear-radius: 24     # фантомы боятся Кота (1+ ур.)
     water-radius: 5  # зона ~10x10 для воды (3 уровень)
 
 materials:
@@ -153,7 +154,6 @@ zaycekrol:
   guard-radius: 14
   guard-scan: 6
   tsar-call-radius: 30        # радиус приветствия императора
-  phantom-fear-radius: 24     # фантомы боятся Кота (1+ ур.)
   cap-residents: 30
   cap-guards: 10
   cap-elite: 6
