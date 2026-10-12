@@ -71,7 +71,7 @@ public final class ZayceKrol {
         if (role == Role.RESIDENT) {
             rabbit.getPersistentDataContainer().set(Keys.zkGen, PersistentDataType.INTEGER, 60);
         }
-        rabbit.setCustomName(Msg.color("&eЗайцекрол &7· &f" + role.display));
+        rabbit.customName(Msg.color("&eЗайцекрол &7· &f" + role.display));
         rabbit.setCustomNameVisible(true);
         rabbit.setRemoveWhenFarAway(false);
         // рост 1,5× (у царя — обычный кроличий)

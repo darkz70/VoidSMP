@@ -229,7 +229,7 @@ public final class ZayceKrolTask extends BukkitRunnable {
             walkTo(rabbit, home); // дальше 15 блоков — только домой
         }
         // поколение в имени
-        rabbit.setCustomName(me.darkz70.quirks.util.Msg.color(
+        rabbit.customName(me.darkz70.quirks.util.Msg.color(
                 "&eЗайцекрол &7· &fЖитель &7(пок. &f" + ZayceKrol.genOf(rabbit) + "&7)"));
     }
 
