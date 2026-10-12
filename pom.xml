@@ -4,10 +4,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>dev.voidsmp</groupId>
-    <artifactId>voidsmp</artifactId>
+    <groupId>dev.netherscale</groupId>
+    <artifactId>netherscale</artifactId>
     <version>1.0.0</version>
-    <name>VoidSMP</name>
+    <name>NetherScale</name>
     <description>Paper plugin with configurable Overworld-to-Nether portal coordinates.</description>
 
     <properties>

@@ -1,6 +1,6 @@
-name: VoidSMP
+name: NetherScale
 version: 1.0.0
-main: dev.voidsmp.VoidSMPPlugin
+main: dev.netherscale.NetherScalePlugin
 api-version: '26.2'
 author: darkz70
 description: Keeps Overworld and Nether portal coordinates at a configurable ratio.

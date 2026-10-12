@@ -1,4 +1,4 @@
-package dev.voidsmp;
+package dev.netherscale;
 
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -10,10 +10,10 @@ import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /** Keeps Nether portal travel at a configurable horizontal coordinate ratio. */
-public final class VoidSMPPlugin extends JavaPlugin implements Listener {
+public final class NetherScalePlugin extends JavaPlugin implements Listener {
     private static final double DEFAULT_NETHER_COORDINATE_SCALE = 1.0D;
 
-    /** Ratio used for Overworld -> Nether travel (vanilla uses 8.0). */
+    /** Divisor for Overworld -> Nether travel (vanilla uses 8.0). */
     private double netherCoordinateScale = DEFAULT_NETHER_COORDINATE_SCALE;
 
     @Override
