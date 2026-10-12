@@ -1,0 +1,4 @@
+# Horizontal coordinate scale used when travelling from the Overworld to the Nether.
+# 1.0 = 1:1 coordinates (the requested setting).
+# 8.0 = vanilla-style 8:1 scaling: Nether X/Z = Overworld X/Z divided by 8.
+nether-coordinate-scale: 1.0
