@@ -73,6 +73,8 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         MagicListener magicListener = new MagicListener(this);
         Bukkit.getPluginManager().registerEvents(magicListener, this);
         Bukkit.getPluginManager().registerEvents(new PotionListener(this), this);
+        zayceTask = new me.darkz70.quirks.task.ZayceKrolTask(this);
+        Bukkit.getPluginManager().registerEvents(new me.darkz70.quirks.listener.ZayceKrolListener(this), this);
 
         QuirkCommand command = new QuirkCommand(this);
         PluginCommand quirk = getCommand("quirk");
@@ -98,6 +100,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         new EffectsTask(this).runTaskTimer(this, interval, interval);
         new WebPhysicsTask(this).runTaskTimer(this, 1L, 1L);
         new MagicTask(this).runTaskTimer(this, 20L, 20L);
+        zayceTask.runTaskTimer(this, 200L, 200L);
 
         long autosave = Math.max(1, getConfig().getLong("tasks.autosave-minutes", 5)) * 60L * 20L;
         Bukkit.getScheduler().runTaskTimer(this, storage::save, autosave, autosave);
@@ -120,6 +123,12 @@ public final class VoidQuirksPlugin extends JavaPlugin {
 
     public me.darkz70.quirks.command.GaidMenus gaidMenus() {
         return gaidMenus;
+    }
+
+    private me.darkz70.quirks.task.ZayceKrolTask zayceTask;
+
+    public me.darkz70.quirks.task.ZayceKrolTask zayceTask() {
+        return zayceTask;
     }
 
     public MagicSystem magic() {

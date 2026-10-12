@@ -144,6 +144,20 @@ labyrinth:
   floor-block: OBSIDIAN
   ceiling-block: OBSIDIAN     # потолок над всем лабиринтом (на высоте стен)
 
+zaycekrol:
+  spawn-chance: 8             # % кролика стать зайцекролом при диком спавне
+  colony-radius: 60           # радиус поиска царя (новой колонии рядом не быть)
+  farmer-home-radius: 30      # фермер не уходит от дома дальше
+  farmer-cooldown-minutes: 5
+  resident-home-radius: 15    # житель не дальше от дома; ночью всегда домой
+  guard-radius: 14
+  guard-scan: 6
+  tsar-call-radius: 30        # радиус приветствия императора
+  phantom-fear-radius: 24     # фантомы боятся Кота (1+ ур.)
+  cap-residents: 30
+  cap-guards: 10
+  cap-elite: 6
+
 messages:
   no-permission: "%prefix%&cНедостаточно прав."
   usage: "%prefix%&f/quirk set <игрок> <причуда> [уровень] &8| &f/quirk remove <игрок> &8| &f/quirk info [игрок] &8| &f/quirk list &8| &f/quirk reload"
