@@ -24,7 +24,19 @@ jobs:
           cache: maven
 
       - name: Build with Maven
-        run: mvn --batch-mode --no-transfer-progress --errors clean package
+        run: |
+          set +e
+          mvn --batch-mode --no-transfer-progress --errors clean package 2>&1 | tee maven-build.log
+          build_status=${PIPESTATUS[0]}
+          if [ "$build_status" -ne 0 ]; then
+            {
+              echo '### Maven build failure details'
+              echo '```text'
+              tail -n 100 maven-build.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$build_status"
 
       - name: Upload plugin JAR
         uses: actions/upload-artifact@v7
