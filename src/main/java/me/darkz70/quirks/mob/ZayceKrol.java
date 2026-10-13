@@ -18,7 +18,7 @@ public final class ZayceKrol {
         FARMER("Фермер"), GUARD("Охранник"), ELITE("Элитный охранник"),
         RESIDENT("Житель"), TSAR("Царь");
 
-        final String display;
+        public final String display;
 
         Role(String display) {
             this.display = display;
