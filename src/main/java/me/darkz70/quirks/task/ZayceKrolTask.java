@@ -124,7 +124,6 @@ public final class ZayceKrolTask extends BukkitRunnable {
             for (Rabbit rabbit : world.getEntitiesByClass(Rabbit.class)) {
                 if (!ZayceKrol.isZayce(rabbit) || !rabbit.isValid()) continue;
                 try {
-                    repelPhantoms(rabbit);
                     behave(rabbit, ZayceKrol.roleOf(rabbit));
                 } catch (Exception ignored) { }
             }
@@ -360,21 +359,6 @@ public final class ZayceKrolTask extends BukkitRunnable {
         for (int i = 0; i < amount; i++) {
             Rabbit rabbit = world.spawn(where.clone().add((Math.random() - 0.5) * 4, 1.5, (Math.random() - 0.5) * 4), Rabbit.class);
             ZayceKrol.convert(rabbit, role);
-        }
-    }
-
-    // ---------- фантомы боятся зайцекролов (улетают прочь) ----------
-
-    private void repelPhantoms(Rabbit rabbit) {
-        double radius = plugin.getConfig().getDouble("zaycekrol.phantom-fear-radius", 14);
-        for (Entity entity : rabbit.getNearbyEntities(radius, radius, radius)) {
-            if (!(entity instanceof org.bukkit.entity.Phantom phantom)) continue;
-            Vector away = phantom.getLocation().toVector().subtract(rabbit.getLocation().toVector());
-            away.setY(0.4);
-            if (away.lengthSquared() > 0.01) {
-                phantom.setVelocity(away.normalize().multiply(1.2));
-            }
-            phantom.setTarget(null);
         }
     }
 
