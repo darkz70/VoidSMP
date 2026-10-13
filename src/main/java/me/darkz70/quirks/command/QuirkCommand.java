@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 /** /quirk — управление причудами. Причуд можно несколько на одного игрока. */
 public final class QuirkCommand implements CommandExecutor, TabCompleter {
 
-    private static final List<String> SUBS = List.of("set", "remove", "remove_admin", "remove_tmp", "info", "list", "reload", "notify", "item", "pack", "lab");
+    private static final List<String> SUBS = List.of("set", "remove", "remove_admin", "remove_tmp", "info", "list", "reload", "notify", "item", "pack", "lab", "zayce");
     private static final List<String> QUIRKS = List.of(
             "инженер", "кот", "бедрок", "топор", "скалк", "фермер", "земноводный", "паук",
             "engineer", "cat", "bedrock", "axe", "sculk", "farmer", "amphibian", "spider",
@@ -393,6 +393,11 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             for (String sub : SUBS) {
                 if (sub.startsWith(args[0].toLowerCase(Locale.ROOT))) out.add(sub);
+            }
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("zayce")) {
+            String prefix = args[1].toLowerCase(Locale.ROOT);
+            for (String opt : List.of("colony", "farmer", "guard", "elite", "resident", "tsar", "purge")) {
+                if (opt.startsWith(prefix)) out.add(opt);
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("lab")) {
             if ("create".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("create");
