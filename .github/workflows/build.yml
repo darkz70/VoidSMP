@@ -56,9 +56,12 @@ jobs:
             cp "$JAR" "build/libs/""${NAME}""-EN.jar"
           done
           mkdir -p /tmp/enjar && cd /tmp/enjar
-          unzip -q -o "$REPO"/build/libs/VoidQuirks-1.7.0.jar config.yml
-          sed -i "s/^language: ru/language: en/" config.yml
-          zip -q "$REPO"/build/libs/VoidQuirks-1.7.0-EN.jar config.yml
+          for JAR in "$REPO"/build/libs/VoidQuirks-*-EN.jar; do
+            RUJAR="${JAR%-EN.jar}.jar"
+            unzip -q -o "$RUJAR" config.yml
+            sed -i "s/^language: ru/language: en/" config.yml
+            zip -q "$JAR" config.yml
+          done
           cd "$REPO"
           ls -1 build/libs
 
