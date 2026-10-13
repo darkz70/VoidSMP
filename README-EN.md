@@ -59,4 +59,7 @@ Note: guidebook page prose and some item lores are still RU (contributions welco
 
 ## License
 
-Your license here (MIT is a safe default for SMP plugins).
+VoidSMP Plugin © 2026 by darkz70 is licensed under **CC BY-ND 4.0**.
+To view a copy of this license, visit https://creativecommons.org/licenses/by-nd/4.0/
+
+Share with attribution; no derivatives may be distributed (see `LICENSE`).
