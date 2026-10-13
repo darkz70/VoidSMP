@@ -5,6 +5,7 @@
 #  1 иконка = 2 очка food level. 3.5 иконки = 7 очков.
 # ============================================================
 
+language: ru                  # ru или en (english_messages bundled in jar)
 prefix: "&8[&5Причуды&8]&r "
 
 scan:

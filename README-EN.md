@@ -29,9 +29,9 @@ a soul world, harebringer mobs and a full guidebook menu** — all in one jar.
 2. Drop `VoidQuirks-<version>.jar` into `plugins/`.
 3. Zip `resourcepack/` and host it (or use `VoidQuirks-Pack.zip` from the release), then
    put the link into `server.properties → resource-pack=` and `/quirk pack` shows the link.
-4. Default language is Russian. **For English**, replace the `messages:` section of
-   `plugins/VoidQuirks/config.yml` with `docs/config-en.yml`'s one (or just copy the whole
-   file as your config and tweak the numeric knobs).
+4. Default language is Russian. **For English**, set `language: en` at the top of
+   `plugins/VoidQuirks/config.yml` — the bundled English pack picks up automatically.
+   (Full English config template also ships in `docs/config-en.yml` if you prefer files.)
 
 ## Commands & permissions
 
@@ -51,8 +51,9 @@ All timings, radii, cooldowns, mana and the potion matrix are tweakable in `conf
 ## Localization
 
 - Russian: build-in defaults (`Msg` defaults + shipped `config.yml`).
-- English: `docs/config-en.yml` — drop-in English config (all 159 message keys translated).
-  The engine falls back to defaults for any key you erase, so partial overrides are safe.
+- English: set `language: en` in `config.yml` — jar-bundled `messages-en.yml` kicks in
+  (159 translated keys). `docs/config-en.yml` is the same content as a plain file.
+  Any `messages:` key in your own config.yml still wins over the bundle.
 
 Note: guidebook page prose and some item lores are still RU (contributions welcome).
 
