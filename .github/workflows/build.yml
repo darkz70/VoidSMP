@@ -58,9 +58,8 @@ jobs:
           done
           mkdir -p /tmp/enjar && cd /tmp/enjar
           for JAR in "$REPO"/build/libs/VoidQuirks-*-EN.jar; do
-            RUJAR="${JAR%-EN.jar}.jar"
-            unzip -q -o "$RUJAR" config.yml
-            sed -i "s/^language: ru/language: en/" config.yml
+            # в EN-билде — полностью английский config.yml (messages + comments, language: en)
+            cp "$REPO/docs/config-en.yml" config.yml
             zip -q "$JAR" config.yml
           done
           cd "$REPO"
