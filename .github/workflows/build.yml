@@ -44,21 +44,22 @@ jobs:
           fi
           { echo "### Сборка упала: run ${{ github.run_id }}, коммит ${{ github.sha }}"; echo '```'; tail -c 5500 /tmp/build.log | sed 's/```/`​``/g'; echo '```'; } | gh issue comment "$ISSUE" --body-file -
 
-      - name: Make EN jar variant (language: en по умолчанию)
+      - name: Make -RU/-EN jar variants
         run: |
           set -e
           REPO=$(pwd)
-          mkdir -p /tmp/enjar
+          shopt -s nullglob
           for JAR in build/libs/VoidQuirks-*.jar; do
-            case "$(basename "$JAR")" in
-              *-EN.jar) continue;;
-            esac
-            BASE=$(basename "$JAR" .jar)
-            cp "$JAR" "build/libs/${BASE}-EN.jar"
-            ( cd /tmp/enjar && jar xf "$REPO/$JAR" config.yml               && sed -i "s/^language: ru/language: en/" config.yml               && mkdir -p META-INF || exit 1 )
-            ( cd /tmp/enjar && jar uf "$REPO/build/libs/${BASE}-EN.jar" config.yml )
-            rm -rf /tmp/enjar && mkdir -p /tmp/enjar
+            NAME=$(basename "$JAR" .jar)
+            case "$NAME" in *-RU|*-EN) continue;; esac
+            cp "$JAR" "build/libs/""${NAME}""-RU.jar"
+            cp "$JAR" "build/libs/""${NAME}""-EN.jar"
           done
+          mkdir -p /tmp/enjar && cd /tmp/enjar
+          unzip -q -o "$REPO"/build/libs/VoidQuirks-1.7.0.jar config.yml
+          sed -i "s/^language: ru/language: en/" config.yml
+          zip -q "$REPO"/build/libs/VoidQuirks-1.7.0-EN.jar config.yml
+          cd "$REPO"
           ls -1 build/libs
 
       - name: Zip resource pack
