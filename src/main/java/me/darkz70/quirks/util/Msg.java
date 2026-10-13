@@ -63,6 +63,7 @@ public final class Msg {
         def("zayce-spawned", "%prefix%&6Зайцекрол (%role%) призван.");
         def("zayce-colony", "%prefix%&6Колония зайцекролов разбита прямо здесь.");
         def("zayce-purged", "%prefix%&6Зайцекролов отправлено в морку: &f%count%");
+        def("lab-command-off", "%prefix%&cСоздание мира выключено в этой сборке (приватный билд).");
         def("lab-prebuilt", "%prefix%&6Готовый мир принят: лабиринт не строим, используем ваш.");
         def("lab-back", "%prefix%&6Возврат из недр завершён. Добро пожаловать наверх!");
         def("lab-no-world", "%prefix%&cЛабиринт ещё не создан. Сначала /quirk lab create");

@@ -100,13 +100,20 @@ public final class LabyrinthManager {
         return createWorldObject(false);
     }
 
+    private boolean vanillaGen() {
+        return "vanilla".equalsIgnoreCase(
+                plugin.getConfig().getString("labyrinth.generation", "vanilla"));
+    }
+
     @Nullable
     private World createWorldObject(boolean existing) {
         WorldCreator creator = new WorldCreator(worldName());
         if (!existing) {
-            creator.environment(World.Environment.NORMAL); // обычное небо, пустой верхний мир
-            creator.generator(new VoidWorldGenerator());
-        } // иначе: чужой мир со своими генерацией/структурами — берём как есть
+            creator.environment(World.Environment.NORMAL); // обычное небо
+            if (!vanillaGen()) {
+                creator.generator(new VoidWorldGenerator()); // generation: void — пустой мир
+            } // generation: vanilla — обычная ванильная генерация
+        } // чужая папка мира подхватывается КАК ЕСТЬ
         try {
             return creator.createWorld();
         } catch (Exception ex) {
@@ -119,6 +126,10 @@ public final class LabyrinthManager {
 
     /** /quirk lab create — принять/создать мир. НИКАКОГО строительства: мир отдаётся вам. */
     public void create(CommandSender sender) {
+        if (!plugin.getConfig().getBoolean("labyrinth.create-allowed", true)) {
+            Msg.send(sender, "lab-command-off");
+            return;
+        }
         if (world() != null) {
             setBuilt(true);
             Msg.send(sender, "lab-world-ready");
@@ -135,9 +146,11 @@ public final class LabyrinthManager {
             Msg.send(sender, "lab-prebuilt");
             return;
         }
-        // свежий void: спокойный день, без строений и правил навязь
+        // свежий мир: спокойный день, погода выключена, бордюр из конфига (5к на 5к)
         world.setTime(6000L);
         world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+        int size = plugin.getConfig().getInt("labyrinth.world-size", 5000);
+        world.getWorldBorder().setSize(size); // setSize — ШИРИНА: 5000 = 5000x5000
         setBuilt(true);
         Msg.send(sender, "lab-created", "%world%", worldName());
     }

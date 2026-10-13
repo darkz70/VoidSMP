@@ -203,6 +203,7 @@ messages:
   zayce-spawned: "%prefix%&6Harebringer (%role%) summoned."
   zayce-colony: "%prefix%&6A harebringer colony settles right here."
   zayce-purged: "%prefix%&6Harebringers wiped: &f%count%"
+  lab-command-off: "%prefix%&cWorld creation is disabled in this build."
   lab-prebuilt: "%prefix%&6Existing world accepted: nothing is built, the world is yours."
   lab-back: "&6Return complete. Welcome back up!"
   lab-tp: "%prefix%&dYou step into the soul labyrinth…"

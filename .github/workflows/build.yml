@@ -51,15 +51,24 @@ jobs:
           shopt -s nullglob
           for JAR in build/libs/VoidQuirks-*.jar; do
             NAME=$(basename "$JAR" .jar)
-            case "$NAME" in *-RU|*-EN) continue;; esac
+            case "$NAME" in *-RU|*-EN|*-SMP) continue;; esac
             cp "$JAR" "build/libs/""${NAME}""-RU.jar"
             cp "$JAR" "build/libs/""${NAME}""-EN.jar"
+            cp "$JAR" "build/libs/""${NAME}""-SMP.jar"
           done
           mkdir -p /tmp/enjar && cd /tmp/enjar
           for JAR in "$REPO"/build/libs/VoidQuirks-*-EN.jar; do
             RUJAR="${JAR%-EN.jar}.jar"
             unzip -q -o "$RUJAR" config.yml
             sed -i "s/^language: ru/language: en/" config.yml
+            zip -q "$JAR" config.yml
+          done
+          cd "$REPO"
+          mkdir -p /tmp/smpjar && cd /tmp/smpjar
+          for JAR in "$REPO"/build/libs/VoidQuirks-*-SMP.jar; do
+            RUJAR="${JAR%-SMP.jar}.jar"
+            unzip -q -o "$RUJAR" config.yml
+            sed -i "s/^  create-allowed: true/  create-allowed: false/" config.yml
             zip -q "$JAR" config.yml
           done
           cd "$REPO"
@@ -86,5 +95,5 @@ jobs:
           gh release create ci-build build/libs/*.jar build/VoidQuirks-Pack.zip \
             --target "${{ github.sha }}" \
             --title "VoidQuirks — автосборка" \
-            --notes "Собрано из ветки ${{ github.ref_name }}, коммит ${{ github.sha }}. Скачай jar и положи в папку plugins сервера Paper 26.2; VoidQuirks-Pack.zip — ресурспак с текстурами. Версия -EN.jar — сразу английский по умолчанию (language: en)." \
+            --notes "Собрано из ветки ${{ github.ref_name }}, коммит ${{ github.sha }}. Скачай jar и положи в папку plugins сервера Paper 26.2; VoidQuirks-Pack.zip — ресурспак с текстурами. Версия -EN.jar — сразу английский по умолчанию (language: en), -SMP — без /quirk lab create (приватный билд)." \
             --prerelease --latest=false
