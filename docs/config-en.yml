@@ -1,46 +1,46 @@
 # ============================================================
-#  VoidQuirks — причуды расколотых душ (VoidSMP) — v0.6.0
-#  Все сообщения поддерживают &-цвета и %prefix%.
-#  "Единицы голода" (drumsticks) считаются в ИКОНКАХ:
-#  1 иконка = 2 очка food level. 3.5 иконки = 7 очков.
+#  VoidQuirks — quirks of shattered souls (VoidSMP)
+#  All messages support &-colors and %prefix%.
+#  Hunger "drumsticks" are counted in ICONS:
+#  1 icon = 2 food level points. 3.5 icons = 7 points.
 # ============================================================
 
 prefix: "&8[&5VoidSMP&8] &f"
 
 scan:
-  # антиспам для всех проверок через шифт
+  # anti-spam for all shift-trigger checks
   cooldown-ms: 2000
   engineer:
-    radius-1: 5      # зона ~11x11
-    radius-2: 10     # зона ~21x21
-    radius-3: 15     # зона ~31x31
-    tnt-radius: 25   # зона ~51x51 для ТНТ (3 уровень)
+    radius-1: 5
+    radius-2: 10
+    radius-3: 15
+    tnt-radius: 25
   cat:
-  phantom-fear-radius: 24     # фантомы боятся Кота (1+ ур.)
-    water-radius: 5  # зона ~10x10 для воды (3 уровень)
+  phantom-fear-radius: 24
+    water-radius: 5
 
 materials:
-  # Инженер: что считаем "редстоуном"
+  # Engineer: what counts as "redstone"
   engineer-base: [REDSTONE_WIRE, REDSTONE_BLOCK, PISTON, STICKY_PISTON]
-  engineer-extra: [TRIPWIRE]        # "нитки" = натянутая нить (со 2 уровня)
-  engineer-include-signs: true      # таблички (со 2 уровня)
-  engineer-tnt-blocks: [TNT]        # 3 уровень
-  # Мясо (дебаффы Инженера 2-3 ур., Топора 2-3 ур., Паука)
+  engineer-extra: [TRIPWIRE]
+  engineer-include-signs: true
+  engineer-tnt-blocks: [TNT]
+  # Meat (debuffs: Engineer lvl 2-3, Axe lvl 2-3, Spider)
   meat: [BEEF, COOKED_BEEF, PORKCHOP, COOKED_PORKCHOP, CHICKEN, COOKED_CHICKEN, MUTTON, COOKED_MUTTON, RABBIT, COOKED_RABBIT, ROTTEN_FLESH, RABBIT_STEW]
-  # Рыба (бафф Кота)
+  # Fish (Cat buff)
   fish: [COD, COOKED_COD, SALMON, COOKED_SALMON, TROPICAL_FISH, PUFFERFISH]
-  # Мечи, которые в инвентаре Топора превращаются в палку
-  axe-low-swords-1: [WOODEN_SWORD, GOLDEN_SWORD, STONE_SWORD, IRON_SWORD, DIAMOND_SWORD]  # 1 ур.: всё до незеритового
-  axe-low-swords-2: [WOODEN_SWORD, GOLDEN_SWORD, STONE_SWORD, IRON_SWORD]                  # 2 ур.: всё до алмазного
-  # Что может есть Скалк (обычной едой) на каждом уровне (сырая рыба разрешена!)
+  # Swords that crumble into a stick in Axe's inventory
+  axe-low-swords-1: [WOODEN_SWORD, GOLDEN_SWORD, STONE_SWORD, IRON_SWORD, DIAMOND_SWORD]
+  axe-low-swords-2: [WOODEN_SWORD, GOLDEN_SWORD, STONE_SWORD, IRON_SWORD]
+  # What Sculk may eat (regular food) per level (raw fish allowed!)
   sculk-food-1: [BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT, ROTTEN_FLESH, COD, SALMON, TROPICAL_FISH, PUFFERFISH]
   sculk-food-2: [BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT, ROTTEN_FLESH, COD, SALMON, TROPICAL_FISH, PUFFERFISH]
   sculk-food-3: [BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT, ROTTEN_FLESH, COD, SALMON, TROPICAL_FISH, PUFFERFISH]
-  # Сырая еда, которую Фермер должен пожарить
+  # (legacy list, farmer raw-food debuff removed)
   farmer-raw-denied: [BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT, COD, SALMON, POTATO, KELP]
 
-# Скалк: необычная «еда» через правый клик (кости, порох, слизь).
-# food — очки голода (2 = 1 иконка), saturation — очки насыщения.
+# Sculk: unusual "food" via right click (bones, gunpowder, slime).
+# food — hunger points (2 = 1 icon), saturation — saturation points.
 sculk-custom-food:
   2:
     BONE: { food: 2, saturation: 1 }
@@ -50,10 +50,10 @@ sculk-custom-food:
     SLIME_BALL: { food: 3, saturation: 1 }
 
 sculk:
-  flicker-minutes: 20   # раз в столько минут ненадолго вспыхивают частицы скалка (2-3 ур.)
+  flicker-minutes: 20
 
 bedrock:
-  # голод в иконках (3 = 6 очков, 3.5 = 7, 4 = 8)
+  # hunger in icons (3 = 6 pts, 3.5 = 7, 4 = 8)
   hunger-threshold-drumsticks:
     1: 3.0
     2: 3.5
@@ -63,96 +63,96 @@ bedrock:
     2: 5
     3: 16
   steak-cooldown-minutes: 30
-  # взрыв по мобам (2 уровень)
+  # explosion on mobs (level 2)
   aoe-damage: 8.0
   aoe-radius: 10.0
   aoe-cooldown-minutes: 10
-  # «последний оплот»: удар до 1 HP -> неуязвимость (со 2 уровня)
+  # "final stand": a hit to 1 HP -> invulnerability (from level 2)
   laststand-hp: 1.0
   laststand-seconds: 5
   laststand-cooldown-minutes: 60
-  max-air: 150          # кислорода в 2 раза меньше (ваниль: 300)
-  # зелёные частицы, когда рядом игрок со Скалком
+  max-air: 150
+  # green particles when a Sculk player is nearby
   green-radius: 3.0
   green-count: 50
 
 cat:
-  water-damage-1: 3.0   # полтора сердца
-  water-damage-2: 1.0   # пол сердца
+  water-damage-1: 3.0
+  water-damage-2: 1.0
   levitation-seconds: 2
-  creeper-fear-radius: 7   # криперы боятся кота в этом радиусе (с 1 уровня)
+  creeper-fear-radius: 7
   fish-saturation-seconds-1: 5
   fish-saturation-seconds-2: 10
 
 engineer:
-  hunger-effect-seconds: 10   # эффект голода за попытку съесть мясо (эльфийский желудок, 2-3 ур.)
-  web-speed-multiplier: 2.5   # Инженер в паутине быстрее остальных (4.0 = обычная)
+  hunger-effect-seconds: 10
+  web-speed-multiplier: 2.5
 
 axe:
-  # регенерация II за убийство топором — только 1 уровень
+  # regeneration II on axe kill — level 1 only
   regen-chance: 5        # %
   regen-duration-seconds: 1
-  rage-cooldown-minutes: 30   # режим ярости (2-3 ур.): Shift, затем Ctrl
-  head-chance: 2         # % — головы мобов с 3 уровня
+  rage-cooldown-minutes: 30
+  head-chance: 2
   head-include-players: true
-  teleport:              # разрыв пространства (3 ур.): Shift + ПКМ топором
+  teleport:
     max-distance: 20.0
     cooldown-seconds: 2
     hunger-cost-drumsticks: 4
 
 spider:
-  max-health-1: 18.0     # сердец на 1 уровне меньше
-  webs-needed: 9         # минимум паутины для выстрела
-  web-speed-multiplier: 7.0   # скорость в паутине (4.0 = обычная ходьба)
+  max-health-1: 18.0
+  webs-needed: 9
+  web-speed-multiplier: 7.0
   web-shot-cooldown-minutes:
     2: 10
     3: 5
 
 amphibian:
-  drowned-aggro-radius-1: 5.0   # утопленники атакуют 1 уровня только вблизи
-  sun-damage: 2.0               # 1 сердце каждые 2 сек под солнцем (1-2 ур.)
-  nether-damage: 2.0            # 1 сердце каждые 2 сек в аду (2-3 ур.)
+  drowned-aggro-radius-1: 5.0
+  sun-damage: 2.0
+  nether-damage: 2.0
 
 farmer:
-  growth-radius: 10      # в радиусе посевы растут быстрее (~x4)
-  growth-chance-percent: 1  # шанс +1 стадия у посева каждые 2 сек
-  weakness-hp: 5.0       # ниже этого HP — слабость I (2-3 ур.)
-  wolf-radius: 10.0      # дикие волки нападают (3 ур.)
+  growth-radius: 10
+  growth-chance-percent: 1
+  weakness-hp: 5.0
+  wolf-radius: 10.0
 
 tasks:
-  effects-interval-ticks: 40   # переприменение эффектов / ремонт инвентаря / чистка мечей
+  effects-interval-ticks: 40
   autosave-minutes: 5
 
-# Мир-преисподняя с лабиринтом душ (/quirk lab create | /quirk lab tp)
+# The soul world (/quirk lab create | /quirk lab tp | /quirk lab back)
 labyrinth:
-  world: void_labyrinth       # имя мира. Если папка мира уже есть (ваш мир со своими структурами) —
-                              # подхватывается КАК ЕСТЬ, генератор/окружение не меняются
-  prebuilt: false             # true = мир уже готов (строить лабиринт НЕ надо),
-                              # плагин сразу считает его доступным для lab tp/back
-  # entrance:                 # точка входа для готового мира (по умолчанию — центр начальной ячейки)
+  world: void_labyrinth
+                              # is loaded AS IS; generator/environment untouched
+  prebuilt: false
+                              # plugin treats it as ready for lab tp/back immediately
+  # entrance:                 # entry point for a prebuilt world (default: first cell center)
   #   x: 0.5
   #   y: 65
   #   z: 0.5
-  floor-y: 60                 # высота пола лабиринта
-  cells: 57                   # размер лабиринта в ячейках (57 -> ~286x286 блоков)
-  cell-size: 5                # ширина ячейки: 4 блока коридор + 1 стена
-  wall-height: 10             # высота стен
-  max-cages: 16               # сколько клеток с душами (в тупиках)
-  soul-name: "&bЗаточённая душа"
+  floor-y: 60
+  cells: 57
+  cell-size: 5
+  wall-height: 10
+  max-cages: 16
+  soul-name: "&bTrapped Soul"
   wall-block: OBSIDIAN
   accent-block: CRYING_OBSIDIAN
-  accent-chance: 12           # % плачущего обсидиана в стенах
+  accent-chance: 12
   floor-block: OBSIDIAN
-  ceiling-block: OBSIDIAN     # потолок над всем лабиринтом (на высоте стен)
+  ceiling-block: OBSIDIAN
 
 zaycekrol:
-  # Зайцекролы — ОТДЕЛЬНЫЙ моб: ванильных кроликов не трогаем, колонии спавнятся сами
-  farmer-home-radius: 30      # фермер не уходит от дома дальше
+  # Harebringers — a SEPARATE mob: vanilla rabbits are untouched; spawn via /quirk zayce only
+  farmer-home-radius: 30
   farmer-cooldown-minutes: 5
-  resident-home-radius: 15    # житель не дальше от дома; ночью всегда домой
+  resident-home-radius: 15
   guard-radius: 14
   guard-scan: 6
-  tsar-call-radius: 30        # радиус приветствия императора
+  tsar-call-radius: 30
   cap-residents: 30
   cap-guards: 10
   cap-elite: 6
@@ -217,12 +217,12 @@ messages:
   spider-webs-cast: "&8*fwshh* &7Web launched!"
   amph-armor-denied: "&bNetherite drags you to the seabed — armor slips off!"
 
-  # Тайтлы (title = верхняя строка, subtitle = нижняя)
+  # Titles (title = top line, subtitle = bottom line)
   title-engineer-redstone: "&cRedstone nearby: &f%count%"
   title-engineer-tnt: "&4TNT nearby: &c%count%"
   title-cat-water: "&bWater nearby: &f%count%"
 
-  # v1.0 — магия
+  # v1.0 — magic
   magic-no-mage: "&7You haven't felt an element yet. Find an elemental book…"
   magic-bar: "%emoji% %element% &8| &bMana %mana%/%max% &8| &f%spell%"
   magic-learned: "&dThe element answered! %emoji% &f%element% &dis yours. &7RMB — cast, Q/F — cycle, Shift+F — menu."
@@ -265,7 +265,7 @@ messages:
   magic-cast-light3: "&eAura of light burns nearby undead (30 s)."
   magic-cast-light4: "&eLight protects your mind (5 min)."
   magic-cast-light5: "&eLight shield: absorbs up to 20 damage (30 s)."
-  # v1.0 — зелья
+  # v1.0 — potions
   potion-quirk-away: "&8Something inside you dissolved into silence…"
   potion-nothing: "&7It passed through, finding nothing."
   potion-soul-stir: "&5Something vibrates from the depths… your soul answers."
@@ -323,12 +323,12 @@ messages:
   magic-no-cast: "&8Archmage exhaustion: spells unavailable for %time%!"
   magic-book-capped: "&6This book won't raise your level anymore (cap &e%max%&6). Seek an older book."
 
-# ---------- v1.0: магия ----------
+# ---------- v1.0: magic ----------
 magic:
-  # реген маны: сколько маны за тик (тик = 2 сек, с 20+ уровня — 1 сек)
+  # mana regen: mana per tick (tick = 2 s; lvl 20+ — 1 s)
   mana-per-tick: 5
   fast-regen-level: 20
-  # матрицы урона: стихия-заклинания × причуда-жертвы (перемножаются со второй таблицей)
+  # damage matrix: spell-element × target-quirk (multiplied with the table below)
   elem-vs-quirk:
     fire:  { axe: 1.2, cat: 1.0, bedrock: 0.5, farmer: 1.0, sculk: 0.6, engineer: 1.0, amphibian: 1.2, spider: 1.3 }
     water: { axe: 0.9, cat: 0.8, bedrock: 0.7, farmer: 1.0, sculk: 1.0, engineer: 1.0, amphibian: 1.5, spider: 1.1 }
@@ -336,7 +336,7 @@ magic:
     earth: { axe: 1.0, cat: 1.0, bedrock: 0.4, farmer: 1.2, sculk: 1.2, engineer: 1.2, amphibian: 0.9, spider: 1.1 }
     dark:  { axe: 1.0, cat: 1.2, bedrock: 0.6, farmer: 1.0, sculk: 0.5, engineer: 1.0, amphibian: 1.0, spider: 0.9 }
     light: { axe: 1.0, cat: 0.9, bedrock: 0.5, farmer: 1.0, sculk: 1.6, engineer: 1.0, amphibian: 1.0, spider: 1.3 }
-  # матрицы урона: причуда-кастера × стихия-заклинания
+  # damage matrix: caster-quirk × spell-element
   quirk-vs-elem:
     axe:       { fire: 1.3, water: 0.9, wind: 1.0, earth: 1.1, dark: 1.1, light: 0.8 }
     cat:       { fire: 1.0, water: 0.7, wind: 1.2, earth: 0.9, dark: 1.3, light: 1.0 }
@@ -347,8 +347,8 @@ magic:
     amphibian: { fire: 0.6, water: 1.5, wind: 1.1, earth: 0.9, dark: 0.9, light: 1.0 }
     spider:    { fire: 1.1, water: 0.8, wind: 1.0, earth: 1.1, dark: 1.3, light: 0.8 }
 
-# Масштаб кулдаунов (настраивается из /gaid → «Настройки КД»):
-# 1.0 = как задумано, 0.5 = вдвое быстрее, 2.0 = вдвое дольше.
+# Cooldown scale (editable via /gaid → "Cooldown settings"):
+# 1.0 = as intended, 0.5 = twice as fast, 2.0 = twice as slow.
 cooldowns:
   spells-scale: 1.0
   potions-scale: 1.0
