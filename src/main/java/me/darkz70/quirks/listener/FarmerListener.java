@@ -16,7 +16,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -24,7 +23,7 @@ import org.bukkit.potion.PotionEffectType;
 
 /**
  * Причуда «Фермер» (v0.6.0):
- * урожай x2 (1 ур.), 80% x2 / 20% x3 (2-3 ур.); запрет сырой еды (2 ур.); слабость при <5 HP (2 ур.);
+ * урожай x2 (1 ур.), 80% x2 / 20% x3 (2-3 ур.); слабость при <5 HP (2 ур.);
  * герой деревни и рост x4 рядом (2 ур.); неубиваемая мотыга и волчья агрессия (3 ур.).
  */
 public final class FarmerListener implements Listener {
@@ -61,19 +60,6 @@ public final class FarmerListener implements Listener {
                 block.getWorld().dropItemNaturally(at, more);
                 extra -= more.getAmount();
             }
-        }
-    }
-
-    /** Сырую еду Фермер есть не может: «нужно пожарить». */
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onEat(PlayerItemConsumeEvent event) {
-        Player player = event.getPlayer();
-        if (level(player) < 2) return; // дебафф «никакой сырой еды» — только со 2 уровня (1 ур. чистый)
-        Material eaten = event.getItem().getType();
-        if (!eaten.isEdible()) return;
-        if (MaterialLists.isFarmerRaw(eaten)) {
-            event.setCancelled(true);
-            Msg.send(player, "farmer-raw-denied");
         }
     }
 
