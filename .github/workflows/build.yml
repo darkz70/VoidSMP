@@ -44,6 +44,23 @@ jobs:
           fi
           { echo "### Сборка упала: run ${{ github.run_id }}, коммит ${{ github.sha }}"; echo '```'; tail -c 5500 /tmp/build.log | sed 's/```/`​``/g'; echo '```'; } | gh issue comment "$ISSUE" --body-file -
 
+      - name: Make EN jar variant (language: en по умолчанию)
+        run: |
+          set -e
+          REPO=$(pwd)
+          mkdir -p /tmp/enjar
+          for JAR in build/libs/VoidQuirks-*.jar; do
+            case "$(basename "$JAR")" in
+              *-EN.jar) continue;;
+            esac
+            BASE=$(basename "$JAR" .jar)
+            cp "$JAR" "build/libs/${BASE}-EN.jar"
+            ( cd /tmp/enjar && jar xf "$REPO/$JAR" config.yml               && sed -i "s/^language: ru/language: en/" config.yml               && mkdir -p META-INF || exit 1 )
+            ( cd /tmp/enjar && jar uf "$REPO/build/libs/${BASE}-EN.jar" config.yml )
+            rm -rf /tmp/enjar && mkdir -p /tmp/enjar
+          done
+          ls -1 build/libs
+
       - name: Zip resource pack
         run: |
           mkdir -p build
@@ -65,5 +82,5 @@ jobs:
           gh release create ci-build build/libs/*.jar build/VoidQuirks-Pack.zip \
             --target "${{ github.sha }}" \
             --title "VoidQuirks — автосборка" \
-            --notes "Собрано из ветки ${{ github.ref_name }}, коммит ${{ github.sha }}. Скачай jar и положи в папку plugins сервера Paper 26.2; VoidQuirks-Pack.zip — ресурспак с текстурой Осколка души (resource-pack=в server.properties)." \
+            --notes "Собрано из ветки ${{ github.ref_name }}, коммит ${{ github.sha }}. Скачай jar и положи в папку plugins сервера Paper 26.2; VoidQuirks-Pack.zip — ресурспак с текстурами. Версия -EN.jar — сразу английский по умолчанию (language: en)." \
             --prerelease --latest=false
