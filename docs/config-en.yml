@@ -5,6 +5,7 @@
 #  1 icon = 2 food level points. 3.5 icons = 7 points.
 # ============================================================
 
+language: en                  # en | ru
 prefix: "&8[&5VoidSMP&8] &f"
 
 scan:
