@@ -16,7 +16,6 @@ scan:
     radius-3: 15     # зона ~31x31
     tnt-radius: 25   # зона ~51x51 для ТНТ (3 уровень)
   cat:
-  phantom-fear-radius: 24     # фантомы боятся Кота (1+ ур.)
     water-radius: 5  # зона ~10x10 для воды (3 уровень)
 
 materials:
@@ -146,14 +145,17 @@ labyrinth:
   ceiling-block: OBSIDIAN     # потолок над всем лабиринтом (на высоте стен)
 
 zaycekrol:
-  spawn-chance: 8             # % кролика стать зайцекролом при диком спавне
-  colony-radius: 60           # радиус поиска царя (новой колонии рядом не быть)
+  # Зайцекролы — ОТДЕЛЬНЫЙ моб: ванильных кроликов не трогаем, колонии спавнятся сами
+  colony-interval-minutes: 20 # как часто пробуем появиться рядом со случайным игроком
+  colony-chance: 30           # % успеха каждой попытки
+  max-colonies-per-world: 3   # максимум колоний (по царям) в мире
   farmer-home-radius: 30      # фермер не уходит от дома дальше
   farmer-cooldown-minutes: 5
   resident-home-radius: 15    # житель не дальше от дома; ночью всегда домой
   guard-radius: 14
   guard-scan: 6
   tsar-call-radius: 30        # радиус приветствия императора
+  phantom-fear-radius: 14    # фантомы боятся зайцекролов — улетают прочь
   cap-residents: 30
   cap-guards: 10
   cap-elite: 6

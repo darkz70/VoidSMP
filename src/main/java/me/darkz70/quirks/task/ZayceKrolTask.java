@@ -46,6 +46,41 @@ public final class ZayceKrolTask extends BukkitRunnable {
         this.plugin = plugin;
     }
 
+    private long lastColonyTry = 0;
+
+    /** Редкий самостоятельный спавн колонии рядом со случайным игроком (ванильных кроликов не трогаем). */
+    private void trySpawnColony() {
+        long nowMs = System.currentTimeMillis();
+        long intervalMs = plugin.getConfig().getLong("zaycekrol.colony-interval-minutes", 20) * 60_000L;
+        if (nowMs - lastColonyTry < intervalMs) return;
+        lastColonyTry = nowMs;
+        if (Math.random() * 100 >= plugin.getConfig().getDouble("zaycekrol.colony-chance", 30)) return;
+        java.util.List<Player> players = new java.util.ArrayList<>(Bukkit.getOnlinePlayers());
+        if (players.isEmpty()) return;
+        Player anchor = players.get((int) (Math.random() * players.size()));
+        World world = anchor.getWorld();
+        if (world.getEnvironment() != World.Environment.NORMAL) return;
+        // кап колоний на мир
+        int maxColonies = plugin.getConfig().getInt("zaycekrol.max-colonies-per-world", 3);
+        long colonies = world.getEntitiesByClass(Rabbit.class).stream()
+                .filter(r -> ZayceKrol.isZayce(r) && ZayceKrol.roleOf(r) == Role.TSAR).count();
+        if (colonies >= maxColonies) return;
+        double angle = Math.random() * Math.PI * 2;
+        double dist = 30 + Math.random() * 50;
+        Location at = anchor.getLocation().add(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
+        at = world.getHighestBlockAt(at).getLocation().add(0.5, 1, 0.5);
+        if (at.getBlock().getType().isAir() == false && !at.getBlock().getType().name().contains("GRASS")) {
+            at = at.add(0, 1, 0);
+        }
+        Rabbit tsar = world.spawn(at, Rabbit.class);
+        ZayceKrol.convert(tsar, Role.TSAR);
+        spawnPack(world, at, Role.RESIDENT, 3);
+        spawnPack(world, at, Role.GUARD, 2);
+        spawnPack(world, at, Role.FARMER, 1);
+        spawnPack(world, at, Role.ELITE, 1);
+        plugin.getLogger().info("Колония зайцекролов: " + world.getName() + " " + at.getBlockX() + " " + at.getBlockZ());
+    }
+
     /** Царь ударен: призвать 2 элитных и напасть на обидчика (императору — не дерёмся). */
     public void onTsarHit(Rabbit tsar, Player attacker) {
         if (plugin.quirks().levelOf(attacker, Quirk.BEDROCK) > 0) return; // «не действует на Бедрока»
@@ -66,10 +101,12 @@ public final class ZayceKrolTask extends BukkitRunnable {
             for (Rabbit rabbit : world.getEntitiesByClass(Rabbit.class)) {
                 if (!ZayceKrol.isZayce(rabbit) || !rabbit.isValid()) continue;
                 try {
+                    repelPhantoms(rabbit);
                     behave(rabbit, ZayceKrol.roleOf(rabbit));
                 } catch (Exception ignored) { }
             }
         }
+        trySpawnColony();
         if (System.currentTimeMillis() - lastHourTick >= 3_600_000L) {
             lastHourTick = System.currentTimeMillis();
             hourlyGrowth();
@@ -300,6 +337,21 @@ public final class ZayceKrolTask extends BukkitRunnable {
         for (int i = 0; i < amount; i++) {
             Rabbit rabbit = world.spawn(where.clone().add((Math.random() - 0.5) * 4, 1.5, (Math.random() - 0.5) * 4), Rabbit.class);
             ZayceKrol.convert(rabbit, role);
+        }
+    }
+
+    // ---------- фантомы боятся зайцекролов (улетают прочь) ----------
+
+    private void repelPhantoms(Rabbit rabbit) {
+        double radius = plugin.getConfig().getDouble("zaycekrol.phantom-fear-radius", 14);
+        for (Entity entity : rabbit.getNearbyEntities(radius, radius, radius)) {
+            if (!(entity instanceof org.bukkit.entity.Phantom phantom)) continue;
+            Vector away = phantom.getLocation().toVector().subtract(rabbit.getLocation().toVector());
+            away.setY(0.4);
+            if (away.lengthSquared() > 0.01) {
+                phantom.setVelocity(away.normalize().multiply(1.2));
+            }
+            phantom.setTarget(null);
         }
     }
 

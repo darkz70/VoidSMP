@@ -45,7 +45,6 @@ public final class CatListener implements Listener {
                 if (level(player) < 1) continue;
                 waterCheck(player);
                 scareCreepers(player);
-        scarePhantoms(player);
             }
         }, 20L, 20L);
     }
@@ -72,26 +71,10 @@ public final class CatListener implements Listener {
         }
     }
 
-    /** Фантомы боятся кота с 1 уровня: разворачиваются и улетают. */
-    private void scarePhantoms(Player player) {
-        double radius = plugin.getConfig().getDouble("cat.phantom-fear-radius", 24.0);
-        for (Entity entity : player.getNearbyEntities(radius, radius, radius)) {
-            if (!(entity instanceof org.bukkit.entity.Phantom phantom)) continue;
-            org.bukkit.util.Vector away = phantom.getLocation().toVector()
-                    .subtract(player.getLocation().toVector());
-            away.setY(0.4);
-            if (away.lengthSquared() < 0.01) {
-                away = new org.bukkit.util.Vector(Math.random() - 0.5, 0.4, Math.random() - 0.5);
-            }
-            phantom.setVelocity(away.normalize().multiply(1.2));
-            phantom.setTarget(null);
-        }
-    }
-
     /** Криперы даже не берут кота в цель. Фантомы — тоже. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onTarget(EntityTargetLivingEntityEvent event) {
-        if (!(event.getEntity() instanceof Creeper) && !(event.getEntity() instanceof org.bukkit.entity.Phantom)) return;
+        if (!(event.getEntity() instanceof Creeper)) return;
         if (!(event.getTarget() instanceof Player target)) return;
         if (level(target) < 1) return;
         event.setCancelled(true);
