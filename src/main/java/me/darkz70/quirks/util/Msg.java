@@ -60,6 +60,9 @@ public final class Msg {
         def("lab-building", "%prefix%&5Начинаю строить лабиринт душ в мире &f%world%&5… не выключай сервер.");
         def("lab-created", "%prefix%&6Чистый void-мир '%world%' создан. Загрузи туда свой лабиринт!");
         def("lab-exists", "%prefix%&eЛабиринт уже построен. Телепорт: /quirk lab tp");
+        def("zayce-spawned", "%prefix%&6Зайцекрол (%role%) призван.");
+        def("zayce-colony", "%prefix%&6Колония зайцекролов разбита прямо здесь.");
+        def("zayce-purged", "%prefix%&6Зайцекролов отправлено в морку: &f%count%");
         def("lab-prebuilt", "%prefix%&6Готовый мир принят: лабиринт не строим, используем ваш.");
         def("lab-back", "%prefix%&6Возврат из недр завершён. Добро пожаловать наверх!");
         def("lab-no-world", "%prefix%&cЛабиринт ещё не создан. Сначала /quirk lab create");

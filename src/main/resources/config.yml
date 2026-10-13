@@ -147,9 +147,6 @@ labyrinth:
 
 zaycekrol:
   # Зайцекролы — ОТДЕЛЬНЫЙ моб: ванильных кроликов не трогаем, колонии спавнятся сами
-  colony-interval-minutes: 20 # как часто пробуем появиться рядом со случайным игроком
-  colony-chance: 30           # % успеха каждой попытки
-  max-colonies-per-world: 3   # максимум колоний (по царям) в мире
   farmer-home-radius: 30      # фермер не уходит от дома дальше
   farmer-cooldown-minutes: 5
   resident-home-radius: 15    # житель не дальше от дома; ночью всегда домой
@@ -203,6 +200,9 @@ messages:
   lab-created: "%prefix%&6Чистый void-мир '%world%' создан. Загрузи туда свой лабиринт!"
   lab-exists: "%prefix%&eЛабиринт уже построен. Телепорт: /quirk lab tp"
   lab-no-world: "%prefix%&cЛабиринт ещё не создан. Сначала /quirk lab create"
+  zayce-spawned: "%prefix%&6Зайцекрол (%role%) призван."
+  zayce-colony: "%prefix%&6Колония зайцекролов разбита прямо здесь."
+  zayce-purged: "%prefix%&6Зайцекролов отправлено в морку: &f%count%"
   lab-prebuilt: "%prefix%&6Готовый мир принят: лабиринт не строим, используем ваш."
   lab-back: "&6Возврат из недр завершён. Добро пожаловать наверх!"
   lab-tp: "%prefix%&dТы входишь в лабиринт душ…"

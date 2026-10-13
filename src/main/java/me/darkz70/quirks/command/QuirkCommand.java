@@ -53,9 +53,43 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             case "item", "shard" -> handleItem(sender, args);
             case "pack", "resourcepack" -> handlePack(sender);
             case "lab", "labyrinth" -> handleLab(sender, args);
+            case "zayce" -> handleZayce(sender, args);
             default -> Msg.send(sender, "usage");
         }
         return true;
+    }
+
+    /** /quirk zayce — админ-спавн зайцекролов (только командой) и их очистка. */
+    private void handleZayce(CommandSender sender, String[] args) {
+        if (!admin(sender)) return;
+        String sub = args.length >= 2 ? args[1].toLowerCase(java.util.Locale.ROOT) : "help";
+        if (sub.equals("purge")) {
+            int killed = plugin.zayceTask().purgeAll();
+            Msg.send(sender, "zayce-purged", "%count%", String.valueOf(killed));
+            return;
+        }
+        if (!(sender instanceof Player player)) {
+            Msg.send(sender, "target-offline");
+            return;
+        }
+        org.bukkit.Location at = player.getLocation();
+        switch (sub) {
+            case "colony" -> {
+                plugin.zayceTask().spawnColony(at);
+                Msg.send(sender, "zayce-colony");
+            }
+            case "farmer" -> spawnZayce(sender, at, me.darkz70.quirks.mob.ZayceKrol.Role.FARMER);
+            case "guard" -> spawnZayce(sender, at, me.darkz70.quirks.mob.ZayceKrol.Role.GUARD);
+            case "elite" -> spawnZayce(sender, at, me.darkz70.quirks.mob.ZayceKrol.Role.ELITE);
+            case "resident" -> spawnZayce(sender, at, me.darkz70.quirks.mob.ZayceKrol.Role.RESIDENT);
+            case "tsar" -> spawnZayce(sender, at, me.darkz70.quirks.mob.ZayceKrol.Role.TSAR);
+            default -> Msg.send(sender, "usage");
+        }
+    }
+
+    private void spawnZayce(CommandSender sender, org.bukkit.Location at, me.darkz70.quirks.mob.ZayceKrol.Role role) {
+        plugin.zayceTask().spawnOne(at, role);
+        Msg.send(sender, "zayce-spawned", "%role%", role.display);
     }
 
     /** /quirk pack — показать ссылку на ресурспак с текстурой осколка. */
