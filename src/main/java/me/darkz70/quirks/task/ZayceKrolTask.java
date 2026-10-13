@@ -95,8 +95,31 @@ public final class ZayceKrolTask extends BukkitRunnable {
         return eliteAggro.containsKey(rabbit.getUniqueId()) || guardAggro.containsKey(rabbit.getUniqueId());
     }
 
+    private boolean purgedLegacy = false;
+
+    /** Разово (при первом тике) выковыриваем легаси-зайцекролов, оставшихся от эпохи
+     *  конверсии ванильных кроликов (1.5.x). Пустыне снова скорлупа. */
+    private void purgeLegacy() {
+        purgedLegacy = true;
+        int killed = 0;
+        for (World world : Bukkit.getWorlds()) {
+            for (Rabbit rabbit : world.getEntitiesByClass(Rabbit.class)) {
+                if (ZayceKrol.isZayce(rabbit)) {
+                    rabbit.remove();
+                    killed++;
+                }
+            }
+        }
+        if (killed > 0) {
+            plugin.getLogger().info("Легаси-зайцекролы зачищены: " + killed + " шт. Колонии появятся заново по-новому.");
+        }
+    }
+
     @Override
     public void run() {
+        if (!purgedLegacy) {
+            purgeLegacy();
+        }
         for (World world : Bukkit.getWorlds()) {
             for (Rabbit rabbit : world.getEntitiesByClass(Rabbit.class)) {
                 if (!ZayceKrol.isZayce(rabbit) || !rabbit.isValid()) continue;
