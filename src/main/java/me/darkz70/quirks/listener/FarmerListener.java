@@ -24,7 +24,7 @@ import org.bukkit.potion.PotionEffectType;
 
 /**
  * Причуда «Фермер» (v0.6.0):
- * урожай x2 (1 ур.), 80% x2 / 20% x3 (2-3 ур.); запрет сырой еды; слабость при <5 HP (2 ур.);
+ * урожай x2 (1 ур.), 80% x2 / 20% x3 (2-3 ур.); запрет сырой еды (2 ур.); слабость при <5 HP (2 ур.);
  * герой деревни и рост x4 рядом (2 ур.); неубиваемая мотыга и волчья агрессия (3 ур.).
  */
 public final class FarmerListener implements Listener {
@@ -68,7 +68,7 @@ public final class FarmerListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEat(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
-        if (level(player) < 1) return;
+        if (level(player) < 2) return; // дебафф «никакой сырой еды» — только со 2 уровня (1 ур. чистый)
         Material eaten = event.getItem().getType();
         if (!eaten.isEdible()) return;
         if (MaterialLists.isFarmerRaw(eaten)) {
