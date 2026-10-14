@@ -63,7 +63,6 @@ public final class Msg {
         def("zayce-spawned", "%prefix%&6Зайцекрол (%role%) призван.");
         def("zayce-colony", "%prefix%&6Колония зайцекролов разбита прямо здесь.");
         def("zayce-purged", "%prefix%&6Зайцекролов отправлено в морку: &f%count%");
-        def("lab-command-off", "%prefix%&cСоздание мира выключено в этой сборке (приватный билд).");
         def("lab-prebuilt", "%prefix%&6Готовый мир принят: лабиринт не строим, используем ваш.");
         def("lab-back", "%prefix%&6Возврат из недр завершён. Добро пожаловать наверх!");
         def("lab-no-world", "%prefix%&cЛабиринт ещё не создан. Сначала /quirk lab create");
@@ -160,27 +159,13 @@ public final class Msg {
         DEFAULTS.put(path, text);
     }
 
-    /** Английская упакованная локаль (language: en). */
-    private static FileConfiguration altMsgs;
-
     public static void init(JavaPlugin plugin) {
         cfg = plugin.getConfig();
-        altMsgs = null;
-        String lang = cfg.getString("language", "ru");
-        if (lang != null && lang.trim().equalsIgnoreCase("en")) {
-            try (java.io.InputStream in = plugin.getResource("messages-en.yml")) {
-                if (in != null) {
-                    altMsgs = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(
-                            new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
-                }
-            } catch (Exception ignored) { }
-        }
     }
 
     /** Компонент из messages.<path>. repl — пары "ключ", "значение". */
     public static Component comp(String path, String... repl) {
         String raw = cfg.getString("messages." + path);
-        if (raw == null && altMsgs != null) raw = altMsgs.getString("messages." + path);
         if (raw == null) raw = DEFAULTS.getOrDefault(path, path);
         raw = raw.replace("%prefix%", cfg.getString("prefix", ""));
         for (int i = 0; i + 1 < repl.length; i += 2) {
