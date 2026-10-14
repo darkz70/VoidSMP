@@ -1,5 +1,9 @@
 # NetherScale
 
+![NetherScale logo](assets/netherscale-logo.png)
+
+[Download the logo (PNG)](assets/netherscale-logo.png)
+
 NetherScale — Paper-плагин для настройки масштаба координат порталов между обычным миром и Нижним миром. Авторские права и условия лицензии указаны в `LICENSE`.
 
 ## Paper 26.2: режим 1:1
