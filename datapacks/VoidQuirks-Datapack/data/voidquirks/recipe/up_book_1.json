@@ -1,0 +1,48 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:book",
+    "minecraft:amethyst_shard",
+    "minecraft:amethyst_shard",
+    "minecraft:amethyst_shard",
+    "minecraft:amethyst_shard",
+    "minecraft:copper_block",
+    "minecraft:copper_block",
+    "minecraft:copper_block",
+    "minecraft:copper_block"
+  ],
+  "result": {
+    "id": "minecraft:book",
+    "count": 1,
+    "components": {
+      "custom_name": [
+        {
+          "text": "Медная книга прокачки",
+          "italic": false,
+          "color": "white"
+        },
+        {
+          "text": " (от 1 ур.)",
+          "italic": false,
+          "color": "gray"
+        }
+      ],
+      "custom_data": {
+        "voidquirks:brew_mark": "upbook-1"
+      },
+      "custom_model_data": {
+        "strings": [
+          "upbook_1"
+        ]
+      },
+      "lore": [
+        {
+          "text": "ПКМ — +1 уровень магии.",
+          "italic": false,
+          "color": "gray"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:book",
+    "minecraft:amethyst_shard",
+    "minecraft:amethyst_shard",
+    "minecraft:amethyst_shard",
+    "minecraft:amethyst_shard",
+    "minecraft:magma_cream"
+  ],
+  "result": {
+    "id": "minecraft:book",
+    "count": 1,
+    "components": {
+      "custom_name": [
+        {
+          "text": "Книга стихии: ",
+          "italic": false,
+          "color": "aqua"
+        },
+        {
+          "text": "🔥 ",
+          "italic": false
+        },
+        {
+          "text": "Огонь",
+          "italic": false,
+          "color": "light_purple"
+        }
+      ],
+      "custom_data": {
+        "voidquirks:brew_mark": "elem-book-fire"
+      },
+      "custom_model_data": {
+        "strings": [
+          "book_fire"
+        ]
+      },
+      "lore": [
+        {
+          "text": "ПКМ — изучить стихию.",
+          "italic": false,
+          "color": "gray"
+        }
+      ]
+    }
+  }
+}

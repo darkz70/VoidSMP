@@ -1,0 +1,48 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:book",
+    "minecraft:amethyst_shard",
+    "minecraft:amethyst_shard",
+    "minecraft:amethyst_shard",
+    "minecraft:amethyst_shard",
+    "minecraft:gold_block",
+    "minecraft:gold_block",
+    "minecraft:gold_block",
+    "minecraft:gold_block"
+  ],
+  "result": {
+    "id": "minecraft:book",
+    "count": 1,
+    "components": {
+      "custom_name": [
+        {
+          "text": "Золотая книга прокачки",
+          "italic": false,
+          "color": "yellow"
+        },
+        {
+          "text": " (от 20 ур.)",
+          "italic": false,
+          "color": "gray"
+        }
+      ],
+      "custom_data": {
+        "voidquirks:brew_mark": "upbook-3"
+      },
+      "custom_model_data": {
+        "strings": [
+          "upbook_3"
+        ]
+      },
+      "lore": [
+        {
+          "text": "ПКМ — +1 уровень магии.",
+          "italic": false,
+          "color": "gray"
+        }
+      ]
+    }
+  }
+}
