@@ -27,7 +27,9 @@ jobs:
 
       - name: Build
         working-directory: VoidOferta
-        run: gradle build --no-daemon 2>&1 | tee ../build.log
+        run: |
+          set -o pipefail
+          gradle build --no-daemon 2>&1 | tee ../build.log
 
       - name: Report build failure as issue (debug)
         if: failure()
