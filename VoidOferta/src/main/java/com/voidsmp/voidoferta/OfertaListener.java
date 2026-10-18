@@ -34,6 +34,12 @@ public final class OfertaListener implements Listener {
         if (plugin.storage().hasAccepted(player.getUniqueId())) {
             return;
         }
+        if (plugin.authHook().isPresent()) {
+            // На сервере стоит SimpleLogin: ждём ввода пароля и только потом показываем оферту.
+            // До авторизации игрока не трогаем вообще — иначе наш запрет команд заблокирует сам /login.
+            plugin.beginAuthWait(player);
+            return;
+        }
         long delay = Math.max(1L, plugin.getConfig().getLong("open-delay-ticks", 20L));
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             if (!player.isOnline() || plugin.storage().hasAccepted(player.getUniqueId())) {
@@ -46,17 +52,33 @@ public final class OfertaListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        // Ничего чистить не нужно: состояние хранится только на диске (accepted-players.yml)
+        plugin.clearAuthWait(event.getPlayer());
     }
 
     private boolean blocked(Player player) {
         return plugin.getConfig().getBoolean("freeze-until-accepted", true)
+                && !plugin.isPendingAuth(player) // ещё не ввёл пароль — его и так держит SimpleLogin
                 && !plugin.storage().hasAccepted(player.getUniqueId())
                 && !player.hasPermission("voidoferta.admin");
     }
 
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
+        Player mover = event.getPlayer();
+        if (plugin.isPendingAuth(mover)) {
+            // SimpleLogin не даёт ходить до ввода пароля. Раз игрок пошёл —
+            // пароль принят (если SimpleLogin сам не говорит обратного).
+            Location from = event.getFrom();
+            Location to = event.getTo();
+            long graceMs = Math.max(0L, plugin.getConfig().getLong("auth.move-grace-ticks", 40L)) * 50L;
+            if (to != null
+                    && (from.getBlockX() != to.getBlockX() || from.getBlockY() != to.getBlockY() || from.getBlockZ() != to.getBlockZ())
+                    && System.currentTimeMillis() - plugin.joinedAt(mover.getUniqueId()) >= graceMs
+                    && plugin.authHook().probe(mover) != AuthHook.Probe.NOT_LOGGED_IN) {
+                plugin.completeAuth(mover);
+            }
+            return;
+        }
         if (!blocked(event.getPlayer())) {
             return;
         }
@@ -110,6 +132,26 @@ public final class OfertaListener implements Listener {
 
     @EventHandler
     public void onCommand(PlayerCommandPreprocessEvent event) {
+        Player player = event.getPlayer();
+        if (plugin.isPendingAuth(player)) {
+            // Ждём команду ввода пароля (/login, /register, ...). Само событие
+            // срабатывает ДО выполнения команды, поэтому проверяем чуть позже:
+            // если SimpleLogin не подтверждает вход — продолжаем ждать.
+            String root = event.getMessage().substring(1).split(" ", 2)[0].toLowerCase();
+            java.util.List<String> loginCommands = plugin.getConfig().getStringList("auth.login-commands");
+            if (loginCommands.isEmpty()) { // старый config.yml без секции auth
+                loginCommands = java.util.List.of("login", "register", "reg");
+            }
+            if (loginCommands.stream().anyMatch(cmd -> cmd.equalsIgnoreCase(root))) {
+                plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                    if (player.isOnline() && plugin.isPendingAuth(player)
+                            && plugin.authHook().probe(player) != AuthHook.Probe.NOT_LOGGED_IN) {
+                        plugin.completeAuth(player);
+                    }
+                }, 15L);
+            }
+            return;
+        }
         if (!blocked(event.getPlayer())) {
             return;
         }

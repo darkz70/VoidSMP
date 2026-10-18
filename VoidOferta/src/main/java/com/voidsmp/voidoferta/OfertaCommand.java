@@ -59,6 +59,10 @@ public final class OfertaCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(Component.text("Принять оферту может только игрок.", NamedTextColor.RED));
             return;
         }
+        if (plugin.isPendingAuth(player)) {
+            player.sendMessage(Component.text("Сначала войдите на сервер (пароль), затем принимайте оферту.", NamedTextColor.RED));
+            return;
+        }
         if (plugin.storage().hasAccepted(player.getUniqueId())) {
             player.sendMessage(Component.text("✔ Оферта № VDS-VOID-01 уже принята вами ранее. Повторное подтверждение не требуется.", NamedTextColor.GREEN));
             return;

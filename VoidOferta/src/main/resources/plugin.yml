@@ -4,6 +4,7 @@ main: com.voidsmp.voidoferta.VoidOfertaPlugin
 api-version: '26.2'
 author: VDS Corp
 description: Официальная публичная оферта VDS Corp / OZO™ для VOID SMP. Книга при входе, подтверждение 1 раз, повторное чтение — /oferta
+softdepend: [SimpleLogin]
 commands:
   oferta:
     description: Открыть публичную оферту VDS Corp № VDS-VOID-01

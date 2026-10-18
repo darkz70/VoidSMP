@@ -13,6 +13,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * VoidOferta — официальная публичная оферта VDS Corp № VDS-VOID-01 для VOID SMP.
@@ -28,6 +32,10 @@ public final class VoidOfertaPlugin extends JavaPlugin {
 
     private AcceptedStorage storage;
     private OfertaBook book;
+    private AuthHook authHook;
+    /** Игроки, которые зашли, но ещё не ввели пароль в SimpleLogin. */
+    private final Set<UUID> pendingAuth = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, Long> joinTimes = new ConcurrentHashMap<>();
 
     @Override
     public void onEnable() {
@@ -47,12 +55,81 @@ public final class VoidOfertaPlugin extends JavaPlugin {
             getLogger().severe("Команда /oferta не найдена в plugin.yml!");
         }
 
+        // SimpleLogin и подобные: оферта — только после ввода пароля
+        authHook = AuthHook.detect(this);
+        if (authHook.isPresent()) {
+            startAuthPoll();
+        }
+
         getServer().getPluginManager().registerEvents(new OfertaListener(this), this);
         getLogger().info("VoidOferta включена. Оферту VDS-VOID-01 уже приняло игроков: " + storage.size());
     }
 
+    // ---------- Интеграция с SimpleLogin: ожидание ввода пароля ----------
+
+    public AuthHook authHook() {
+        return authHook;
+    }
+
+    public boolean isPendingAuth(Player player) {
+        return pendingAuth.contains(player.getUniqueId());
+    }
+
+    /** Игрок зашёл, но пароль ещё не ввёл: оферту не показываем и ничем не мешаем авторизации. */
+    public void beginAuthWait(Player player) {
+        pendingAuth.add(player.getUniqueId());
+        joinTimes.put(player.getUniqueId(), System.currentTimeMillis());
+    }
+
+    public long joinedAt(UUID uuid) {
+        return joinTimes.getOrDefault(uuid, 0L);
+    }
+
+    /** Игрок успешно ввёл пароль — теперь можно показывать оферту (если ещё не принята). */
+    public void completeAuth(Player player) {
+        if (!pendingAuth.remove(player.getUniqueId())) {
+            return;
+        }
+        joinTimes.remove(player.getUniqueId());
+        if (storage.hasAccepted(player.getUniqueId())) {
+            return;
+        }
+        long delay = Math.max(1L, getConfig().getLong("open-delay-ticks", 20L));
+        getServer().getScheduler().runTaskLater(this, () -> {
+            if (player.isOnline() && !storage.hasAccepted(player.getUniqueId())) {
+                openOferta(player);
+                sendNotAcceptedMessage(player);
+            }
+        }, delay);
+    }
+
+    public void clearAuthWait(Player player) {
+        pendingAuth.remove(player.getUniqueId());
+        joinTimes.remove(player.getUniqueId());
+    }
+
+    /** Раз в секунду спрашиваем у SimpleLogin, кто уже вошёл (если у него есть такой метод). */
+    private void startAuthPoll() {
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            for (UUID uuid : Set.copyOf(pendingAuth)) {
+                Player player = getServer().getPlayer(uuid);
+                if (player == null) {
+                    pendingAuth.remove(uuid);
+                    joinTimes.remove(uuid);
+                } else if (authHook.probe(player) == AuthHook.Probe.LOGGED_IN) {
+                    completeAuth(player);
+                }
+            }
+        }, 20L, 20L);
+    }
+
     /** Открывает книгу оферты игроку (с учётом того, принял ли он её уже). */
     public void openOferta(Player player) {
+        if (isPendingAuth(player)) {
+            // Пароль ещё не введён — книга подождёт, сначала /login
+            player.sendMessage(Component.text("Сначала войдите на сервер (пароль), затем введите /oferta", NamedTextColor.YELLOW));
+            return;
+        }
         boolean accepted = storage.hasAccepted(player.getUniqueId());
         player.openBook(book.createBook(accepted, accepted ? storage.acceptedAt(player.getUniqueId()) : null));
     }

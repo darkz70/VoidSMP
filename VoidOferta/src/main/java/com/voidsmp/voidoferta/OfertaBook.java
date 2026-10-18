@@ -104,16 +104,17 @@ public final class OfertaBook {
     }
 
     /**
-     * Страница 42 — финальная. Цитаты Стэтхэма (по версии VDS Corp)
+     * Страница 42 — финальная. Жизненные цитаты Стэтхэма
      * и, прямо под ними, кнопка подтверждения оферты.
      */
     private Component stathamPage(boolean alreadyAccepted, String acceptedAt) {
         Component quotes = Component.empty()
                 .append(Component.text("42. ЦИТАТЫ СТЭТХЭМА\n\n", NamedTextColor.DARK_PURPLE)
                         .decorate(TextDecoration.BOLD))
-                .append(Component.text("«Если оферту можно не читать — это не оферта. Это просто книга».", NamedTextColor.BLACK))
-                .append(Component.text("\n\n«Неважно, сколько страниц позади. Важно, нажал ли ты “принять”».", NamedTextColor.BLACK))
-                .append(Component.text("\n\n«Курица смотрит на сундук не потому, что охраняет. А потому, что знает».", NamedTextColor.BLACK));
+                .append(Component.text("«Сниму квартиру. Порядок на районе гарантирую».", NamedTextColor.BLACK))
+                .append(Component.text("\n\n«Взял нож — режь, взял дошик — ешь».", NamedTextColor.BLACK))
+                .append(Component.text("\n\n«В жизни всегда есть две дороги: одна — первая, а другая — вторая».", NamedTextColor.BLACK))
+                .append(Component.text("\n\n«Я запрещаю вам срать».", NamedTextColor.BLACK));
 
         if (alreadyAccepted) {
             String when = (acceptedAt == null || acceptedAt.isBlank()) ? "" : "\n" + acceptedAt.replace("T", " ").replaceAll("\\..*$", "") + " UTC";
