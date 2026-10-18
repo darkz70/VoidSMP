@@ -24,6 +24,23 @@ import org.bukkit.potion.PotionEffectType;
 /** Причуда «Инженер»: слабость (1 ур.), скорость в паутине (1 ур.), скан редстоуна, ТНТ, эльфийский желудок (2-3 ур.). */
 public final class EngineerListener implements Listener {
 
+    /** Резчик Инженера (со 2 ур.): вдвое больше блоков при нарезке. */
+    @EventHandler(ignoreCancelled = true)
+    public void onStonecut(org.bukkit.event.inventory.InventoryClickEvent event) {
+        if (!(event.getInventory() instanceof org.bukkit.inventory.StonecutterInventory)) return;
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (plugin.quirks().levelOf(player, me.darkz70.quirks.Quirk.ENGINEER) < 2) return;
+        if (event.getRawSlot() != 1) return; // у stonecutter 0=вход, 1=результат
+        org.bukkit.inventory.ItemStack taken = event.getCurrentItem();
+        if (taken == null || taken.getType().isAir()) return;
+        org.bukkit.inventory.ItemStack extra = taken.clone();
+        extra.setAmount(taken.getAmount());
+        org.bukkit.Bukkit.getScheduler().runTask(plugin, () -> {
+            var leftover = player.getInventory().addItem(extra);
+            leftover.values().forEach(it -> player.getWorld().dropItemNaturally(player.getLocation(), it));
+        });
+    }
+
     private final VoidQuirksPlugin plugin;
 
     public EngineerListener(VoidQuirksPlugin plugin) {

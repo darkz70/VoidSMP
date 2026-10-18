@@ -97,7 +97,7 @@ public final class PotionListener implements Listener {
 
         switch (tag) {
             case "antidote" -> {
-                if (plugin.quirks().levelOf(player, Quirk.SCULK) > 0) {
+                if (plugin.quirks().sculkOf(player) > 0) {
                     plugin.quirks().remove(player, Quirk.SCULK);
                     player.getWorld().spawnParticle(Particle.SCULK_SOUL, player.getLocation().add(0, 1, 0),
                             30, 0.4, 0.8, 0.4, 0.05);
@@ -108,7 +108,7 @@ public final class PotionListener implements Listener {
                 }
             }
             case "infect" -> {
-                if (plugin.quirks().levelOf(player, Quirk.SCULK) == 0) {
+                if (plugin.quirks().sculkOf(player) == 0) {
                     plugin.quirks().assign(player, Quirk.SCULK, 1);
                     plugin.notify(player, "potion-soul-stir");
                 }

@@ -1,6 +1,7 @@
 package me.darkz70.quirks;
 
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -12,6 +13,7 @@ import java.util.Set;
 public final class PlayerData {
 
     private final Map<Quirk, Integer> quirks = new EnumMap<>(Quirk.class);
+    private final EnumSet<Quirk> paused = EnumSet.noneOf(Quirk.class); // самовольно выключенные (не пропадают, просто спят)
     private final Map<String, Long> cooldowns = new HashMap<>();
     private boolean notifications = true;
 
@@ -39,6 +41,19 @@ public final class PlayerData {
 
     public void remove(Quirk quirk) {
         quirks.remove(quirk);
+        paused.remove(quirk);
+    }
+
+    public boolean isPaused(Quirk quirk) {
+        return paused.contains(quirk);
+    }
+
+    public void pause(Quirk quirk, boolean on) {
+        if (on) paused.add(quirk); else paused.remove(quirk);
+    }
+
+    public java.util.Set<Quirk> pausedAll() {
+        return java.util.Collections.unmodifiableSet(paused);
     }
 
     public boolean isEmpty() {

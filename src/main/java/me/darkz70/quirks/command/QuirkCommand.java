@@ -38,6 +38,10 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
                              @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) {
+            if (!sender.hasPermission("quirks.admin") && sender instanceof Player p) {
+                plugin.toggleMenu().open(p); // мини-меню: только вкл/выкл своих причуд
+                return true;
+            }
             Msg.send(sender, "usage");
             return true;
         }
@@ -54,6 +58,11 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             case "pack", "resourcepack" -> handlePack(sender);
             case "lab", "labyrinth" -> handleLab(sender, args);
             case "zayce" -> handleZayce(sender, args);
+            case "acceptsculk" -> {
+                if (sender instanceof Player p) {
+                    plugin.sculkLeader().acceptInvite(p);
+                }
+            }
             default -> Msg.send(sender, "usage");
         }
         return true;
@@ -83,6 +92,19 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             case "elite" -> spawnZayce(sender, at, me.darkz70.quirks.mob.ZayceKrol.Role.ELITE);
             case "resident" -> spawnZayce(sender, at, me.darkz70.quirks.mob.ZayceKrol.Role.RESIDENT);
             case "tsar" -> spawnZayce(sender, at, me.darkz70.quirks.mob.ZayceKrol.Role.TSAR);
+            case "deputy" -> spawnZayce(sender, at, me.darkz70.quirks.mob.ZayceKrol.Role.DEPUTY);
+            case "servant" -> spawnZayce(sender, at, me.darkz70.quirks.mob.ZayceKrol.Role.SERVANT);
+            case "revolutioner" -> spawnZayce(sender, at, me.darkz70.quirks.mob.ZayceKrol.Role.REVOLUTIONER);
+            case "party" -> {
+                if (args.length >= 3) {
+                    String party = String.join(" ", java.util.Arrays.copyOfRange(args, 2, args.length));
+                    plugin.getConfig().set("zaycekrol.deputy-party", party);
+                    plugin.saveConfig();
+                    Msg.send(sender, "zayce-party-set", "%party%", party);
+                } else {
+                    Msg.send(sender, "usage");
+                }
+            }
             default -> Msg.send(sender, "usage");
         }
     }
@@ -396,7 +418,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("zayce")) {
             String prefix = args[1].toLowerCase(Locale.ROOT);
-            for (String opt : List.of("colony", "farmer", "guard", "elite", "resident", "tsar", "purge")) {
+            for (String opt : List.of("colony", "farmer", "guard", "elite", "resident", "tsar", "deputy", "servant", "revolutioner", "party", "purge")) {
                 if (opt.startsWith(prefix)) out.add(opt);
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("lab")) {

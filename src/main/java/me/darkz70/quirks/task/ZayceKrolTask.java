@@ -118,6 +118,9 @@ public final class ZayceKrolTask extends BukkitRunnable {
             }
             case RESIDENT -> resident(rabbit);
             case TSAR -> tsar(rabbit);
+            case SERVANT -> servant(rabbit);
+            case DEPUTY -> deputy(rabbit);
+            case REVOLUTIONER -> revolutioner(rabbit);
         }
     }
 
@@ -207,8 +210,26 @@ public final class ZayceKrolTask extends BukkitRunnable {
                 > plugin.getConfig().getDouble("zaycekrol.guard-scan", 6) * plugin.getConfig().getDouble("zaycekrol.guard-scan", 6)) {
             walkTo(rabbit, friend.getLocation());
         }
-        // волки — врождённая вражда
+        // революционер для стражи — всегда нарошник
+        for (Entity entity : rabbit.getNearbyEntities(12, 5, 12)) {
+            if (entity instanceof Rabbit other && ZayceKrol.isZayce(other)
+                    && ZayceKrol.roleOf(other) == Role.REVOLUTIONER) {
+                walkTo(rabbit, other.getLocation());
+                if (rabbit.getLocation().distanceSquared(other.getLocation()) < 2.5) {
+                    other.damage(damage, rabbit);
+                }
+                return;
+            }
+        }
+        // волки и лисы — врождённая вражда
         for (Entity entity : rabbit.getNearbyEntities(10, 5, 10)) {
+            if (entity instanceof org.bukkit.entity.Fox fox) {
+                walkTo(rabbit, fox.getLocation());
+                if (rabbit.getLocation().distanceSquared(fox.getLocation()) < 2.5) {
+                    fox.damage(damage, rabbit);
+                }
+                return;
+            }
             if (entity instanceof Wolf wolf && !wolf.isTamed()) {
                 walkTo(rabbit, wolf.getLocation());
                 if (rabbit.getLocation().distanceSquared(wolf.getLocation()) < 2.5) {

@@ -91,7 +91,7 @@ engineer:
 axe:
   # регенерация II за убийство топором — только 1 уровень
   regen-chance: 5        # %
-  regen-duration-seconds: 1
+  regen-duration-seconds: 2
   rage-cooldown-minutes: 30   # режим ярости (2-3 ур.): Shift, затем Ctrl
   head-chance: 2         # % — головы мобов с 3 уровня
   head-include-players: true
@@ -153,6 +153,7 @@ zaycekrol:
   guard-radius: 14
   guard-scan: 6
   tsar-call-radius: 30        # радиус приветствия императора
+  deputy-party: "Без партии"  # имя партии в имени депутата (/quirk zayce party <назв>)
   cap-residents: 30
   cap-guards: 10
   cap-elite: 6
@@ -203,6 +204,28 @@ messages:
   zayce-spawned: "%prefix%&6Зайцекрол (%role%) призван."
   zayce-colony: "%prefix%&6Колония зайцекролов разбита прямо здесь."
   zayce-purged: "%prefix%&6Зайцекролов отправлено в морку: &f%count%"
+  toggle-sleep: "%prefix%&7Причуда &f%quirk% &7уложена спать."
+  toggle-awake: "%prefix%&aПричуда &f%quirk% &aпробудилась."
+  sit-on: "%prefix%&aТы сел. Встать — Shift."
+  lie-on: "%prefix%&aТы прилёг. Встать — Shift."
+  stand: "%prefix%&7Ты встал."
+  leader-offers: "%prefix%&eПредложения: %state%"
+  leader-offers-off: "%prefix%&cСначала включи предложения (кнопка в этом же меню)."
+  leader-offer-sent: "%prefix%&5Приглашение отправлено игроку %player%."
+  leader-invite-accepted: "%prefix%&5Скалк принят: добровольно и навсегда."
+  leader-invite-notify: "%prefix%&5%player% принял Скалка."
+  leader-punish: "&5−4 сердца на 5 минут: скалечное наказание от главы."
+  leader-punish-done: "%prefix%&5%player% наказан (−4 HP на 5 мин)."
+  leader-upgrade: "&dГлава скалка повышает твой уровень до %level%!"
+  leader-upgrade-done: "%prefix%&dУровень %player% поднят. Следующий — через 24 ч."
+  leader-upgrade-cd: "%prefix%&cПовышать можно раз в 24 часа."
+  leader-upgrade-max: "%prefix%&cУ него уже максимальный уровень."
+  leader-strip-confirm: "%prefix%&4Подтверждение %count%/3 — снять Скалка с игрока?"
+  leader-stripped: "&5У тебя отняли Скалка. Тень покидает тело…"
+  leader-stripped-done: "%prefix%&4Скалк снят с %player%."
+  politics-saved: "%prefix%&aЗаписано."
+  politics-removed: "%prefix%&cУдалено: %name%."
+  zayce-party-set: "%prefix%&eПартия депутатов: &f%party%"
   lab-prebuilt: "%prefix%&6Готовый мир принят: лабиринт не строим, используем ваш."
   lab-back: "&6Возврат из недр завершён. Добро пожаловать наверх!"
   lab-tp: "%prefix%&dТы входишь в лабиринт душ…"

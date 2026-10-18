@@ -13,6 +13,7 @@ public enum Quirk {
     FARMER("farmer", "Фермер"),
     AMPHIBIAN("amphibian", "Земноводный"),
     SPIDER("spider", "Паук"),
+    SCULK_LEADER("sculk_leader", "Глава скалка"),
     /** Техническая причуда 1 уровня: доступ ко всем крафтам плагина.
      *  Не считается в списках, не снимается «все снять»/зельями. */
     ADMIN("admin", "Админ"),

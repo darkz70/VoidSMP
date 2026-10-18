@@ -17,6 +17,27 @@ commands:
   gaid:
     description: Книга-гайд по механикам VoidSMP (админ)
     usage: /gaid
+  sit:
+    description: Сесть (Shift — встать)
+    usage: /sit
+  lie:
+    description: Лечь (Shift — встать)
+    usage: /lie
+  voidticker:
+    description: Резонансный тикер пустоты
+    usage: /voidticker
+  soulweather:
+    description: Погода душ по архиву
+    usage: /soulweather
+  effigylog:
+    description: Журнал кукольных трекеров
+    usage: /effigylog
+  hermitgram:
+    description: Примитивный граммофон анахорета
+    usage: /hermitgram
+  stardustindex:
+    description: Индекс звёздной пыли (прогноз)
+    usage: /stardustindex
 permissions:
   quirks.admin:
     description: Полное управление причудами

@@ -36,6 +36,13 @@ public final class MagicCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
             @NotNull String label, @NotNull String[] args) {
+        if (args.length == 0 && !sender.hasPermission("quirks.admin") && sender instanceof Player px) {
+            var dx = plugin.storage().get(px.getUniqueId());
+            if (dx == null || dx.magicElement() == null) {
+                plugin.toggleMenu().open(px); // без магии — личное меню причуд, и больше ничего
+                return true;
+            }
+        }
         if (args.length == 0) {
             if (!(sender instanceof Player player)) {
                 Msg.send(sender, "magic-usage");

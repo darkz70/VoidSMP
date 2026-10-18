@@ -45,6 +45,7 @@ public final class GaidMenus implements Listener {
         inv.setItem(11, button(Material.BOOK, "&dОписания", "&7Механики и команды — тематические книги"));
         inv.setItem(12, button(Material.CHEST, "&eПредметы", "&7Все предметы плагина + крафты (+взять себе)"));
         inv.setItem(13, button(Material.ZOMBIE_SPAWN_EGG, "&9Призыв", "&740 отрядов мобов для ваших сцен"));
+        inv.setItem(14, button(Material.WHITE_BANNER, "&6Политика", "&7Партии, цари и выборы зайцекролов"));
         inv.setItem(15, button(Material.PLAYER_HEAD, "&cАдмин-панель", "&7Причуды и магии онлайн-игроков"));
         inv.setItem(16, button(Material.CLOCK, "&bНастройки КД", "&7Масштаб кулдаунов заклинаний/зелий/вещей"));
         player.openInventory(inv);
@@ -427,6 +428,7 @@ public final class GaidMenus implements Listener {
                 case 11 -> openBooksMenu(player);
                 case 12 -> openItemsMenu(player, 0);
                 case 13 -> openSquadsMenu(player, 0);
+                case 14 -> plugin.gaipolitics().openRoot(player);
                 case 15 -> AdminMenu.openHub(plugin, player);
                 case 16 -> openCooldownsMenu(player);
                 default -> { }

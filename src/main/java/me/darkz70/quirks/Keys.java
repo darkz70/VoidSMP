@@ -26,6 +26,7 @@ public final class Keys {
     public static NamespacedKey divineHp;        // временный −1 сердце от зелья божества (7 дней)
     public static NamespacedKey spiderHp;        // -2 HP Паука 1 ур. (модификатор атрибута)
     public static NamespacedKey effHero;         // герой деревни Фермера применён нами
+    public static NamespacedKey reach;           // инженер: модификатор дальности блока
     public static NamespacedKey zkRole;          // зайцекрол: роль (farmer/guard/elite/resident/tsar)
     public static NamespacedKey zkHome;          // зайцекрол: точка появления "x,y,z"
     public static NamespacedKey zkGen;           // зайцекрол-житель: поколение (с 60)
@@ -54,6 +55,7 @@ public final class Keys {
         divineHp = new NamespacedKey(plugin, "divine_hp");
         spiderHp = new NamespacedKey(plugin, "spider_hp");
         effHero = new NamespacedKey(plugin, "eff_hero");
+        reach = new NamespacedKey(plugin, "engineer_reach");
         zkRole = new NamespacedKey(plugin, "zk_role");
         zkHome = new NamespacedKey(plugin, "zk_home");
         zkGen = new NamespacedKey(plugin, "zk_gen");

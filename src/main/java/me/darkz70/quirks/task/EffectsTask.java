@@ -55,7 +55,7 @@ public final class EffectsTask extends BukkitRunnable {
                 }
             }
 
-            int sculk = data.levelOf(Quirk.SCULK);
+            int sculk = plugin.quirks().sculkOf(player);
             int bedrock = data.levelOf(Quirk.BEDROCK);
             int spider = data.levelOf(Quirk.SPIDER);
             int amphib = data.levelOf(Quirk.AMPHIBIAN);
@@ -99,7 +99,7 @@ public final class EffectsTask extends BukkitRunnable {
         boolean sculkNear = false;
         for (Player other : Bukkit.getOnlinePlayers()) {
             if (other == player || other.getWorld() != player.getWorld()) continue;
-            if (plugin.quirks().levelOf(other, Quirk.SCULK) < 1) continue;
+            if (plugin.quirks().sculkOf(other) < 1) continue;
             if (other.getLocation().distanceSquared(player.getLocation()) <= radius * radius) {
                 sculkNear = true;
                 break;

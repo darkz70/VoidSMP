@@ -16,7 +16,8 @@ public final class ZayceKrol {
     /** Роль зайцекрола. */
     public enum Role {
         FARMER("Фермер"), GUARD("Охранник"), ELITE("Элитный охранник"),
-        RESIDENT("Житель"), TSAR("Царь");
+        RESIDENT("Житель"), TSAR("Царь"),
+        DEPUTY("Депутат"), SERVANT("Слуга"), REVOLUTIONER("Революционер");
 
         public final String display;
 
@@ -80,8 +81,9 @@ public final class ZayceKrol {
             scaleAttr.setBaseValue(role == Role.TSAR ? 1.0 : 1.5);
         }
         var healthAttr = rabbit.getAttribute(Attribute.MAX_HEALTH);
-        if (healthAttr != null && role != Role.TSAR) {
+        if (healthAttr != null) {
             healthAttr.setBaseValue(switch (role) {
+                case TSAR -> 32;              // у царя вдвое больше, чем у войск
                 case ELITE -> 16;
                 case GUARD -> 12;
                 default -> 6;

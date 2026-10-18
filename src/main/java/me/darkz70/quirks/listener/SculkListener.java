@@ -33,7 +33,7 @@ public final class SculkListener implements Listener {
 
     /** 0 = причуды нет. */
     private int level(Player player) {
-        return plugin.quirks().levelOf(player, Quirk.SCULK);
+        return Math.max(plugin.quirks().levelOf(player, Quirk.SCULK), plugin.quirks().levelOf(player, Quirk.SCULK_LEADER));
     }
 
     /** Двойной опыт с мобов. */

@@ -192,7 +192,7 @@ public final class CraftListener implements Listener {
         ItemStack item = new ItemStack(Material.BONE_MEAL);
         item.editMeta(meta -> {
             meta.displayName(Msg.color("&6Супер-удобрение"));
-            meta.lore(List.of(Msg.color("&7Работает как 6 костной муки за один клик.")));
+            meta.lore(List.of(Msg.color("&7Будит всё поле: 15×15, двойное удобрение.")));
             meta.getPersistentDataContainer().set(Keys.brewMark, PersistentDataType.STRING, "fertilizer");
         });
         return item;
@@ -332,8 +332,13 @@ public final class CraftListener implements Listener {
         event.setUseItemInHand(Event.Result.DENY);
         event.setUseInteractedBlock(Event.Result.DENY);
 
-        for (int i = 0; i < 6; i++) {
-            clicked.applyBoneMeal(event.getBlockFace());
+        // 15x15 вокруг точки — вдох для всего поля (два раза на клетку)
+        for (int dx = -7; dx <= 7; dx++) {
+            for (int dz = -7; dz <= 7; dz++) {
+                Block cell = clicked.getRelative(dx, 0, dz);
+                cell.applyBoneMeal(event.getBlockFace());
+                cell.applyBoneMeal(event.getBlockFace());
+            }
         }
         item.setAmount(item.getAmount() - 1);
         player.swingMainHand();

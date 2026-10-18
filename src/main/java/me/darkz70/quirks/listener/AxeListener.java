@@ -158,7 +158,7 @@ public final class AxeListener implements Listener {
         if (lvl == 1) {
             int regenChance = plugin.getConfig().getInt("axe.regen-chance", 5);
             if (random.nextInt(100) < regenChance) {
-                int ticks = plugin.getConfig().getInt("axe.regen-duration-seconds", 1) * 20;
+                int ticks = plugin.getConfig().getInt("axe.regen-duration-seconds", 2) * 20;
                 killer.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, ticks, 1, true, false, true));
             }
         }

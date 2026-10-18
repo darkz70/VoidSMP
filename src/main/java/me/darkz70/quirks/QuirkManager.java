@@ -117,6 +117,9 @@ public final class QuirkManager {
             case SCULK -> {
                 if (level == 3) ensureSculkHp(player);
             }
+            case SCULK_LEADER -> {
+                if (level == 3) ensureSculkHp(player);
+            }
             case SPIDER -> {
                 if (level == 1) ensureSpiderHp(player);
             }
@@ -134,7 +137,10 @@ public final class QuirkManager {
     /** Снять всё, что наложила конкретная причуда. */
     private void unapplyQuirk(Player player, Quirk quirk) {
         switch (quirk) {
-            case ENGINEER -> removeFlaggedEffect(player, PotionEffectType.WEAKNESS, Keys.effWeakness);
+            case ENGINEER -> {
+                removeFlaggedEffect(player, PotionEffectType.WEAKNESS, Keys.effWeakness);
+                removeReach(player);
+            }
             case BEDROCK -> {
                 removeFlaggedEffect(player, PotionEffectType.SPEED, Keys.effSpeed);
                 removeFlaggedEffect(player, PotionEffectType.REGENERATION, Keys.effRegen);
@@ -142,6 +148,7 @@ public final class QuirkManager {
                 player.setMaximumAir(300);
             }
             case SCULK -> removeSculkHp(player);
+            case SCULK_LEADER -> removeSculkHp(player);
             case SPIDER -> removeSpiderHp(player);
             case FARMER -> {
                 removeFlaggedEffect(player, PotionEffectType.HERO_OF_THE_VILLAGE, Keys.effHero);
@@ -149,6 +156,21 @@ public final class QuirkManager {
             }
             default -> { }
         }
+    }
+
+    /** Инженер: ставит/бьёт блоки дальше (модификатор BLOCK_INTERACTION_RANGE). */
+    private void applyReach(Player player, int bonus) {
+        org.bukkit.attribute.AttributeInstance inst = player.getAttribute(org.bukkit.attribute.Attribute.BLOCK_INTERACTION_RANGE);
+        if (inst == null) return;
+        org.bukkit.attribute.AttributeModifier mod = new org.bukkit.attribute.AttributeModifier(
+                Keys.reach, bonus, org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER);
+        if (!inst.getModifiers().contains(mod)) inst.addModifier(mod);
+    }
+
+    private void removeReach(Player player) {
+        org.bukkit.attribute.AttributeInstance inst = player.getAttribute(org.bukkit.attribute.Attribute.BLOCK_INTERACTION_RANGE);
+        if (inst == null) return;
+        inst.getModifiers().removeIf(m -> m.getKey().equals(Keys.reach));
     }
 
     /** Периодическая гарантия пассивок (защита от молока). Вызывается из EffectsTask. */

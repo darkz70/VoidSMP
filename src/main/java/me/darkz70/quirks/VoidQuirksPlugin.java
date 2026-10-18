@@ -75,6 +75,25 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new PotionListener(this), this);
         zayceTask = new me.darkz70.quirks.task.ZayceKrolTask(this);
         Bukkit.getPluginManager().registerEvents(new me.darkz70.quirks.listener.ZayceKrolListener(this), this);
+        politics = new me.darkz70.quirks.mechanic.PoliticsStore(this);
+        gaipolitics = new me.darkz70.quirks.command.PoliticsMenu(this);
+        toggleMenu = new me.darkz70.quirks.command.ToggleMenu(this);
+        Bukkit.getPluginManager().registerEvents(toggleMenu, this);
+        sculkLeader = new me.darkz70.quirks.listener.SculkLeaderListener(this);
+        Bukkit.getPluginManager().registerEvents(sculkLeader, this);
+        sitLie = new me.darkz70.quirks.listener.SitLieListener(this);
+        Bukkit.getPluginManager().registerEvents(sitLie, this);
+        me.darkz70.quirks.command.DecoyCommand[] decoys = {
+            new me.darkz70.quirks.command.DecoyCommand(0), new me.darkz70.quirks.command.DecoyCommand(1),
+            new me.darkz70.quirks.command.DecoyCommand(2), new me.darkz70.quirks.command.DecoyCommand(3),
+            new me.darkz70.quirks.command.DecoyCommand(4)};
+        String[] decoyNames = {"voidticker", "soulweather", "effigylog", "hermitgram", "stardustindex"};
+        for (int i = 0; i < decoyNames.length; i++) {
+            org.bukkit.command.PluginCommand dc = getCommand(decoyNames[i]);
+            if (dc != null) dc.setExecutor(decoys[i]);
+        }
+        var sitCmd = getCommand("sit"); if (sitCmd != null) sitCmd.setExecutor(new me.darkz70.quirks.command.SitLieCommand(this, true));
+        var lieCmd = getCommand("lie"); if (lieCmd != null) lieCmd.setExecutor(new me.darkz70.quirks.command.SitLieCommand(this, false));
 
         QuirkCommand command = new QuirkCommand(this);
         PluginCommand quirk = getCommand("quirk");
@@ -126,6 +145,31 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     }
 
     private me.darkz70.quirks.task.ZayceKrolTask zayceTask;
+    private me.darkz70.quirks.command.ToggleMenu toggleMenu;
+    private me.darkz70.quirks.listener.SculkLeaderListener sculkLeader;
+    private me.darkz70.quirks.listener.SitLieListener sitLie;
+    private me.darkz70.quirks.mechanic.PoliticsStore politics;
+    private me.darkz70.quirks.command.PoliticsMenu gaipolitics;
+
+    public me.darkz70.quirks.mechanic.PoliticsStore politics() {
+        return politics;
+    }
+
+    public me.darkz70.quirks.command.PoliticsMenu gaipolitics() {
+        return gaipolitics;
+    }
+
+    public me.darkz70.quirks.command.ToggleMenu toggleMenu() {
+        return toggleMenu;
+    }
+
+    public me.darkz70.quirks.listener.SculkLeaderListener sculkLeader() {
+        return sculkLeader;
+    }
+
+    public me.darkz70.quirks.listener.SitLieListener sitLie() {
+        return sitLie;
+    }
 
     public me.darkz70.quirks.task.ZayceKrolTask zayceTask() {
         return zayceTask;

@@ -69,6 +69,13 @@ public final class QuirkStorage {
                 }
 
                 data.notifications(section.getBoolean("notifications", true));
+                String pausedRaw = section.getString("paused", "");
+                if (pausedRaw != null && !pausedRaw.isEmpty()) {
+                    for (String pid : pausedRaw.split(",")) {
+                        Quirk pq = Quirk.byName(pid.trim());
+                        if (pq != null) data.pause(pq, true);
+                    }
+                }
 
                 data.magicElement(section.getString("magic.element", null));
                 data.magicLevel(section.getInt("magic.level", 1));
@@ -96,6 +103,14 @@ public final class QuirkStorage {
             String path = "players." + entry.getKey();
             PlayerData data = entry.getValue();
             yaml.set(path + ".notifications", data.notifications());
+            if (!data.pausedAll().isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (Quirk pq : data.pausedAll()) {
+                    if (sb.length() > 0) sb.append(",");
+                    sb.append(pq.id());
+                }
+                yaml.set(path + ".paused", sb.toString());
+            }
             for (Map.Entry<Quirk, Integer> quirkEntry : data.entries()) {
                 yaml.set(path + ".quirks." + quirkEntry.getKey().id(), quirkEntry.getValue());
             }
