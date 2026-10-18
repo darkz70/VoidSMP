@@ -35,19 +35,19 @@ jobs:
           set -o pipefail
           gradle build --no-daemon 2>&1 | tee ../build.log
 
-      - name: Report build result as issue comment (debug)
-        if: always()
+      # В этом репозитории логи упавших сборок принято писать в issue #1
+      - name: Report build failure to issue #1
+        if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           {
-            echo "### VoidOferta build: run ${{ github.run_id }}"
+            echo "### VoidOferta: сборка упала, run ${{ github.run_id }}"
             echo '```'
-            find "$GITHUB_WORKSPACE" -name "*.jar" | head -20
             tail -c 45000 build.log
             echo '```'
           } > report.md
-          gh issue comment 1 --body-file report.md
+          gh issue comment 1 --body-file report.md || true
 
       - name: Upload jar
         uses: actions/upload-artifact@v4
