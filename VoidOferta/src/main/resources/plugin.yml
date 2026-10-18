@@ -1,0 +1,19 @@
+name: VoidOferta
+version: ${version}
+main: com.voidsmp.voidoferta.VoidOfertaPlugin
+api-version: '1.21'
+author: VDS Corp
+description: Официальная публичная оферта VDS Corp / OZO™ для VOID SMP. Книга при входе, подтверждение 1 раз, повторное чтение — /oferta
+commands:
+  oferta:
+    description: Открыть публичную оферту VDS Corp № VDS-VOID-01
+    usage: /oferta [accept|reload|reset <ник>|status [ник]]
+    aliases: [оферта, offer]
+    permission: voidoferta.use
+permissions:
+  voidoferta.use:
+    description: Доступ к команде /oferta
+    default: true
+  voidoferta.admin:
+    description: Reload, сброс и проверка подтверждений других игроков
+    default: op
