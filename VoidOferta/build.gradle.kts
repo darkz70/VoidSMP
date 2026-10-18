@@ -5,10 +5,11 @@ plugins {
 group = "com.voidsmp"
 version = "1.0.0"
 
-// Версия Paper API. Для Paper 26.2 значение по умолчанию ниже.
-// Если Maven-репозиторий Paper отдаёт другую нумерацию, переопределите:
-//   gradle build -PpaperVersion=<версия>
-val paperVersion = providers.gradleProperty("paperVersion").orElse("26.2-R0.1-SNAPSHOT").get()
+// Версия Paper API. У Paper для Minecraft 26.x нумерация вида
+// 26.2.build.<номер сборки>-<канал>, поэтому по умолчанию берётся
+// последняя сборка 26.2. Точную версию можно задать явно:
+//   gradle build -PpaperVersion=26.2.build.42-stable
+val paperVersion = providers.gradleProperty("paperVersion").orElse("26.2.build.+").get()
 
 repositories {
     mavenCentral()
