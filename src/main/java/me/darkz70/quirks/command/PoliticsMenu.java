@@ -14,7 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.AsyncChatEvent;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -138,9 +138,9 @@ public final class PoliticsMenu implements Listener {
             if (partiesObj instanceof List<?> rows) {
                 for (Object o : rows) {
                     if (o instanceof Map<?, ?> row) {
-                        lore.add(Msg.color("&d" + row.getOrDefault("party", "?")
-                                + "&7: депутатов &f" + row.getOrDefault("deputies", "0")
-                                + "&7, голосов &f" + row.getOrDefault("percent", "0") + "%"));
+                        lore.add(Msg.color("&d" + String.valueOf(row.getOrDefault("party", "?"))
+                                + "&7: депутатов &f" + String.valueOf(row.getOrDefault("deputies", "0"))
+                                + "&7, голосов &f" + String.valueOf(row.getOrDefault("percent", "0")) + "%"));
                     }
                 }
             }
