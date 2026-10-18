@@ -10,6 +10,10 @@ on:
       - "VoidOferta/**"
   workflow_dispatch:
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,13 +35,19 @@ jobs:
           set -o pipefail
           gradle build --no-daemon 2>&1 | tee ../build.log
 
-      - name: Report build failure as issue (debug)
-        if: failure()
+      - name: Report build result as issue comment (debug)
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tail -c 50000 build.log > build-tail.log
-          gh issue create --title "VoidOferta build failed (run ${{ github.run_id }})" --body-file build-tail.log || true
+          {
+            echo "### VoidOferta build: run ${{ github.run_id }}"
+            echo '```'
+            find "$GITHUB_WORKSPACE" -name "*.jar" | head -20
+            tail -c 45000 build.log
+            echo '```'
+          } > report.md
+          gh issue comment 1 --body-file report.md
 
       - name: Upload jar
         uses: actions/upload-artifact@v4
