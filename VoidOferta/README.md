@@ -55,19 +55,20 @@
 
 ## Сборка
 
-Нужны JDK 21+ и Gradle:
+Нужны **JDK 25** (Paper 26.2 собран на Java 25, более старая javac не
+прочитает paper-api) и Gradle:
 
 ```bash
 cd VoidOferta
 gradle build
-# готовая книга-плагин: build/libs/VoidOferta-1.0.0.jar
+# готовый плагин: build/libs/VoidOferta-1.0.0.jar
 ```
 
-По умолчанию используется Paper API `26.2-R0.1-SNAPSHOT`. Если репозиторий
-Paper отдаёт версию в другой нотации, укажите свою:
+По умолчанию берётся последняя сборка Paper API `26.2.build.+`. Точную
+версию можно задать явно:
 
 ```bash
-gradle build -PpaperVersion=<версия-paper-api>
+gradle build -PpaperVersion=26.2.build.<номер>-<канал>
 ```
 
 Также jar автоматически собирается GitHub Actions при каждом пуше

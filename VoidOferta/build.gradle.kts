@@ -20,13 +20,14 @@ dependencies {
 }
 
 java {
-    // Paper 26.2 запускается на Java 21+; байткод Java 21 работает и на более новых JVM
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    // Paper 26.2 сам собран на Java 25 (class file 69), поэтому и плагин
+    // компилируем JDK 25 — более старая javac просто не прочитает paper-api.
+    toolchain.languageVersion.set(JavaLanguageVersion.of(25))
 }
 
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
-    options.release.set(21)
+    options.release.set(25)
 }
 
 tasks.processResources {
