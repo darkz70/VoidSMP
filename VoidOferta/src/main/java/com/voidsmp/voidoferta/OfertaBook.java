@@ -48,7 +48,15 @@ public final class OfertaBook {
         for (String pageText : paginate(rawText, pageSize())) {
             pages.add(Component.text(pageText));
         }
-        pages.add(finalPage(alreadyAccepted, acceptedAt));
+        // Добиваем книгу ровно до 42 страниц: перед финальной идут
+        // приложения к оферте, а страница 42 — цитаты Стэтхэма.
+        // (Если текст в oferta.txt сильно вырастет, приложений просто
+        // не будет, а финальная страница уедет дальше 42-й.)
+        int appendix = 1;
+        while (pages.size() < 41) {
+            pages.add(appendixPage(appendix++));
+        }
+        pages.add(stathamPage(alreadyAccepted, acceptedAt));
 
         // У ванильной книги жёсткий лимит в 100 страниц
         if (pages.size() > 100) {
@@ -78,30 +86,54 @@ public final class OfertaBook {
                         .decorate(TextDecoration.ITALIC));
     }
 
-    private Component finalPage(boolean alreadyAccepted, String acceptedAt) {
+    /** Приложения к оферте — ими книга добивается до 41-й страницы перед финалом. */
+    private Component appendixPage(int number) {
+        String[] texts = {
+            "О КУРИЦЕ\n\nКурица, охраняющая сундук с душами на спавне, не является сотрудником VDS Corp. Она — независимый подрядчик. Переговоры с курицей запрещены.",
+            "О ПЕЧЕНЬЕ\n\nВиртуальное печенье из п. 6.2 существует ровно до тех пор, пока вы в него верите. После этого оно становится активом OZO™.",
+            "О САЖЕНЦАХ\n\nСаженец, посаженный при мысли о крипере, считается отчётностью. Три саженца подряд — уже бухгалтерия VDS Corp.",
+            "О ТИШИНЕ\n\nТри секунды тишины из п. 4.2 должны быть качественными. Тишина с хрустом чипсов к зачёту Советом директоров OZO™ не принимается.",
+            "О КОТЕ\n\nКот, решающий споры гляделками, всегда прав. Если кот моргнул — вы проиграли. Если кот не моргнул — вы проиграли уважительно.",
+            "О СУНДУКЕ\n\nСундук на спавне не открывается не потому, что заперт. Он открывается только тем, кто принял оферту всей душой. Душа уже внутри. Замкнутый круг.",
+        };
+        String text = texts[(number - 1) % texts.length];
+        return Component.empty()
+                .append(Component.text("ПРИЛОЖЕНИЕ №" + number + "\n\n", NamedTextColor.DARK_PURPLE)
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(text, NamedTextColor.BLACK));
+    }
+
+    /**
+     * Страница 42 — финальная. Цитаты Стэтхэма (по версии VDS Corp)
+     * и, прямо под ними, кнопка подтверждения оферты.
+     */
+    private Component stathamPage(boolean alreadyAccepted, String acceptedAt) {
+        Component quotes = Component.empty()
+                .append(Component.text("42. ЦИТАТЫ СТЭТХЭМА\n\n", NamedTextColor.DARK_PURPLE)
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text("«Если оферту можно не читать — это не оферта. Это просто книга».", NamedTextColor.BLACK))
+                .append(Component.text("\n\n«Неважно, сколько страниц позади. Важно, нажал ли ты “принять”».", NamedTextColor.BLACK))
+                .append(Component.text("\n\n«Курица смотрит на сундук не потому, что охраняет. А потому, что знает».", NamedTextColor.BLACK));
+
         if (alreadyAccepted) {
-            String when = (acceptedAt == null || acceptedAt.isBlank()) ? "" : "\nДата: " + acceptedAt.replace("T", " ").replaceAll("\\..*$", "") + " UTC";
+            String when = (acceptedAt == null || acceptedAt.isBlank()) ? "" : "\n" + acceptedAt.replace("T", " ").replaceAll("\\..*$", "") + " UTC";
             return Component.empty()
-                    .append(Component.text("ПОДТВЕРЖДЕНИЕ\n\n", NamedTextColor.DARK_PURPLE)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text("✔ Вы уже приняли\nофферту № VDS-VOID-01." + when + "\n\n", NamedTextColor.DARK_GREEN))
-                    .append(Component.text("Повторное подтверждение\nне требуется.\n\n", NamedTextColor.BLACK))
-                    .append(Component.text("Душа по-прежнему\nхранится в сундуке\nна спавне.\nСундук охраняет курица.", NamedTextColor.DARK_GRAY)
-                            .decorate(TextDecoration.ITALIC));
+                    .append(quotes)
+                    .append(Component.text("\n\n✔ Оферта принята." + when, NamedTextColor.DARK_GREEN)
+                            .decorate(TextDecoration.BOLD));
         }
 
         Component button = Component.text("\n[ ✔ ПРИНЯТЬ ОФЕРТУ ]")
                 .color(NamedTextColor.DARK_GREEN)
                 .decorate(TextDecoration.BOLD)
                 .clickEvent(ClickEvent.runCommand("/oferta accept"))
-                .hoverEvent(HoverEvent.showText(Component.text("Нажмите, чтобы принять оферту № VDS-VOID-01")));
+                .hoverEvent(HoverEvent.showText(Component.text("Стэтхэм одобряет. И OZO™ тоже.")));
 
         return Component.empty()
-                .append(Component.text("ПОДТВЕРЖДЕНИЕ\n\n", NamedTextColor.DARK_PURPLE)
-                        .decorate(TextDecoration.BOLD))
-                .append(Component.text("Нажимая кнопку ниже,\nвы подтверждаете, что\nпрочитали оферту\n№ VDS-VOID-01 и принимаете\nвсе её условия,\nвключая абсурдные.\n", NamedTextColor.BLACK))
+                .append(quotes)
                 .append(button)
-                .append(Component.text("\n\nИли введите в чат:\n/oferta accept", NamedTextColor.DARK_GRAY));
+                .append(Component.text("\nСтэтхэм уже нажал бы.", NamedTextColor.DARK_GRAY)
+                        .decorate(TextDecoration.ITALIC));
     }
 
     /**
