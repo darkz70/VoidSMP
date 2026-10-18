@@ -19,6 +19,11 @@ commands:
   gaid:
     description: Книга-гайд по механикам VoidSMP (админ)
     usage: /gaid
+  zayk:
+    description: Политика зайцекролов для игроков — партии, цари, выборы
+    aliases: [зайцекрол]
+    usage: /zayk
+    permission: quirks.user
   sit:
     permission: quirks.user
     description: Сесть (Shift — встать)

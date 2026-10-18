@@ -79,6 +79,33 @@ public final class PoliticsStore {
         save();
     }
 
+    /** Удалить текущего царя (без переноса в родословную). */
+    public void clearTsar() {
+        data.set("tsar", null);
+        save();
+    }
+
+    /** Заменить запись прошлого царя (name/bio/note). */
+    public void updatePastTsar(int idx, String name, String bio, String note) {
+        List<Map<String, Object>> past = pastTsarsRaw();
+        if (idx < 0 || idx >= past.size()) return;
+        Map<String, Object> row = past.get(idx);
+        row.put("name", name);
+        row.put("bio", bio);
+        row.put("note", note);
+        data.set("past-tsars", past);
+        save();
+    }
+
+    /** Удалить прошлого царя по индексу. */
+    public void removePastTsar(int idx) {
+        List<Map<String, Object>> past = pastTsarsRaw();
+        if (idx < 0 || idx >= past.size()) return;
+        past.remove(idx);
+        data.set("past-tsars", past);
+        save();
+    }
+
     /** Ушёл царь: переносится в прошлую родословную (список past-tsars). */
     public void retireTsar(String note) {
         Map<String, String> entry = new LinkedHashMap<>();
@@ -117,13 +144,33 @@ public final class PoliticsStore {
 
     // ---------- выборы / парламент ----------
 
-    /** Записать итог выборов: {time, server, per-party {deputies, percent}}. */
-    public void recordElection(List<Map<String, Object>> rowsHeader, List<Map<String, Object>> perParty) {
+    /** Создать пустую запись выборов (временная метка — сейчас); возвращает индекс (0). */
+    public int createElection(long voters) {
         List<Map<String, Object>> elections = electionsRaw();
         Map<String, Object> entry = new LinkedHashMap<>();
         entry.put("time", System.currentTimeMillis());
-        entry.put("parties", perParty);
+        entry.put("voters", voters);
+        entry.put("parties", new ArrayList<Map<String, Object>>());
         elections.add(0, entry);
+        data.set("elections", elections);
+        save();
+        return 0;
+    }
+
+    /** Заменить целиком запись выборов (time/voters/parties) по индексу. */
+    public void saveElection(int idx, Map<String, Object> entry) {
+        List<Map<String, Object>> elections = electionsRaw();
+        if (idx < 0 || idx >= elections.size()) return;
+        elections.set(idx, entry);
+        data.set("elections", elections);
+        save();
+    }
+
+    /** Удалить выборы по индексу. */
+    public void removeElection(int idx) {
+        List<Map<String, Object>> elections = electionsRaw();
+        if (idx < 0 || idx >= elections.size()) return;
+        elections.remove(idx);
         data.set("elections", elections);
         save();
     }

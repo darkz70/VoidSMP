@@ -109,6 +109,9 @@ public final class VoidQuirksPlugin extends JavaPlugin {
             magicCmd.setTabCompleter(magicCommand);
         }
 
+        var zaykCmd = getCommand("zayk");
+        if (zaykCmd != null) zaykCmd.setExecutor(new me.darkz70.quirks.command.ZaykMenu(this));
+
         GaidCommand gaidCommand = new GaidCommand(this);
         PluginCommand gaid = getCommand("gaid");
         if (gaid != null) {
