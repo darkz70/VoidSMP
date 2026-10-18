@@ -26,6 +26,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
     private static final List<String> QUIRKS = List.of(
             "инженер", "кот", "бедрок", "топор", "скалк", "фермер", "земноводный", "паук",
             "engineer", "cat", "bedrock", "axe", "sculk", "farmer", "amphibian", "spider",
+            "глава скалка", "глава скалков", "sculk_leader",
             "admin", "admin_pro", "админ", "админпро");
 
     private final VoidQuirksPlugin plugin;

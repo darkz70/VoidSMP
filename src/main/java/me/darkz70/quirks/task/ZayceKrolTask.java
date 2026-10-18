@@ -40,6 +40,7 @@ public final class ZayceKrolTask extends BukkitRunnable {
     private final Map<UUID, UUID> eliteAggro = new HashMap<>(); // элитный -> игрок помощи царя
     private final Map<UUID, UUID> guardAggro = new HashMap<>(); // охранник -> игрок
     private final Map<UUID, Long> tsarGreeting = new HashMap<>(); // царь -> когда молчал о императоре
+    private final Map<UUID, Long> tsarSummonCd = new HashMap<>(); // царь -> когда закончится КД призыва
     private long lastHourTick = System.currentTimeMillis();
 
     public ZayceKrolTask(VoidQuirksPlugin plugin) {
@@ -79,11 +80,18 @@ public final class ZayceKrolTask extends BukkitRunnable {
     /** Царь ударен: призвать 2 элитных и напасть на обидчика (императору — не дерёмся). */
     public void onTsarHit(Rabbit tsar, Player attacker) {
         if (plugin.quirks().levelOf(attacker, Quirk.BEDROCK) > 0) return; // «не действует на Бедрока»
+        long now = System.currentTimeMillis();
+        Long next = tsarSummonCd.get(tsar.getUniqueId());
+        if (next != null && now < next) return;        // призыв — раз в 1 минуту
+        tsarSummonCd.put(tsar.getUniqueId(), now + 60_000L);
         for (int i = 0; i < 2; i++) {
             Rabbit elite = tsar.getWorld().spawn(tsar.getLocation(), Rabbit.class);
             ZayceKrol.convert(elite, Role.ELITE);
             eliteAggro.put(elite.getUniqueId(), attacker.getUniqueId());
         }
+        // и царь хилится 2 минуты подряд
+        tsar.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                org.bukkit.potion.PotionEffectType.REGENERATION, 2400, 0, true, false));
     }
 
     public boolean hasAggro(Rabbit rabbit) {
@@ -221,8 +229,15 @@ public final class ZayceKrolTask extends BukkitRunnable {
                 return;
             }
         }
-        // волки и лисы — врождённая вражда
+        // волки, лисы и коты — врождённая вражда
         for (Entity entity : rabbit.getNearbyEntities(10, 5, 10)) {
+            if (entity instanceof org.bukkit.entity.Cat cat) {
+                walkTo(rabbit, cat.getLocation());
+                if (rabbit.getLocation().distanceSquared(cat.getLocation()) < 2.5) {
+                    cat.damage(damage, rabbit);
+                }
+                return;
+            }
             if (entity instanceof org.bukkit.entity.Fox fox) {
                 walkTo(rabbit, fox.getLocation());
                 if (rabbit.getLocation().distanceSquared(fox.getLocation()) < 2.5) {

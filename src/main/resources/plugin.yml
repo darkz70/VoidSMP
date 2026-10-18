@@ -24,14 +24,6 @@ commands:
     aliases: [зайцекрол]
     usage: /zayk
     permission: quirks.user
-  sit:
-    permission: quirks.user
-    description: Сесть (Shift — встать)
-    usage: /sit
-  lie:
-    permission: quirks.user
-    description: Лечь (Shift — встать)
-    usage: /lie
   voidticker:
     permission: quirks.user
     description: Резонансный тикер пустоты

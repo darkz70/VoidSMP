@@ -93,9 +93,10 @@ public final class AdminMenu implements Listener {
         PlayerData data = plugin.magic().dataOrCreate(target);
         // причуды: слоты 10..17 (клик — цикл 0→1→2→3)
         Quirk[] quirks = {Quirk.AXE, Quirk.SPIDER, Quirk.BEDROCK, Quirk.SCULK,
-            Quirk.FARMER, Quirk.CAT, Quirk.AMPHIBIAN, Quirk.ENGINEER};
+            Quirk.FARMER, Quirk.CAT, Quirk.AMPHIBIAN, Quirk.ENGINEER, Quirk.SCULK_LEADER};
         Material[] icons = {Material.DIAMOND_AXE, Material.COBWEB, Material.BEDROCK, Material.SCULK,
-            Material.DIAMOND_HOE, Material.COD, Material.TRIDENT, Material.REDSTONE};
+            Material.DIAMOND_HOE, Material.COD, Material.TRIDENT, Material.REDSTONE,
+            Material.SCULK_CATALYST};
         for (int i = 0; i < quirks.length; i++) {
             Quirk quirk = quirks[i];
             int level = data.levelOf(quirk);
