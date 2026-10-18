@@ -412,6 +412,9 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                       @NotNull String label, @NotNull String[] args) {
         List<String> out = new ArrayList<>();
+        if (!sender.hasPermission("quirks.admin")) {
+            return out; // обычным игрокам — никаких подсказок: меню само всё покажет
+        }
         if (args.length == 1) {
             for (String sub : SUBS) {
                 if (sub.startsWith(args[0].toLowerCase(Locale.ROOT))) out.add(sub);

@@ -10,35 +10,47 @@ commands:
     description: Управление причудами душ
     aliases: [quirks, причуда]
     usage: /quirk <set|remove|info|list|reload>
+    permission: quirks.user
   magic:
     description: Магия VoidSMP — меню заклинаний и админ-выдача
     aliases: [магия]
     usage: /magic [book|upbook|brew|set]
+    permission: quirks.user
   gaid:
     description: Книга-гайд по механикам VoidSMP (админ)
     usage: /gaid
   sit:
+    permission: quirks.user
     description: Сесть (Shift — встать)
     usage: /sit
   lie:
+    permission: quirks.user
     description: Лечь (Shift — встать)
     usage: /lie
   voidticker:
+    permission: quirks.user
     description: Резонансный тикер пустоты
     usage: /voidticker
   soulweather:
+    permission: quirks.user
     description: Погода душ по архиву
     usage: /soulweather
   effigylog:
+    permission: quirks.user
     description: Журнал кукольных трекеров
     usage: /effigylog
   hermitgram:
+    permission: quirks.user
     description: Примитивный граммофон анахорета
     usage: /hermitgram
   stardustindex:
+    permission: quirks.user
     description: Индекс звёздной пыли (прогноз)
     usage: /stardustindex
 permissions:
   quirks.admin:
     description: Полное управление причудами
     default: op
+  quirks.user:
+    description: Базовые команды VoidSMP (видны всем игрокам)
+    default: true
