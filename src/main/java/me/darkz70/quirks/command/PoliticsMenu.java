@@ -110,9 +110,9 @@ public final class PoliticsMenu implements Listener {
         for (Map<String, Object> row : past) {
             if (slot >= 45) break;
             inv.setItem(slot++, btn(Material.PLAYER_HEAD,
-                    "&7" + row.getOrDefault("name", "—"),
-                    "&f" + row.getOrDefault("bio", ""),
-                    "&8" + row.getOrDefault("note", "")));
+                    "&7" + String.valueOf(row.getOrDefault("name", "—")),
+                    "&f" + String.valueOf(row.getOrDefault("bio", "")),
+                    "&8" + String.valueOf(row.getOrDefault("note", ""))));
         }
         player.openInventory(inv);
     }

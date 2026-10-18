@@ -313,6 +313,36 @@ public final class ZayceKrolTask extends BukkitRunnable {
 
     // ---------- рост колоний (каждый час) ----------
 
+    /** Слуга: ходит рядом с царём (до 4 блоков). */
+    private void servant(Rabbit rabbit) {
+        Rabbit tsar = nearestRole(rabbit, Role.TSAR, 24);
+        if (tsar != null && tsar.getLocation().distanceSquared(rabbit.getLocation()) > 16) {
+            walkTo(rabbit, tsar.getLocation());
+        }
+    }
+
+    /** Депутат: держится в округе царя (до 20 блоков), носит имя своей партии. */
+    private void deputy(Rabbit rabbit) {
+        Rabbit tsar = nearestRole(rabbit, Role.TSAR, 40);
+        if (tsar != null && tsar.getLocation().distanceSquared(rabbit.getLocation()) > 20 * 20) {
+            walkTo(rabbit, tsar.getLocation());
+        }
+        String party = plugin.getConfig().getString("zaycekrol.deputy-party", "Без партии");
+        rabbit.customName(me.darkz70.quirks.util.Msg.color(
+                "&eЗайцекрол \u00B7 &fДепутат &8(&d" + party + "&8)"));
+    }
+
+    /** Революционер: охотится на царя. */
+    private void revolutioner(Rabbit rabbit) {
+        Rabbit tsar = nearestRole(rabbit, Role.TSAR, 30);
+        if (tsar == null) return;
+        walkTo(rabbit, tsar.getLocation());
+        if (rabbit.getLocation().distanceSquared(tsar.getLocation()) < 2.5) {
+            tsar.damage(4.0, rabbit);
+        }
+    }
+
+
     private void hourlyGrowth() {
         for (World world : Bukkit.getWorlds()) {
             var residents = world.getEntitiesByClass(Rabbit.class).stream()

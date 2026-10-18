@@ -37,6 +37,11 @@ public final class QuirkManager {
         return data == null ? 0 : data.levelOf(quirk);
     }
 
+    /** Скалк-уровень игрока: максимум из обычного Скалка и Главы скалка. */
+    public int sculkOf(Player player) {
+        return Math.max(levelOf(player, Quirk.SCULK), levelOf(player, Quirk.SCULK_LEADER));
+    }
+
     /** Добавляет причуду в набор игрока (или меняет её уровень). */
     public void assign(Player player, Quirk quirk, int level) {
         PlayerData data = storage.get(player.getUniqueId());
