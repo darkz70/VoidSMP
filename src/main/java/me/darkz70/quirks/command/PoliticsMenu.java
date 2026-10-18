@@ -110,9 +110,9 @@ public final class PoliticsMenu implements Listener {
         for (Map<String, Object> row : past) {
             if (slot >= 45) break;
             inv.setItem(slot++, btn(Material.PLAYER_HEAD,
-                    "&7" + String.valueOf(row.getOrDefault("name", "—")),
-                    "&f" + String.valueOf(row.getOrDefault("bio", "")),
-                    "&8" + String.valueOf(row.getOrDefault("note", ""))));
+                    "&7" + row.get("name") == null ? "—" : String.valueOf(row.get("name")),
+                    "&f" + row.get("bio") == null ? "" : String.valueOf(row.get("bio")),
+                    "&8" + row.get("note") == null ? "" : String.valueOf(row.get("note"))));
         }
         player.openInventory(inv);
     }
@@ -138,9 +138,9 @@ public final class PoliticsMenu implements Listener {
             if (partiesObj instanceof List<?> rows) {
                 for (Object o : rows) {
                     if (o instanceof Map<?, ?> row) {
-                        lore.add(Msg.color("&d" + String.valueOf(row.getOrDefault("party", "?"))
-                                + "&7: депутатов &f" + String.valueOf(row.getOrDefault("deputies", "0"))
-                                + "&7, голосов &f" + String.valueOf(row.getOrDefault("percent", "0")) + "%"));
+                        lore.add(Msg.color("&d" + row.get("party") == null ? "?" : String.valueOf(row.get("party"))
+                                + "&7: депутатов &f" + row.get("deputies") == null ? "0" : String.valueOf(row.get("deputies"))
+                                + "&7, голосов &f" + row.get("percent") == null ? "0" : String.valueOf(row.get("percent")) + "%"));
                     }
                 }
             }
