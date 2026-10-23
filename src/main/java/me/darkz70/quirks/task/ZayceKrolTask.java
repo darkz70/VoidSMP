@@ -229,6 +229,23 @@ public final class ZayceKrolTask extends BukkitRunnable {
                 return;
             }
         }
+        // злодеи, которые напали на стража или на игрока — разбираемся
+        for (Entity entity : rabbit.getNearbyEntities(14, 6, 14)) {
+            if (entity instanceof org.bukkit.entity.Monster monster) {
+                var mtarget = monster.getTarget();
+                boolean hitsGuard = mtarget != null && mtarget.getUniqueId().equals(rabbit.getUniqueId());
+                boolean hitsPlayer = mtarget instanceof Player mplayer
+                        && mplayer.getWorld().equals(rabbit.getWorld());
+                if (hitsGuard || hitsPlayer) {
+                    walkTo(rabbit, monster.getLocation());
+                    if (rabbit.getLocation().distanceSquared(monster.getLocation()) < 2.5) {
+                        monster.damage(damage, rabbit);
+                    }
+                    return;
+                }
+            }
+        }
+
         // волки, лисы и коты — врождённая вражда
         for (Entity entity : rabbit.getNearbyEntities(10, 5, 10)) {
             if (entity instanceof org.bukkit.entity.Cat cat) {
@@ -356,13 +373,23 @@ public final class ZayceKrolTask extends BukkitRunnable {
                 (mobName == null ? "&eЗайцекрол" : "&e" + mobName) + " &7\u00B7 &fДепутат &8(&d" + party + "&8)"));
     }
 
-    /** Революционер: охотится на царя. */
+    /** Недовольные (революционеры): охотятся на царя, охрану и элиту. */
     private void revolutioner(Rabbit rabbit) {
-        Rabbit tsar = nearestRole(rabbit, Role.TSAR, 30);
-        if (tsar == null) return;
-        walkTo(rabbit, tsar.getLocation());
-        if (rabbit.getLocation().distanceSquared(tsar.getLocation()) < 2.5) {
-            tsar.damage(4.0, rabbit);
+        Rabbit target = nearestRole(rabbit, Role.TSAR, 30);
+        if (target == null) {
+            Rabbit g = nearestRole(rabbit, Role.GUARD, 30);
+            Rabbit e = nearestRole(rabbit, Role.ELITE, 30);
+            if (g != null && e != null) {
+                target = g.getLocation().distanceSquared(rabbit.getLocation())
+                        <= e.getLocation().distanceSquared(rabbit.getLocation()) ? g : e;
+            } else {
+                target = g != null ? g : e;
+            }
+        }
+        if (target == null) return;
+        walkTo(rabbit, target.getLocation());
+        if (rabbit.getLocation().distanceSquared(target.getLocation()) < 2.5) {
+            target.damage(4.0, rabbit);
         }
     }
 
