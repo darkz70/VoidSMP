@@ -11,10 +11,11 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Wolf;
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
@@ -102,16 +103,25 @@ public final class FarmerListener implements Listener {
             growCrops(plugin, player);
         }
 
-        // волки чуют мясо (3 ур.)
-        if (level >= 3) {
-            double radius = plugin.getConfig().getDouble("farmer.wolf-radius", 10.0);
-            for (Entity entity : player.getNearbyEntities(radius, radius, radius)) {
-                if (entity instanceof Wolf wolf && !wolf.isTamed() && !(player.equals(wolf.getTarget()))) {
-                    wolf.setTarget(player);
-                }
-            }
+    }
+
+    /** С 1 уровня: нейтральные мобы не трогают фермера (урон зануляется). */
+    @EventHandler(ignoreCancelled = true)
+    public void onNeutralDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (plugin.quirks().levelOf(player, Quirk.FARMER) < 1) return;
+        if (!plugin.getConfig().getBoolean("farmer.neutral-damage-blocked", true)) return;
+        if (!(event.getDamager() instanceof org.bukkit.entity.LivingEntity liv)) return;
+        if (liv instanceof Player) return;
+        if (NEUTRAL.contains(liv.getType())) {
+            event.setCancelled(true);
         }
     }
+
+    private static final java.util.EnumSet<EntityType> NEUTRAL = java.util.EnumSet.of(
+            EntityType.WOLF, EntityType.BEE, EntityType.PANDA, EntityType.SPIDER,
+            EntityType.CAVE_SPIDER, EntityType.ENDERMAN, EntityType.IRON_GOLEM,
+            EntityType.DOLPHIN, EntityType.GOAT);
 
     /** Посевы в радиусе растут быстрее (~x4): шансом добавляем стадию роста. */
     private static void growCrops(VoidQuirksPlugin plugin, Player player) {

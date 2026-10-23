@@ -24,6 +24,25 @@ import org.bukkit.potion.PotionEffectType;
 /** Причуда «Инженер»: слабость (1 ур.), скорость в паутине (1 ур.), скан редстоуна, ТНТ, эльфийский желудок (2-3 ур.). */
 public final class EngineerListener implements Listener {
 
+    /** С 1 уровня: инженер крафтит рельсы вдвое больше. */
+    @EventHandler(ignoreCancelled = true)
+    public void onCraftRails(org.bukkit.event.inventory.CraftItemEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (plugin == null || plugin.quirks().levelOf(player, me.darkz70.quirks.Quirk.ENGINEER) < 1) return;
+        org.bukkit.inventory.ItemStack crafted = event.getCurrentItem();
+        if (crafted == null) return;
+        switch (crafted.getType()) {
+            case RAIL, POWERED_RAIL, ACTIVATOR_RAIL, DETECTOR_RAIL -> { }
+            default -> { return; }
+        }
+        org.bukkit.inventory.ItemStack extra = crafted.clone();
+        extra.setAmount(crafted.getAmount());
+        org.bukkit.Bukkit.getScheduler().runTask(plugin, () -> {
+            var leftover = player.getInventory().addItem(extra);
+            leftover.values().forEach(it -> player.getWorld().dropItemNaturally(player.getLocation(), it));
+        });
+    }
+
     /** Резчик Инженера (со 2 ур.): вдвое больше блоков при нарезке. */
     @EventHandler(ignoreCancelled = true)
     public void onStonecut(org.bukkit.event.inventory.InventoryClickEvent event) {

@@ -26,6 +26,9 @@ import org.bukkit.scheduler.BukkitRunnable;
  */
 public final class EffectsTask extends BukkitRunnable {
 
+    /** Инженер: метка начала контакта с огнём/магмой/лавой (для 2-сек планки). */
+    private final java.util.Map<java.util.UUID, Long> engFireStart = new java.util.HashMap<>();
+
     private final VoidQuirksPlugin plugin;
 
     public EffectsTask(VoidQuirksPlugin plugin) {
@@ -81,6 +84,41 @@ public final class EffectsTask extends BukkitRunnable {
             // зелёное свечение: рядом с Бедроком есть Скалк (в 3 блоках)
             if (bedrock > 0) {
                 greenAura(player);
+            }
+
+            // Фермер (с 1 ур.): стоя на мхе — регенерация 10 сек, КД 5 мин
+            if (farmer > 0
+                    && player.getLocation().subtract(0, 1, 0).getBlock().getType() == org.bukkit.Material.MOSS_BLOCK
+                    && ScanUtil.tryUse(player.getUniqueId(), "farmer-moss",
+                            plugin.getConfig().getInt("farmer.moss-regen-cooldown-minutes", 5) * 60_000L)) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 200, 0, true, false, true));
+            }
+
+            // Инженер (с 1 ур.): 2 секунды в огне/лаве/на магме → защита от огня, КД 30 мин
+            int engineer = data.levelOf(Quirk.ENGINEER);
+            if (engineer >= 1) {
+                org.bukkit.block.Block feet = player.getLocation().getBlock();
+                org.bukkit.block.Block below = player.getLocation().subtract(0, 1, 0).getBlock();
+                boolean hot = switch (feet.getType()) {
+                    case FIRE, SOUL_FIRE, LAVA -> true;
+                    default -> below.getType() == org.bukkit.Material.MAGMA_BLOCK
+                            || below.getType() == org.bukkit.Material.LAVA;
+                };
+                java.util.UUID uid = player.getUniqueId();
+                if (hot) {
+                    long start = engFireStart.computeIfAbsent(uid, k -> System.currentTimeMillis());
+                    long contactMs = plugin.getConfig().getLong("engineer.fire-contact-ms", 2000);
+                    if (System.currentTimeMillis() - start >= contactMs
+                            && ScanUtil.tryUse(uid, "eng-fire",
+                                    plugin.getConfig().getLong("engineer.fire-cooldown-minutes", 30) * 60_000L)) {
+                        player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE,
+                                plugin.getConfig().getInt("engineer.fire-resist-seconds", 30) * 20, 0,
+                                true, false, true));
+                        engFireStart.remove(uid);
+                    }
+                } else {
+                    engFireStart.remove(uid);
+                }
             }
         }
     }
