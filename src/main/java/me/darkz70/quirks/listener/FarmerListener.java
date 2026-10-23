@@ -100,6 +100,16 @@ public final class FarmerListener implements Listener {
                     300, 1, true, false, true));
         }
 
+        // 2 ур: выбранная пассивка через меню (скорость / ночное зрение)
+        if (level >= 2) {
+            String passiv = me.darkz70.quirks.listener.AbilityMenus.farmerPassive(player.getUniqueId());
+            if ("speed".equals(passiv)) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 300, 0, true, false, true));
+            } else if ("night".equals(passiv)) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 400, 0, true, false, true));
+            }
+        }
+
         // слабость при меньше 5 HP (2-3 ур.)
         if (level >= 2) {
             double limit = plugin.getConfig().getDouble("farmer.weakness-hp", 5.0);

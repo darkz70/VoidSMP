@@ -342,9 +342,18 @@ public final class ZayceKrolTask extends BukkitRunnable {
         if (tsar != null && tsar.getLocation().distanceSquared(rabbit.getLocation()) > 20 * 20) {
             walkTo(rabbit, tsar.getLocation());
         }
-        String party = plugin.getConfig().getString("zaycekrol.deputy-party", "Без партии");
+        // депутаты носят имя своей партии (индивидуальная PDC-партия приоритетнее конфига)
+        org.bukkit.NamespacedKey partyKey = new org.bukkit.NamespacedKey(plugin, "zayce.party");
+        org.bukkit.NamespacedKey nameKey = new org.bukkit.NamespacedKey(plugin, "zayce.name");
+        String party = rabbit.getPersistentDataContainer()
+                .get(partyKey, org.bukkit.persistence.PersistentDataType.STRING);
+        if (party == null) {
+            party = plugin.getConfig().getString("zaycekrol.deputy-party", "Без партии");
+        }
+        String mobName = rabbit.getPersistentDataContainer()
+                .get(nameKey, org.bukkit.persistence.PersistentDataType.STRING);
         rabbit.customName(me.darkz70.quirks.util.Msg.color(
-                "&eЗайцекрол \u00B7 &fДепутат &8(&d" + party + "&8)"));
+                (mobName == null ? "&eЗайцекрол" : "&e" + mobName) + " &7\u00B7 &fДепутат &8(&d" + party + "&8)"));
     }
 
     /** Революционер: охотится на царя. */

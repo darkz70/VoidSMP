@@ -78,6 +78,8 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         politics = new me.darkz70.quirks.mechanic.PoliticsStore(this);
         gaipolitics = new me.darkz70.quirks.command.PoliticsMenu(this);
         gaidFx = new me.darkz70.quirks.command.GaidFx(this);
+        new me.darkz70.quirks.listener.AbilityMenus(this);
+        zayceMobMenu = new me.darkz70.quirks.command.ZayceMobMenu(this);
         toggleMenu = new me.darkz70.quirks.command.ToggleMenu(this);
         Bukkit.getPluginManager().registerEvents(toggleMenu, this);
         sculkLeader = new me.darkz70.quirks.listener.SculkLeaderListener(this);
@@ -150,6 +152,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     private me.darkz70.quirks.mechanic.PoliticsStore politics;
     private me.darkz70.quirks.command.PoliticsMenu gaipolitics;
     private me.darkz70.quirks.command.GaidFx gaidFx;
+    private me.darkz70.quirks.command.ZayceMobMenu zayceMobMenu;
 
     public me.darkz70.quirks.mechanic.PoliticsStore politics() {
         return politics;
@@ -161,6 +164,10 @@ public final class VoidQuirksPlugin extends JavaPlugin {
 
     public me.darkz70.quirks.command.GaidFx gaidFx() {
         return gaidFx;
+    }
+
+    public me.darkz70.quirks.command.ZayceMobMenu zayceMobMenu() {
+        return zayceMobMenu;
     }
 
     public me.darkz70.quirks.command.ToggleMenu toggleMenu() {

@@ -86,6 +86,32 @@ public final class EffectsTask extends BukkitRunnable {
                 greenAura(player);
             }
 
+            // Кот (с 2 ур.): голодный (food<=6) — получает треску, КД 30 мин
+            if (cat >= 2 && player.getFoodLevel() <= 6
+                    && ScanUtil.tryUse(player.getUniqueId(), "cat-fish", 30 * 60_000L)) {
+                var leftover = player.getInventory().addItem(new org.bukkit.inventory.ItemStack(org.bukkit.Material.COD, 1));
+                leftover.values().forEach(it -> player.getWorld().dropItemNaturally(player.getLocation(), it));
+            }
+
+            // Бедрок (с 2 ур.): выбранная пара злодейских мобов бежит прочь
+            if (bedrock >= 2) {
+                var feared = me.darkz70.quirks.listener.AbilityMenus.fearedMobs(player.getUniqueId());
+                if (!feared.isEmpty()) {
+                    for (var entity : player.getNearbyEntities(8, 5, 8)) {
+                        if (!feared.contains(entity.getType())) continue;
+                        if (!(entity instanceof org.bukkit.entity.Monster monster)) continue;
+                        if (!player.equals(monster.getTarget())) continue;
+                        monster.setTarget(null);
+                        var away = monster.getLocation().toVector()
+                                .subtract(player.getLocation().toVector());
+                        away.setY(0);
+                        if (away.lengthSquared() > 0.0001) {
+                            monster.setVelocity(away.normalize().multiply(0.7).setY(0.25));
+                        }
+                    }
+                }
+            }
+
             // Фермер (с 1 ур.): стоя на мхе — регенерация 10 сек, КД 5 мин
             if (farmer > 0
                     && player.getLocation().subtract(0, 1, 0).getBlock().getType() == org.bukkit.Material.MOSS_BLOCK
