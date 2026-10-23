@@ -328,7 +328,7 @@ public final class AbilityMenus implements Listener {
                     {null, EntityType.SPIDER, "Пауки"}, {null, EntityType.PHANTOM, "Фантомы"},
                     {null, EntityType.CREEPER, "Криперы"}, {null, EntityType.BLAZE, "Ифриты"},
                     {null, EntityType.PILLAGER, "Разбойники"}};
-                EntityType type = mobs[slot - 10][1];
+                EntityType type = (EntityType) mobs[slot - 10][1];
                 Set<EntityType> picks = BEDROCK_FEAR.computeIfAbsent(player.getUniqueId(),
                         k -> EnumSet.noneOf(EntityType.class));
                 if (picks.contains(type)) {
