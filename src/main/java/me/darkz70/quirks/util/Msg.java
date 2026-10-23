@@ -63,6 +63,7 @@ public final class Msg {
         def("zayce-spawned", "%prefix%&6Зайцекрол (%role%) призван.");
         def("zayce-colony", "%prefix%&6Колония зайцекролов разбита прямо здесь.");
         def("zayce-purged", "%prefix%&6Зайцекролов отправлено в морку: &f%count%");
+        def("info-self-only", "%prefix%&cПро чужие причуды спрашивай у них самих. Ты можешь только про себя: /quirk info");
         def("toggle-sleep", "%prefix%&7Причуда &f%quirk% &7уложена спать.");
         def("toggle-awake", "%prefix%&aПричуда &f%quirk% &aпробудилась.");
         def("sit-on", "%prefix%&aТы сел. Встать — Shift.");

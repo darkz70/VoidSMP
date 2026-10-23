@@ -94,6 +94,12 @@ public final class FarmerListener implements Listener {
     public static void applyPassive(VoidQuirksPlugin plugin, Player player, int level) {
         if (player.isDead()) return;
 
+        // 3 уровень: герой деревни II (деревня его боготворит)
+        if (level >= 3) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.HERO_OF_THE_VILLAGE,
+                    300, 1, true, false, true));
+        }
+
         // слабость при меньше 5 HP (2-3 ур.)
         if (level >= 2) {
             double limit = plugin.getConfig().getDouble("farmer.weakness-hp", 5.0);

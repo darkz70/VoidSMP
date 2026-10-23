@@ -291,7 +291,11 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
     private void handleInfo(CommandSender sender, String[] args) {
         Player target;
         if (args.length >= 2) {
-            if (!sender.equals(Bukkit.getPlayerExact(args[1])) && !admin(sender)) return;
+            if (!sender.hasPermission("quirks.admin")
+                    && !sender.getName().equalsIgnoreCase(args[1])) {
+                Msg.send(sender, "info-self-only"); // обычные игроки — только про себя
+                return;
+            }
             target = Bukkit.getPlayerExact(args[1]);
             if (target == null) {
                 Msg.send(sender, "target-offline");
