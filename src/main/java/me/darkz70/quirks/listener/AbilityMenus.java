@@ -26,7 +26,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -122,18 +121,6 @@ public final class AbilityMenus implements Listener {
         }
     }
 
-    /** Топор: сел на шифт с топором в руке. */
-    @EventHandler(ignoreCancelled = true)
-    public void onSneak(PlayerToggleSneakEvent event) {
-        if (!event.isSneaking()) return;
-        Player player = event.getPlayer();
-        if (lvl(player, Quirk.AXE) < 2) return;
-        ItemStack item = hand(player);
-        if (item == null || !isTool(item, "_AXE")) return;
-        if (!ScanUtil.tryUse(player.getUniqueId(), "axe-open", 3000)) return;
-        openAxe(player);
-    }
-
     /** Земноводный: шифт+F с трезубцем; Бедрок: шифт+F. */
     @EventHandler(ignoreCancelled = false)
     public void onSwap(PlayerSwapHandItemsEvent event) {
@@ -143,6 +130,11 @@ public final class AbilityMenus implements Listener {
         if (item != null && item.getType() == Material.TRIDENT && lvl(player, Quirk.AMPHIBIAN) >= 2) {
             event.setCancelled(true);
             openAmphibian(player);
+            return;
+        }
+        if (isTool(item, "_AXE") && lvl(player, Quirk.AXE) >= 2) {
+            event.setCancelled(true);
+            openAxe(player);
             return;
         }
         if (lvl(player, Quirk.BEDROCK) >= 2) {
