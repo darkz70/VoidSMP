@@ -1,7 +1,9 @@
 package me.darkz70.quirks.command;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import me.darkz70.quirks.VoidQuirksPlugin;
 import me.darkz70.quirks.util.Msg;
@@ -60,6 +62,11 @@ public final class GaidFx implements Listener {
                 "&7шквал звуков вардена и страшная скрипка."));
         inv.setItem(14, btn(Material.DRAGON_HEAD, "&5&lГлобальный страх",
                 "&7То же, что страх, но на 300 блоков."));
+        inv.setItem(16, btn(Material.NETHER_PORTAL, "&4&lОткрытие ада",
+                "&7Всем трясётся экран 12 сек, молнии вокруг игроков,",
+                "&7день и ночь скачут 7 сек, потом из-под админа растёт",
+                "&7магма-круг, окантовка из магмы/незерака/светокамня/",
+                "&7плачущего и обычного обсидиана, и открывается портал."));
         inv.setItem(22, btn(Material.ARROW, "&7Назад"));
         player.openInventory(inv);
     }
@@ -74,6 +81,7 @@ public final class GaidFx implements Listener {
             case 12 -> thunder(player);
             case 13 -> fear(player, 60);
             case 14 -> fear(player, 300);
+            case 16 -> openHell(player);
             case 22 -> {
                 player.closeInventory();
                 Bukkit.getScheduler().runTask(plugin, () -> player.performCommand("gaid"));
@@ -235,6 +243,52 @@ public final class GaidFx implements Listener {
         }
         admin.sendMessage(Msg.color("&5Страх (" + (int) radius + " блоков) запущен: "
                 + victims.size() + " игроков."));
+    }
+
+    // ---------- открытие ада ----------
+
+    private static final Material[] HELL_MIX = {
+        Material.MAGMA_BLOCK, Material.NETHERRACK, Material.GLOWSTONE,
+        Material.CRYING_OBSIDIAN, Material.OBSIDIAN};
+
+    /** Сценическое открытие ада (~20 секунд). */
+    private void openHell(Player admin) {
+        World world = admin.getWorld();
+        final int by = admin.getLocation().getBlockY() - 1;
+        final int bx = admin.getLocation().getBlockX();
+        final int bz = admin.getLocation().getBlockZ();
+        final long savedTime = world.getTime();
+        final Map<Block, Material> original = new IdentityHashMap<>();
+        final Map<Block, Boolean> border = new IdentityHashMap<>();
+
+        new BukkitRunnable2().start(this, world, bx, by, bz, savedTime, original, border);
+    }
+
+    /** Запись очередной клетки круга (в владении анимации). */
+    static Block claim(Map<Block, Material> original, World world, int x, int y, int z) {
+        Block block = world.getBlockAt(x, y, z);
+        original.computeIfAbsent(block, Block::getType);
+        return block;
+    }
+
+    /** Кольцо точек круга (целочисленные координаты, без дублей). */
+    static List<int[]> circlePoints(int cx, int cz, int radius) {
+        List<int[]> out = new ArrayList<>();
+        int steps = Math.max(8, radius * 6);
+        java.util.HashSet<Long> seen = new java.util.HashSet<>();
+        for (int i = 0; i < steps; i++) {
+            double a = (Math.PI * 2 * i) / steps;
+            int x = cx + (int) Math.round(Math.cos(a) * radius);
+            int z = cz + (int) Math.round(Math.sin(a) * radius);
+            long key = (((long) x) << 32) | (z & 0xFFFFFFFFL);
+            if (seen.add(key)) out.add(new int[]{x, z});
+        }
+        return out;
+    }
+
+    private int floorY(World world, int baseY, int x, int z) {
+        int hi = world.getHighestBlockYAt(x, z) - 1;
+        return Math.max(baseY - 2, Math.min(baseY + 3, hi));
     }
 
     // ---------- сервис ----------
