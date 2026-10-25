@@ -327,4 +327,94 @@ public final class GaidFx implements Listener {
     }
 
 
+
+    /** Задача «Открытие ада»: тряска 12 сек, день/ночь и молнии 7 сек, круг, рамка, портал. */
+    private final class BukkitRunnable2 extends org.bukkit.scheduler.BukkitRunnable {
+
+        private GaidFx fx;
+        private World world;
+        private Map<Block, Material> original;
+        private int bx, by, bz, maxR = 9, t = 0, r = 0;
+        private long savedTime;
+        private boolean dayNightRestored = false, portalDone = false;
+
+        void start(GaidFx fx, World world, int bx, int by, int bz, long savedTime,
+                   Map<Block, Material> original, Map<Block, Boolean> border) {
+            this.fx = fx; this.world = world;
+            this.bx = bx; this.by = by; this.bz = bz;
+            this.savedTime = savedTime; this.original = original;
+            runTaskTimer(fx.plugin, 5L, 2L);
+        }
+
+        @Override
+        public void run() {
+            t += 2;
+            // 1) тряска всех экранов — 12 секунд
+            if (t <= 240) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    player.playHurtAnimation((t / 2) % 2 == 0 ? 70 : -70);
+                }
+            }
+            // 2) день/ночь скачут — первые 7 секунд
+            if (t <= 140) {
+                long time = (t / 10) % 2 == 0 ? 13000L : 1000L;
+                world.setTime(time);
+            } else if (!dayNightRestored) {
+                world.setTime(savedTime);
+                dayNightRestored = true;
+            }
+            // 3) молнии рядом с игроками — первые 7 секунд
+            if (t <= 140 && t % 22 == 0) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    var p = player.getLocation().clone().add(
+                            ThreadLocalRandom.current().nextDouble(-6, 6), 0,
+                            ThreadLocalRandom.current().nextDouble(-6, 6));
+                    world.strikeLightningEffect(p);
+                    world.playSound(p, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.WEATHER, 2f, 0.9f);
+                }
+            }
+            // 4) круг магмы: с 7-й секунды, кольцо за кольцом вверх, старое исчезает
+            if (t >= 140 && !portalDone) {
+                if (r == 0) { r = 1; return; }
+                if (r <= maxR) {
+                    if (r > 1) {
+                        for (int[] pt : circlePoints(bx, bz, r - 1)) {
+                            Block prev = world.getBlockAt(pt[0], fx.floorY(world, by, pt[0], pt[1]), pt[1]);
+                            Material back = original.get(prev);
+                            if (back != null) prev.setType(back);
+                        }
+                    }
+                    for (int[] pt : circlePoints(bx, bz, r)) {
+                        int fy = fx.floorY(world, by, pt[0], pt[1]);
+                        Block block = claim(original, world, pt[0], fy, pt[1]);
+                        world.spawnParticle(Particle.LAVA, pt[0] + 0.5, fy + 1.2, pt[1] + 0.5, 2, 0.2, 0.1, 0.2, 0);
+                        if (canTurn(block)) block.setType(Material.MAGMA_BLOCK);
+                    }
+                    r++;
+                } else {
+                    // 5) окантовка: адская смесь
+                    for (int[] pt : circlePoints(bx, bz, maxR)) {
+                        int fy = fx.floorY(world, by, pt[0], pt[1]);
+                        Block block = claim(original, world, pt[0], fy, pt[1]);
+                        block.setType(HELL_MIX[ThreadLocalRandom.current().nextInt(HELL_MIX.length)]);
+                        world.spawnParticle(Particle.FLAME, pt[0] + 0.5, fy + 1.2, pt[1] + 0.5,
+                                6, 0.25, 0.3, 0.25, 0.02);
+                    }
+                    // 6) портал внутри круга (постоянный)
+                    int py = fx.floorY(world, by, bx, bz) + 1;
+                    for (int w = 0; w < 2; w++) {
+                        for (int h = 0; h < 3; h++) {
+                            world.getBlockAt(bx + w, py + h, bz).setType(Material.NETHER_PORTAL);
+                        }
+                    }
+                    var pLoc = new org.bukkit.Location(world, bx + 1.0, py + 1.5, bz + 0.5);
+                    world.playSound(pLoc, Sound.BLOCK_PORTAL_AMBIENT, SoundCategory.BLOCKS, 2f, 0.7f);
+                    world.spawnParticle(Particle.PORTAL, pLoc, 120, 1.5, 1.5, 1.5, 0.3);
+                    portalDone = true;
+                    cancel();
+                }
+            }
+            if (t > 600) cancel(); // страховка
+        }
+    }
 }
