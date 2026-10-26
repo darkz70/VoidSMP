@@ -70,8 +70,13 @@ class ZoneTest {
         // Правило 1.0 = «для летучих мышей ничего не меняем», то есть пустой ответ.
         // При этом сама зона на них действует — только бы не перекрывали соседи.
         assertTrue(zone.effectiveMultiplier("BAT", "AMBIENT").isEmpty());
+        // Пустой filter = все категории, поэтому зона действует и на животных.
         assertTrue(zone.appliesTo("AMBIENT"));
-        assertFalse(zone.appliesTo("ANIMAL"));
+        assertTrue(zone.appliesTo("ANIMAL"));
+        // ...а фильтр категорий важнее правила про конкретный тип моба.
+        Zone onlyMonsters = zone(0.0D, ZoneRecord.CAP_OFF, Set.of("MONSTER"), Map.of("BAT", 1.0D));
+        assertTrue(onlyMonsters.appliesTo("MONSTER"));
+        assertFalse(onlyMonsters.appliesTo("AMBIENT"));
     }
 
     @Test
