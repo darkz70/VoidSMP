@@ -66,7 +66,7 @@ JDBC-драйвер SQLite кладёт на свой classloader сам сер�
 | `/spawnrate tp <имя>` | телепорт в центр зоны | teleport |
 | `/spawnrate save`, `reload`, `debug [true\|false]` | обслуживание | admin |
 
-Права: `voidspawnrates.admin`, `voidspawnrates.view`, `voidspawnrates.teleport`
+Права: `voidspawnrates.admin` (все изменения зон; включает `view` и `teleport`), `voidspawnrates.view` (список, справка, статистика, рамка зоны), `voidspawnrates.teleport` (`/spawnrate tp`). Все три по умолчанию выданы операторам.
 (по умолчанию — OP).
 
 ### Как считается «спавн рейт»

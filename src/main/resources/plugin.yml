@@ -14,6 +14,10 @@ permissions:
   voidspawnrates.admin:
     description: Создание/удаление/изменение зон
     default: op
+    # право на изменение зон автоматически даёт право их смотреть и к ним телепортироваться
+    children:
+      voidspawnrates.view: true
+      voidspawnrates.teleport: true
   voidspawnrates.view:
     description: Просмотр списка зон и статистики
     default: op
