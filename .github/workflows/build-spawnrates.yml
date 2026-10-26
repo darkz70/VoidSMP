@@ -32,7 +32,12 @@ jobs:
           NUMBER=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
             --search "in:title VoidSpawnRates CI build log" --json number --jq '.[0].number')
           [ -z "$NUMBER" ] && exit 0
-          ERRORS=$(grep -E "error:|warning:|What went wrong" -A 4 /tmp/build.log | head -c 55000)
+          ERRORS=$(grep -E "error:|FAILED|What went wrong|expected:|but was:" -A 4 /tmp/build.log | head -c 55000)
+          if grep -q "There were failing tests" /tmp/build.log; then
+            DETAILS=$(find build/test-results/test -name "*.xml" -exec grep -h -A 6 "<failure" {} +  | head -c 40000)
+            ERRORS="$ERRORS
+$DETAILS"
+          fi
           if [ -z "$ERRORS" ]; then
             ERRORS=$(tail -c 20000 /tmp/build.log)
           fi

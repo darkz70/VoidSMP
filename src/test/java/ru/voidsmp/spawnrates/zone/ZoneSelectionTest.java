@@ -38,7 +38,8 @@ class ZoneSelectionTest {
         assertEquals(70, selection.maxY());
         assertEquals(4, selection.minZ());
         assertEquals(20, selection.maxZ());
-        assertEquals(20, selection.maxSize());
+        // размах по самой длинной оси: z = 20 − 4 + 1
+        assertEquals(17, selection.maxSize());
         assertEquals(2L, selection.chunkCount());
     }
 
