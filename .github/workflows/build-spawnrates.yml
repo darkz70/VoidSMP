@@ -1,15 +1,11 @@
 name: Build VoidSpawnRates
 on:
   push:
-    paths:
-      - 'src/**'
-      - 'build.gradle.kts'
-      - 'settings.gradle.kts'
-      - '.github/workflows/build-spawnrates.yml'
   pull_request:
   workflow_dispatch:
 permissions:
   contents: read
+  issues: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,7 +18,31 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.1.0'
-      - run: gradle --no-daemon clean build
+      - name: Build plugin
+        id: build
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          gradle --no-daemon clean build 2>&1 | tee /tmp/build.log
+      - name: Publish build errors as issue comment
+        if: steps.build.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NUMBER=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title VoidSpawnRates CI build log" --json number --jq '.[0].number')
+          [ -z "$NUMBER" ] && exit 0
+          ERRORS=$(grep -E "error:|warning:|What went wrong" -A 4 /tmp/build.log | head -c 55000)
+          if [ -z "$ERRORS" ]; then
+            ERRORS=$(tail -c 20000 /tmp/build.log)
+          fi
+          {
+            echo "### \`${GITHUB_REF_NAME}\` @ \`${GITHUB_SHA:0:8}\` — build failed"
+            echo '```'
+            echo "$ERRORS"
+            echo '```'
+          } > /tmp/report.md
+          gh issue comment "$NUMBER" --repo "$GITHUB_REPOSITORY" --body-file /tmp/report.md
       - name: Report JUnit results
         if: always()
         run: |
@@ -53,3 +73,6 @@ jobs:
           name: VoidSpawnRates
           path: build/libs/*.jar
           if-no-files-found: error
+      - name: Fail on build error
+        if: steps.build.outcome == 'failure'
+        run: exit 1
