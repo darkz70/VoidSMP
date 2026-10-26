@@ -1,0 +1,112 @@
+# ==========================================================================
+#  Сообщения VoidSpawnRates. Формат — MiniMessage (теги <green>, <bold>,
+#  <#a78bfa>), НЕ старые коды вида &a. Ключи можно переименовывать только
+#  вместе с кодом — правьте значения, а не имена.
+#  Плейсхолдеры вида {name} подставляются плагином.
+# ==========================================================================
+prefix: "<dark_gray>[<#a78bfa>SpawnRates</dark_gray>]"
+
+general:
+  no-permission: "<red>Недостаточно прав."
+  players-only: "<red>Эта команда доступна только из игры."
+  plugin-disabled: "<yellow>Плагин отключён (enabled: false в config.yml)."
+  name-invalid: "<red>Имя зоны: <white>2-32</white> символа, латиница, цифры, <white>_</white> и <white>-</white>."
+  name-exists: "<red>Зона <white>{name}</white> уже есть."
+  name-not-found: "<red>Зона <white>{name}</white> не найдена. Список: <white>/spawnrate list</white>"
+  too-big: "<red>Зона слишком большая: по любой из осей максимум <white>{max}</white> блоков."
+  too-many: "<red>Достигнут лимит зон: <white>{max}</white>."
+  unknown-subcommand: "<red>Неизвестная команда. Помощь: <white>/spawnrate help</white>"
+  need-value: "<red>Нужно значение: <white>{usage}</white>"
+  bad-number: "<red>Ожидается число от <white>{min}</white> до <white>{max}</white>."
+  bad-boolean: "<red>Ожидается <white>true</white> или <white>false</white>."
+  unknown-category: "<red>Неизвестная категория <white>{value}</white>. Доступно: <white>{options}</white>."
+
+selection:
+  wand-given: "<green>Палка выделения выдана. <gray>ЛКМ — точка 1, ПКМ — точка 2."
+  pos-set: "<green>Точка <white>{index}</white>: <aqua>{x} {y} {z} <gray>({world})"
+  size: "<gray>Радиус зоны: <white>{x}×{y}×{z}</white> блоков, <white>{chunks}</white> чанков."
+  incomplete: "<red>Выделение неполное: нужны обе точки."
+  cleared: "<gray>Выделение очищено."
+  world-mismatch: "<red>Точки должны быть в одном мире."
+
+zone:
+  created: "<green>Зона <white>{name}</white> создана: <aqua>{x1} {y1} {z1}</aqua> → <aqua>{x2} {y2} {z2}</aqua>, множитель <white>{multiplier}</white>."
+  created-note: "<gray>Координаты сохранены в {storage} — зона переживёт рестарт сервера."
+  deleted: "<red>Зона <white>{name}</white> удалена и убрана из хранилища."
+  resized: "<green>Границы зоны <white>{name}</white> обновлены: <aqua>{x1} {y1} {z1}</aqua> → <aqua>{x2} {y2} {z2}</aqua>."
+  toggled-on: "<green>Зона <white>{name}</white> включена."
+  toggled-off: "<yellow>Зона <white>{name}</white> выключена (записи сохранены)."
+  set-multiplier: "<green>{name}: множитель спавна → <white>{value}</white>"
+  set-cap: "<green>{name}: лимит мобов в зоне → <white>{value}</white>"
+  set-cap-off: "<green>{name}: лимит мобов выключен"
+  set-categories: "<green>{name}: категории мобов → <white>{value}</white>"
+  set-priority: "<green>{name}: приоритет → <white>{value}</white>"
+  set-spawners: "<green>{name}: влиять на спавнеры → <white>{value}</white>"
+  set-remove-excess: "<green>{name}: удалять лишних мобов → <white>{value}</white>"
+  set-bool: "<green>{name}: {key} → <white>{value}</white>"
+  mob-set: "<green>{name}: <white>{mob}</white> → множитель <white>{value}</white>"
+  mob-removed: "<green>{name}: правило для <white>{mob}</white> удалено."
+  unknown-mob: "<red>Неизвестный моб <white>{value}</white>. Пример: <white>zombie</white>, <white>sulfur_cube</white>, <white>all</white>."
+  mobs-empty: "<gray>Правил по конкретным мобам нет — действует общий множитель."
+  mobs-entry: "<gray>- <white>{mob}</white>: {value}"
+  mobs-header: "<aqua>Правила по мобам для <white>{name}</white>:"
+  saved: "<green>Все изменения записаны в {storage}."
+  save-failed: "<red>Не удалось сохранить: <white>{error}</white>"
+  reloaded: "<green>Конфигурация и зоны перезагружены: <white>{count}</white> зон."
+
+list:
+  header: "<aqua>Зоны спавна <gray>({page}/{pages}, всего {total}):"
+  empty: "<gray>Зон нет. Создание: <white>/spawnrate wand</white> → выделение → <white>/spawnrate create <имя></white>"
+  entry: "<gray>• <white>{name}</white> <dark_gray>[{world}]</dark_gray> множитель <gold>{multiplier}</gold>{cap}<dark_gray> prio {priority}</dark_gray>{state}"
+  entry-cap: " <green>cap {value}</green>"
+  entry-off: " <dark_gray>выкл</dark_gray>"
+  bad-page: "<red>Нет такой страницы."
+
+info:
+  header: "<aqua>Зона <white>{name}</white> <gray>({world})"
+  lines:
+    - "<gray>Границы: <aqua>{x1} {y1} {z1}</aqua> → <aqua>{x2} {y2} {z2}</aqua>"
+    - "<gray>Размер: <white>{size}</white> блоков, <white>{chunks}</white> чанков, приоритет <white>{priority}</white>"
+    - "<gray>Множитель: <gold>{multiplier}</gold> <dark_gray>(0 — запрещено, 1 — как ванилла)</dark_gray>"
+    - "<gray>Категории: <white>{categories}</white> • правила по мобам: <white>{rules}</white>"
+    - "<gray>Лимит мобов: <white>{cap}</white>, сейчас в зоне: <white>{mobs}</white>{counted}"
+    - "<gray>Спавнеры: <white>{spawners}</white> • удаление лишних: <white>{remove-excess}</white> • состояние: <white>{state}</white>"
+    - "<gray>Спавнов пропущено: <green>{allowed}</green> • отменено: <red>{denied}</red> • добавлено: <yellow>{extra}</yellow>"
+    - "<dark_gray>Создана {created} • изменена {updated} • {storage}</dark_gray>"
+  counted-partial: " <yellow>(часть чанков выгружена)</yellow>"
+  no-world: " <red>мир не загружен</red>"
+
+preview:
+  showing: "<green>Показываю границу зоны <white>{name}</white>. <gray>/spawnrate hide — выключить."
+  hidden: "<gray>Граница зоны скрыта."
+  nothing-shown: "<gray>Сейчас ничего не показано."
+  hud-line: "<#a78bfa>{name} <dark_gray>• <gray>множитель <gold>{multiplier}</gold>{cap}"
+
+near:
+  header: "<aqua>Зоны рядом с вами:"
+  entry: "<gray>• <white>{name}</white> <dark_gray>{distance}</dark_gray> множитель <gold>{multiplier}</gold> <dark_gray>({size})</dark_gray>"
+  none: "<gray>Рядом нет зон (радиус поиска <white>{radius}</white> блоков)."
+
+admin:
+  debug-on: "<green>Отладка спавна включена (см. консоль)."
+  debug-off: "<yellow>Отладка спавна выключена."
+  storage-info: "<gray>Хранилище: <white>{storage}</white> <dark_gray>({detail})</dark_gray>"
+  storage-warning: "<red>SQLite недоступен ({error}), зоны сохраняются в YAML-файл."
+  storage-failed: "<red>Хранилище недоступно, зоны не будут сохранены: <white>{error}</white>"
+  stats: "<gray>Проверено попыток спавна: <white>{checks}</white> • отменено: <red>{denied}</red> • добавлено: <yellow>{extra}</yellow> • зон: <white>{zones}</white>"
+  tp-done: "<green>Телепорт к зоне <white>{name}</white>."
+
+help:
+  - "<aqua>VoidSpawnRates <gray>— зоны скорости спавна мобов"
+  - "<white>/spawnrate wand <gray>— палка выделения (ЛКМ — точка 1, ПКМ — точка 2)"
+  - "<white>/spawnrate pos1 [x y z]</white> <gray>/<white>pos2</white> <gray>— задать точки от позиции или вручную"
+  - "<white>/spawnrate create <имя> <gray>— создать зону из выделения"
+  - "<white>/spawnrate resize <имя> <gray>— применить выделение к существующей зоне"
+  - "<white>/spawnrate set <имя> multiplier <0.0-10.0> <gray>— множитель спавна"
+  - "<white>/spawnrate set <имя> cap <число|off> <gray>— максимум мобов в зоне"
+  - "<white>/spawnrate set <имя> filter <all|monsters|animals|water|ambient|...> <gray>— кого регулировать"
+  - "<white>/spawnrate set <имя> spawners|despawn|priority <...> <gray>— спавнеры/удаление лишних/приоритет"
+  - "<white>/spawnrate mob <имя> <тип> <множитель|remove> <gray>— правило для конкретного моба"
+  - "<white>/spawnrate list [страница]</white> <gray>|</gray> <white>info <имя></white> <gray>|</gray> <white>near</white>"
+  - "<white>/spawnrate toggle <имя> <gray>— вкл/выкл зону, <white>show <имя></white> — показать рамку"
+  - "<white>/spawnrate delete <имя> <gray>|</gray> <white>save</white> <gray>|</gray> <white>reload</white> <gray>|</gray> <white>debug</white>"

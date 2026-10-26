@@ -1,0 +1,22 @@
+name: VoidSpawnRates
+version: '${version}'
+main: ru.voidsmp.spawnrates.VoidSpawnRatesPlugin
+api-version: '26.2'
+description: Зоны скорости спавна мобов с постоянным хранением (SQLite)
+author: darkz70
+website: https://github.com/darkz70/VoidSMP
+commands:
+  spawnrate:
+    description: Создание и настройка зон спавна мобов
+    usage: /spawnrate help
+    aliases: [zsr, mobrate]
+permissions:
+  voidspawnrates.admin:
+    description: Создание/удаление/изменение зон
+    default: op
+  voidspawnrates.view:
+    description: Просмотр списка зон и статистики
+    default: op
+  voidspawnrates.teleport:
+    description: Телепорт к зоне
+    default: op
