@@ -34,9 +34,8 @@ jobs:
           [ -z "$NUMBER" ] && exit 0
           ERRORS=$(grep -E "error:|FAILED|What went wrong|expected:|but was:" -A 4 /tmp/build.log | head -c 55000)
           if grep -q "There were failing tests" /tmp/build.log; then
-            DETAILS=$(find build/test-results/test -name "*.xml" -exec grep -h -A 6 "<failure" {} +  | head -c 40000)
-            ERRORS="$ERRORS
-$DETAILS"
+            DETAILS=$(find build/test-results/test -name "*.xml" -exec grep -h -A 6 "<failure" {} + | head -c 40000)
+            ERRORS=$(printf '%s\n%s\n' "$ERRORS" "$DETAILS")
           fi
           if [ -z "$ERRORS" ]; then
             ERRORS=$(tail -c 20000 /tmp/build.log)
