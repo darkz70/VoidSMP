@@ -239,7 +239,10 @@ public final class GaidFx implements Listener {
         Location at = admin.getLocation();
         for (Player victim : victims) {
             victim.playSound(at, Sound.ENTITY_WARDEN_ROAR, SoundCategory.HOSTILE, 1.0f, 0.8f);
-            victim.playSound(victim.getLocation(), "music_disc.far", SoundCategory.RECORDS, 0.8f, 0.9f);
+            // «скрипка» звучит ОТ САМОГО ИГРОКА (а не из блока-невидимки) и гаснет через 20 сек
+            victim.playSound(victim, "music_disc.far", SoundCategory.RECORDS, 0.8f, 0.9f);
+            org.bukkit.Bukkit.getScheduler().runTaskLater(plugin,
+                    () -> victim.stopSound("music_disc.far", SoundCategory.RECORDS), 400L);
         }
         for (int i = 0; i < 4; i++) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
