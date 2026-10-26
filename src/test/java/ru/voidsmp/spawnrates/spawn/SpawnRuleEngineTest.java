@@ -158,6 +158,19 @@ class SpawnRuleEngineTest {
     }
 
     @Test
+    void neutralTopZoneShieldsLowerPriorityBan() {
+        Zone top = zone("top", 1.0D, ZoneRecord.CAP_OFF, 10);
+        Zone ban = zone("ban", 0.0D, ZoneRecord.CAP_OFF, 0);
+        assertTrue(engine(options().overlap(OverlapPolicy.PRIORITY))
+                .evaluateHard(List.of(top, ban), "ZOMBIE", "MONSTER").allowed());
+        // MULTIPLY и STRICTEST, наоборот, слышат обе зоны: 1.0 * 0.0 = запрет.
+        assertTrue(engine(options().overlap(OverlapPolicy.MULTIPLY))
+                .evaluateHard(List.of(top, ban), "ZOMBIE", "MONSTER").deny());
+        assertTrue(engine(options().overlap(OverlapPolicy.STRICTEST))
+                .evaluateHard(List.of(top, ban), "ZOMBIE", "MONSTER").deny());
+    }
+
+    @Test
     void multiplyPolicyCombinesBothZones() {
         Zone quarter = zone("quarter", 0.5D, ZoneRecord.CAP_OFF, 0);
         Zone half = zone("half", 0.5D, ZoneRecord.CAP_OFF, 1);

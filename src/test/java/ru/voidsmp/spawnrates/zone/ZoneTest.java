@@ -67,7 +67,11 @@ class ZoneTest {
     void ruleOverridesZoneMultiplier() {
         Zone zone = zone(0.0D, ZoneRecord.CAP_OFF, Set.of(), Map.of("BAT", 1.0D));
         assertEquals(OptionalDouble.of(0.0D), zone.effectiveMultiplier("ZOMBIE", "MONSTER"));
-        assertEquals(OptionalDouble.of(1.0D), zone.effectiveMultiplier("BAT", "AMBIENT"));
+        // Правило 1.0 = «для летучих мышей ничего не меняем», то есть пустой ответ.
+        // При этом сама зона на них действует — только бы не перекрывали соседи.
+        assertTrue(zone.effectiveMultiplier("BAT", "AMBIENT").isEmpty());
+        assertTrue(zone.appliesTo("AMBIENT"));
+        assertFalse(zone.appliesTo("ANIMAL"));
     }
 
     @Test

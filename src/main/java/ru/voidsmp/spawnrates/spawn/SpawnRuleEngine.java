@@ -121,6 +121,10 @@ public final class SpawnRuleEngine {
      * «Жёсткое» решение — только то, что не зависит от случайности: полный запрет
      * (множитель 0) или достигнутый лимит мобов. Используется на
      * {@code PreCreatureSpawnEvent}, чтобы вообще не строить сущность.
+     *
+     * <p>В политике {@code PRIORITY} решает самая приоритетная <em>действующая</em>
+     * зона: если у неё множитель 1.0, спавн остаётся ванильным, и зоны с меньшим
+     * приоритетом уже не учитываются.</p>
      */
     public Decision evaluateHard(List<Zone> zones, String entityTypeName, String categoryName) {
         if (zones.isEmpty()) {
@@ -131,26 +135,32 @@ public final class SpawnRuleEngine {
         boolean capReached = false;
 
         for (Zone zone : zones) {
-            if (!zone.isEnabled()) {
+            // Зона либо действует на моба (и тогда имеет голос, даже с множителем
+            // 1.0), либо выключена / не та категория — тогда её просто нет.
+            if (!zone.appliesTo(categoryName)) {
                 continue;
             }
             OptionalDouble value = zone.effectiveMultiplier(entityTypeName, categoryName);
-            if (value.isEmpty()) {
+            double weight = value.isEmpty() ? 1.0D : value.getAsDouble();
+            if (winner == null) {
+                winner = zone;
+                multiplier = weight;
+                if (options.denyAtCap && zone.isCapReached()) {
+                    capReached = true;
+                }
+                if (options.overlap == OverlapPolicy.PRIORITY) {
+                    // Первая зона в списке уже самая приоритетная — остальные не считаем.
+                    break;
+                }
                 continue;
             }
             if (options.denyAtCap && zone.isCapReached()) {
                 capReached = true;
             }
-            if (winner == null) {
-                winner = zone;
-                multiplier = value.getAsDouble();
-            } else if (options.overlap == OverlapPolicy.PRIORITY) {
-                // Первая зона в списке уже самая приоритетная — остальные не считаем.
-                break;
-            } else if (options.overlap == OverlapPolicy.MULTIPLY) {
-                multiplier *= value.getAsDouble();
+            if (options.overlap == OverlapPolicy.MULTIPLY) {
+                multiplier *= weight;
             } else {
-                multiplier = Math.min(multiplier, value.getAsDouble());
+                multiplier = Math.min(multiplier, weight);
             }
         }
 
@@ -181,25 +191,32 @@ public final class SpawnRuleEngine {
         boolean capReached = false;
 
         for (Zone zone : zones) {
-            if (!zone.isEnabled()) {
+            // Зона либо действует на моба (и тогда имеет голос, даже с множителем
+            // 1.0), либо выключена / не та категория — тогда её просто нет.
+            if (!zone.appliesTo(categoryName)) {
                 continue;
             }
             OptionalDouble value = zone.effectiveMultiplier(entityTypeName, categoryName);
-            if (value.isEmpty()) {
+            double weight = value.isEmpty() ? 1.0D : value.getAsDouble();
+            if (winner == null) {
+                winner = zone;
+                multiplier = weight;
+                if (options.denyAtCap && zone.isCapReached()) {
+                    capReached = true;
+                }
+                if (options.overlap == OverlapPolicy.PRIORITY) {
+                    // Первая зона в списке уже самая приоритетная — остальные не считаем.
+                    break;
+                }
                 continue;
             }
             if (options.denyAtCap && zone.isCapReached()) {
                 capReached = true;
             }
-            if (winner == null) {
-                winner = zone;
-                multiplier = value.getAsDouble();
-            } else if (options.overlap == OverlapPolicy.PRIORITY) {
-                break;
-            } else if (options.overlap == OverlapPolicy.MULTIPLY) {
-                multiplier *= value.getAsDouble();
+            if (options.overlap == OverlapPolicy.MULTIPLY) {
+                multiplier *= weight;
             } else {
-                multiplier = Math.min(multiplier, value.getAsDouble());
+                multiplier = Math.min(multiplier, weight);
             }
         }
 
@@ -214,7 +231,11 @@ public final class SpawnRuleEngine {
             winner.runtime().recordDenied(entityTypeName);
             return new Decision(true, 0, false, winner);
         }
-        winner.runtime().recordAllowed();
+        // Статистику «пропущено» пишем, только если зона реально на спавн повлияла:
+        // иначе в любой выключенной по множителю зоне счётчик молча растёт.
+        if (multiplier != 1.0D || winner.record().hasCap()) {
+            winner.runtime().recordAllowed();
+        }
         if (multiplier >= 1.0D) {
             int extra = 0;
             if (options.extraSpawns && multiplier > 1.0D) {

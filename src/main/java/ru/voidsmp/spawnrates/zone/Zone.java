@@ -139,6 +139,18 @@ public final class Zone {
         return OptionalDouble.of(value);
     }
 
+    /**
+     * Действует ли зона на моба вообще: включена и пропускает фильтр категорий.
+     * Не путать с {@link #effectiveMultiplier(String, String)}: зона может
+     * действовать и при этом ничего не менять (множитель 1.0 без лимита). Такая
+     * «нейтральная» зона всё равно решает судьбу спавна в политике PRIORITY —
+     * именно поэтому движок спрашивает сначала её.
+     */
+    public boolean appliesTo(String categoryName) {
+        ZoneRecord r = record;
+        return r.enabled() && r.matchesCategory(categoryName);
+    }
+
     /** Достигнут ли лимит мобов (по последнему полному пересчёту). */
     public boolean isCapReached() {
         ZoneRecord r = record;
