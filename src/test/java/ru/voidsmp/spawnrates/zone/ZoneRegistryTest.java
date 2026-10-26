@@ -31,6 +31,11 @@ class ZoneRegistryTest {
     }
 
     private Zone add(String name, String world,
+                     int x1, int y1, int z1, int x2, int y2, int z2) {
+        return add(name, world, x1, y1, z1, x2, y2, z2, 1.0D, 0);
+    }
+
+    private Zone add(String name, String world,
                      int x1, int y1, int z1, int x2, int y2, int z2,
                      double multiplier, int priority) {
         Zone zone = new Zone(ZoneRecord.normalize(name, world, null,
