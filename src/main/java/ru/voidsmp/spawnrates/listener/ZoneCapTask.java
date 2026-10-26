@@ -30,7 +30,7 @@ import ru.voidsmp.spawnrates.zone.Zone;
  * этом видит уже готовое число из {@code zone.runtime()}, поэтому решение
  * принимается без аллокаций и без обращения к миру.</p>
  */
-public final class ZoneCapTask implements Runnable {
+public final class ZoneCapTask implements Runnable, Listener {
 
     private final VoidSpawnRatesPlugin plugin;
     private int tickCounter;
@@ -145,9 +145,10 @@ public final class ZoneCapTask implements Runnable {
             if (removed >= toRemove) {
                 break;
             }
-            if (entry.entity.remove()) {
-                removed++;
-            }
+            // Entity#remove() возвращает void — считаем удаление состоявшимся:
+            // если моб уже мёртв, remove() просто ничего не сделает.
+            entry.entity.remove();
+            removed++;
         }
         if (removed > 0) {
             zone.runtime().recordRemoved(removed);
