@@ -48,50 +48,129 @@ public final class GaidFx implements Listener {
     }
 
     public void open(Player player) {
-        Inventory inv = Bukkit.createInventory(new Holder(), 27, Msg.color("&5Эффекты (на месте админа)"));
-        inv.setItem(10, btn(Material.MAGMA_BLOCK, "&c&lАдские разломы",
-                "&7Магма под ногой, 4 трещины по 9 блоков,",
-                "&7огни из-под земли, пар во все стороны,",
-                "&7тряска экрана у всех в 60 блоках."));
-        inv.setItem(12, btn(Material.LIGHTNING_ROD, "&e&lГром и молния",
-                "&7Трижды удар в твою точку, затем молнии",
-                "&7по случайным блокам в 20 блоках, магма,",
-                "&7белые молнии-частицы, грохот и тряска в 90 блоках."));
-        inv.setItem(13, btn(Material.SOUL_LANTERN, "&b&lСтрах",
-                "&7Тьма на глазах у игроков в 60 блоках,",
-                "&7шквал звуков вардена и страшная скрипка."));
-        inv.setItem(14, btn(Material.DRAGON_HEAD, "&5&lГлобальный страх",
-                "&7То же, что страх, но на 300 блоков."));
-        inv.setItem(15, btn(Material.DEEPSLATE_TILES, "&4Большой разлом",
-                "&7В раз 5 масштабнее Адских разломов: длина трещин,",
-                "&7огонь, пар и тряска (300 блоков)."));
-        inv.setItem(16, btn(Material.NETHERRACK, "&4&lОткрытие ада",
-                "&7Всем трясётся экран 12 сек, молнии вокруг игроков,",
-                "&7день и ночь скачут 7 сек, потом перед админом встаёт",
-                "&7ВЕРТИКАЛЬНЫЙ круг магмы (маленький), по краям — короткие",
-                "&7вертикальные разломы, окантовка: магма/незерак/светокамень/",
-                "&7чернокамень/плачущий и обычный обсидиан — и портал в ад."));
-        inv.setItem(22, btn(Material.ARROW, "&7Назад"));
+        Inventory inv = Bukkit.createInventory(new Holder(), 54,
+                Msg.color("&5Эффекты (на месте админа) — 25 штук"));
+        // — ряд 1: классика —
+        fx(inv, 11, Material.MAGMA_BLOCK, "&c&lАдские разломы",
+                "&7Магма-подложка, 4 трещины растут по 9 блоков с искрами,",
+                "&7дымом и потрескиванием; бульканье магмы, тряска 60 блоков.");
+        fx(inv, 12, Material.DEEPSLATE_TILES, "&4&lБольшой разлом",
+                "&7То же, но ×5: длинные трещины, кратеры на концах,",
+                "&7кратер под эпицентром, тряска 300 блоков.");
+        fx(inv, 13, Material.END_PORTAL_FRAME, "&4&lОткрытие ада",
+                "&7Тряска 12 сек, молнии, скачки дня/ночи, затем вертикальный",
+                "&7круг магмы с окантовкой ад-микса и порталом + кратер.");
+        fx(inv, 14, Material.ENDER_PEARL, "&5&lПортальный гул",
+                "&7Гул стыков миров во все 120 блоков,",
+                "&7столб портальных частиц 15 блоков вверх.");
+        fx(inv, 15, Material.LAVA_BUCKET, "&6&lЛавовый гейзер",
+                "&7Столб раскалённых брызг на 25 блоков вверх,",
+                "&7остаётся обожжённое кольцо магмы вокруг.");
+        // — ряд 2: разрывы миров —
+        fx(inv, 20, Material.MAGMA_CREAM, "&c&lДвойной разлом",
+                "&7Две анимированные трещины врозь под ±30°, по 14 блоков,",
+                "&7каждый шов трещит и искрит.");
+        fx(inv, 21, Material.ECHO_SHARD, "&3&lКолодец пустоты",
+                "&7Вертикальный провал-крест глубиной 6 блоков с окантовкой",
+                "&7плачущим обсидианом и лучом END-частиц вверх.");
+        fx(inv, 22, Material.PRISMARINE_SHARD, "&9&lСтолб разлома",
+                "&7Вертикальный шов магмы/чернокамня вверх на 8 блоков —",
+                "&7мир трещит в небо, слышно по шагу.");
+        fx(inv, 23, Material.SOUL_TORCH, "&5&lВарп-искажение",
+                "&7Все в 30 блоках плывут (тошнота 5 с), кольца портальной",
+                "&7карусели частиц вокруг эпицентра.");
+        fx(inv, 24, Material.WITHER_ROSE, "&8&lЦунами тьмы",
+                "&8Тьма накрывает 50 блоков на 8 секунд,",
+                "&7тройной вал душ скалка по земле.");
+        // — ряд 3: стихии неба и глубины —
+        fx(inv, 29, Material.LIGHTNING_ROD, "&e&lГром и молния",
+                "&7Вспышка и рёв перед грозой; 3 удара в твою точку,",
+                "&7молнии по кругу с магмой/чернокамнем/огнём, 3 мини-кратера.");
+        fx(inv, 30, Material.BLAZE_ROD, "&6&lМолния в небо",
+                "&7Обратный разряд: белый столб END-частиц уходит вверх,",
+                "&7вспышка и сухой щелчок грома.");
+        fx(inv, 31, Material.SOUL_LANTERN, "&b&lСтрах",
+                "&7Тьма в 60 блоках, шквал вардена, скрипка от игрока.",
+                "&74 волны душ скалка на каждого, шаги под ногами.");
+        fx(inv, 32, Material.DRAGON_HEAD, "&5&lГлобальный страх",
+                "&7То же, но на 300 блоков.");
+        fx(inv, 33, Material.SCULK_SHRIEKER, "&5&lПульс пустоты",
+                "&7Кольцо SCULK-заряда расходится по земле,",
+                "&7соник-бум вардена слышен в 60 блоках.");
+        // — ряд 4: атмосфера и бури —
+        fx(inv, 38, Material.GUNPOWDER, "&7&lПепельная буря",
+                "&710 секунд идёт пепел в 25 блоках — как после пожара миров.");
+        fx(inv, 39, Material.GHAST_TEAR, "&f&lПорыв гаста",
+                "&7Крик гаста у всех в 60 блоках, огненный след по кругу,",
+                "&7один хлопок взрыва сверху.");
+        fx(inv, 40, Material.BLAZE_POWDER, "&6&lОгненный купол",
+                "&7Полусфера пламени-душ радиусом 4 вокруг точки,",
+                "&58 секунд дышит (только частицы, без блоков).");
+        fx(inv, 41, Material.WHITE_DYE, "&f&lДымовая завеса",
+                "&7Столб дыма высотой 12 на 10 секунд — тонкий,",
+                "&7плотный, виден издалека.");
+        fx(inv, 42, Material.FIREWORK_STAR, "&e&lИскровой ливень",
+                "&78 секунд с неба сыплются искры пламени в 15 блоках.");
+        // — ряд 5: финалы —
+        fx(inv, 47, Material.FLINT_AND_STEEL, "&6&lОгненное кольцо",
+                "&7Три расширяющихся кольца пламени по земле,",
+                "&7свист огня на каждой волне.");
+        fx(inv, 48, Material.REDSTONE, "&c&lКровавый дождь",
+                "&78 секунд тёплых капель лавы с неба в 15 блоках.");
+        fx(inv, 49, Material.GRAVEL, "&8&lЗемлетрясение",
+                "&7Шесть ударов тряски экрана подряд, грохот гравия",
+                "&7ходит волнами кругом 40 блоков.");
+        fx(inv, 50, Material.ENDER_EYE, "&a&lХор эндерменов",
+                "&7Шесть телепортов-хора по кругу вокруг точки,",
+                "&7фиолетовые шлейфы между ними.");
+        fx(inv, 51, Material.FIRE_CHARGE, "&4&lВспышка-разряд",
+                "&7Мгновенная вспышка неба, глухой удар грома,",
+                "&7магма-пыль расходится от твоих ног.");
+        inv.setItem(4, btn(Material.ARROW, "&7&lНазад"));
         player.openInventory(inv);
     }
 
+    private static void fx(Inventory inv, int slot, Material icon, String name, String... lore) {
+        inv.setItem(slot, btn(icon, name, lore));
+    }
+
+    @EventHandler(ignoreCancelled = false)
     @EventHandler(ignoreCancelled = false)
     public void onClick(InventoryClickEvent event) {
         if (!(event.getInventory().getHolder() instanceof Holder)) return;
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) return;
         switch (event.getRawSlot()) {
-            case 10 -> hellRift(player);
-            case 12 -> thunder(player);
-            case 15 -> hellRift(player, 5.0, 4);
-            case 13 -> fear(player, 60);
-            case 14 -> fear(player, 300);
-            case 16 -> openHell(player);
-            case 22 -> {
+            case 4 -> {
                 player.closeInventory();
                 Bukkit.getScheduler().runTask(plugin, () -> player.performCommand("gaid"));
                 return;
             }
+            case 11 -> hellRift(player);
+            case 12 -> hellRift(player, 5.0, 4);
+            case 13 -> openHell(player);
+            case 14 -> portalHum(player);
+            case 15 -> lavaGeyser(player);
+            case 20 -> doubleRift(player);
+            case 21 -> voidWell(player);
+            case 22 -> phaseScar(player);
+            case 23 -> warpDistortion(player);
+            case 24 -> darknessTsunami(player);
+            case 29 -> thunder(player);
+            case 30 -> skyBolt(player);
+            case 31 -> fear(player, 60);
+            case 32 -> fear(player, 300);
+            case 33 -> voidPulse(player);
+            case 38 -> ashStorm(player);
+            case 39 -> ghastBurst(player);
+            case 40 -> fireDome(player);
+            case 41 -> smokeVeil(player);
+            case 42 -> sparkRain(player);
+            case 47 -> fireRing(player);
+            case 48 -> lavaRain(player);
+            case 49 -> quake(player);
+            case 50 -> enderChoir(player);
+            case 51 -> flashDischarge(player);
             default -> { return; }
         }
         // эффект запущен — меню остаётся открытым (переоткрываем, чтобы сбросить курсор/слот)
@@ -590,6 +669,365 @@ public final class GaidFx implements Listener {
                 }
             }
             if (t > 600) cancel(); // страховка
+        }
+    }
+
+    // ---------- эффекты 7–25: больше про стык миров, плюс стихии ----------
+
+    /** Портальный гул: стык миров слышен в 120 блоках + столб портальных частиц. */
+    private void portalHum(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        for (Player hearer : playersIn(at, 120)) {
+            hearer.playSound(at, Sound.BLOCK_PORTAL_AMBIENT, SoundCategory.BLOCKS, 2.4f, 0.6f);
+            hearer.playSound(at, Sound.BLOCK_END_PORTAL_SPAWN, SoundCategory.BLOCKS, 0.7f, 1.4f);
+        }
+        for (int i = 0; i < 15; i++) {
+            final int h = i;
+            Bukkit.getScheduler().runTaskLater(plugin, () ->
+                    world.spawnParticle(Particle.PORTAL, at.clone().add(0, h, 0),
+                            40, 0.9, 0.4, 0.9, 0.05), i * 4L);
+        }
+        shakeNearby(at, 40, 2);
+    }
+
+    /** Лавовый гейзер: столб брызг 25 блоков + обожжённое кольцо магмы. */
+    private void lavaGeyser(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        int bx = at.getBlockX(); int by = at.getBlockY() - 1; int bz = at.getBlockZ();
+        for (int i = 0; i < 20; i++) {
+            final int w = i;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                world.spawnParticle(Particle.LAVA, at.clone().add(0, 1 + w * 1.2, 0),
+                        30, 0.4, 0.8, 0.4, 0.02);
+                world.spawnParticle(Particle.FLAME, at.clone().add(0, 1 + w * 1.2, 0),
+                        14, 0.3, 0.6, 0.3, 0.01);
+                world.playSound(at.clone().add(0, w, 0), Sound.BLOCK_LAVA_POP,
+                        SoundCategory.BLOCKS, 0.8f, 0.5f + w * 0.03f);
+            }, i * 2L);
+        }
+        for (int i = 0; i < 12; i++) {
+            double a = (Math.PI * 2 * i) / 12;
+            Block ring = world.getBlockAt(bx + (int) Math.round(Math.cos(a) * 2), by,
+                    bz + (int) Math.round(Math.sin(a) * 2));
+            if (canTurn(ring)) ring.setType(Material.MAGMA_BLOCK);
+        }
+        shakeNearby(at, 50, 2);
+    }
+
+    /** Двойной разлом: две трещины в противоположные стороны по 14 блоков, рост по шагам. */
+    private void doubleRift(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        int by = at.getBlockY() - 1;
+        double base = Math.toRadians(player.getLocation().getYaw()) + Math.PI / 2;
+        for (int side = 0; side < 2; side++) {
+            double angle = base + (side == 0 ? Math.toRadians(30) : Math.toRadians(-30));
+            for (int step = 1; step <= 14; step++) {
+                final int fs = step;
+                int px = at.getBlockX() + (int) Math.round(Math.cos(angle) * step);
+                int pz = at.getBlockZ() + (int) Math.round(Math.sin(angle) * step);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    Block block = world.getBlockAt(px, by, pz);
+                    if (!canTurn(block)) return;
+                    block.setType(Material.MAGMA_BLOCK);
+                    world.spawnParticle(Particle.LAVA, px + 0.5, by + 1.2, pz + 0.5, 3, 0.2, 0.1, 0.2, 0);
+                    world.spawnParticle(Particle.SMOKE, px + 0.5, by + 1.1, pz + 0.5, 4, 0.15, 0.3, 0.15, 0.01);
+                    world.playSound(new Location(world, px, by, pz), Sound.BLOCK_BASALT_BREAK,
+                            SoundCategory.BLOCKS, 0.8f, 0.7f + fs * 0.02f);
+                }, side * 8 + step * 2L);
+            }
+        }
+        shakeNearby(at, 60, 3);
+    }
+
+    /** Колодец пустоты: крест-провал 6 глубины, плачущий обсидиан, луч END-частиц. */
+    private void voidWell(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        int bx = at.getBlockX(); int by = at.getBlockY() - 1; int bz = at.getBlockZ();
+        int[][] cross = {{0,0},{1,0},{-1,0},{0,1},{0,-1}};
+        for (int[] cell : cross) {
+            for (int depth = 0; depth < 6; depth++) {
+                Block b = world.getBlockAt(bx + cell[0], by - depth, bz + cell[1]);
+                if (canTurn(b) && b.getType() != Material.AIR) b.setType(Material.AIR);
+            }
+        }
+        int[][] rim = {{2,0},{-2,0},{0,2},{0,-2},{1,1},{-1,1},{1,-1},{-1,-1}};
+        for (int[] cell : rim) {
+            Block r = world.getBlockAt(bx + cell[0], by, bz + cell[1]);
+            if (canTurn(r)) r.setType(Material.CRYING_OBSIDIAN);
+        }
+        for (int i = 0; i < 12; i++) {
+            final int h = i;
+            Bukkit.getScheduler().runTaskLater(plugin, () ->
+                    world.spawnParticle(Particle.END_ROD, at.clone().add(0, h * 0.8 + 0.5, 0),
+                            6, 0.25, 0.25, 0.25, 0.01), i * 3L);
+        }
+        world.playSound(at, Sound.BLOCK_END_PORTAL_SPAWN, SoundCategory.BLOCKS, 1f, 0.7f);
+        world.spawnParticle(Particle.PORTAL, at, 80, 1.5, 0.5, 1.5, 0.04);
+        shakeNearby(at, 40, 2);
+    }
+
+    /** Столб разлома: вертикальный шов магмы/чернокамня вверх на 8 блоков. */
+    private void phaseScar(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        int bx = at.getBlockX(); int by = at.getBlockY() - 1; int bz = at.getBlockZ();
+        for (int h = 0; h < 8; h++) {
+            final int fh = h;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                Block b = world.getBlockAt(bx, by + fh, bz);
+                if (b.getType().isAir() || canTurn(b)) {
+                    b.setType(fh % 2 == 0 ? Material.MAGMA_BLOCK : Material.BLACKSTONE);
+                }
+                world.spawnParticle(Particle.FLAME, bx + 0.5, by + fh + 0.5, bz + 0.5, 6, 0.3, 0.3, 0.3, 0.01);
+                world.spawnParticle(Particle.WHITE_SMOKE, bx + 0.5, by + fh + 0.5, bz + 0.5, 5, 0.25, 0.25, 0.25, 0.01);
+                world.playSound(new Location(world, bx, by + fh, bz), Sound.BLOCK_BASALT_BREAK,
+                        SoundCategory.BLOCKS, 0.9f, 0.6f + fh * 0.06f);
+            }, h * 3L);
+        }
+        for (Player near : playersIn(at, 60)) {
+            near.playSound(at, Sound.ENTITY_ZOMBIE_ATTACK_IRON_DOOR, SoundCategory.BLOCKS, 1.2f, 0.5f);
+        }
+    }
+
+    /** Варп-искажение: тошнота всем в 30 блоках + портальная карусель частиц. */
+    private void warpDistortion(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        for (Player victim : playersIn(at, 30)) {
+            victim.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 100, 2, true, false, true));
+        }
+        for (int i = 0; i < 10; i++) {
+            final int w = i;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                double a = w * 0.6;
+                Location spot = at.clone().add(Math.cos(a) * (2 + w * 0.3), 1 + w * 0.2, Math.sin(a) * (2 + w * 0.3));
+                world.spawnParticle(Particle.PORTAL, spot, 30, 0.2, 0.2, 0.2, 0.06);
+                world.spawnParticle(Particle.REVERSE_PORTAL, spot, 20, 0.2, 0.2, 0.2, 0.04);
+            }, i * 3L);
+        }
+        world.playSound(at, Sound.ENTITY_ENDERMAN_TELEPORT, 1.2f, 0.4f);
+    }
+
+    /** Цунами тьмы: тьма всем в 50 блоках на 8 сек + три вала скалковых душ. */
+    private void darknessTsunami(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        for (Player victim : playersIn(at, 50)) {
+            victim.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 160, 0, true, false, true));
+        }
+        for (int wave = 0; wave < 3; wave++) {
+            final double r = 4 + wave * 4;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                for (int i = 0; i < 48; i++) {
+                    double a = (Math.PI * 2 * i) / 48;
+                    world.spawnParticle(Particle.SCULK_SOUL,
+                            at.clone().add(Math.cos(a) * r, 0.3, Math.sin(a) * r), 2, 0.1, 0.2, 0.1, 0.005);
+                }
+                world.playSound(at, Sound.BLOCK_SCULK_SHRIEKER_SHRIEK, SoundCategory.HOSTILE, 0.8f, 0.6f + wave * 0.1f);
+            }, wave * 8L);
+        }
+    }
+
+    /** Молния в небо: обратный разряд уходит вверх, сухой громовой щелчок. */
+    private void skyBolt(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        for (int h = 0; h < 18; h++) {
+            final int fh = h;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                double jig = ThreadLocalRandom.current().nextDouble(-0.4, 0.4);
+                world.spawnParticle(Particle.END_ROD,
+                        at.getX() + jig, at.getY() + fh * 1.2, at.getZ() + jig, 2, 0.05, 0.05, 0.05, 0);
+            }, h * 2L);
+        }
+        world.spawnParticle(Particle.FLASH, at.clone().add(0, 2, 0), 1, 0, 0, 0, 0);
+        for (Player near : playersIn(at, 90)) {
+            near.playSound(at, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.WEATHER, 2f, 1.3f);
+        }
+    }
+
+    /** Пульс пустоты: кольцо SCULK-заряда + соник-бум. */
+    private void voidPulse(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        for (int ring = 0; ring < 4; ring++) {
+            final double r = 3 + ring * 3;
+            final int fr = ring;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                for (int i = 0; i < 40; i++) {
+                    double a = (Math.PI * 2 * i) / 40;
+                    world.spawnParticle(Particle.SCULK_CHARGE,
+                            at.clone().add(Math.cos(a) * r, 0.2, Math.sin(a) * r), 1, 0.05, 0.1, 0.05, 0);
+                }
+                world.playSound(at, Sound.ENTITY_WARDEN_SONIC_CHARGE, SoundCategory.HOSTILE,
+                        1.0f, 0.7f + fr * 0.1f);
+            }, ring * 5L);
+        }
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            for (Player near : playersIn(at, 60)) {
+                near.playSound(at, Sound.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.HOSTILE, 1.2f, 0.7f);
+            }
+        }, 26L);
+        shakeNearby(at, 50, 3);
+    }
+
+    /** Пепельная буря: 10 секунд пепла в 25 блоках. */
+    private void ashStorm(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        for (int t = 0; t < 20; t++) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                world.spawnParticle(Particle.ASH, at.clone().add(0, 6, 0), 260, 25, 5, 25, 0.01);
+                world.spawnParticle(Particle.SMOKE, at.clone().add(0, 5, 0), 60, 22, 4, 22, 0.005);
+            }, t * 10L);
+        }
+    }
+
+    /** Порыв гаста: крик у всех шестидесяти блоков, огненный дуговой след, хлопок взрыва. */
+    private void ghastBurst(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        for (Player near : playersIn(at, 60)) {
+            near.playSound(at, Sound.ENTITY_GHAST_WARN, SoundCategory.HOSTILE, 1.4f, 0.8f);
+        }
+        for (int i = 0; i < 16; i++) {
+            double a = (Math.PI * 2 * i) / 16;
+            world.spawnParticle(Particle.FLAME, at.clone().add(Math.cos(a) * 4, 1.5, Math.sin(a) * 4),
+                    6, 0.2, 0.2, 0.2, 0.01);
+        }
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            Location boom = at.clone().add(0, 7, 0);
+            world.spawnParticle(Particle.EXPLOSION_EMITTER, boom, 2, 0.2, 0.2, 0.2, 0);
+            world.playSound(boom, Sound.ENTITY_GHAST_SHOOT, SoundCategory.HOSTILE, 1.6f, 0.7f);
+            for (Player near : playersIn(at, 60)) {
+                near.playSound(boom, Sound.ENTITY_GENERIC_EXPLODE, SoundCategory.HOSTILE, 1.0f, 0.9f);
+            }
+        }, 25L);
+    }
+
+    /** Огненный купол: полусфера из частиц огня-душ вокруг точки 8 секунд (без блоков). */
+    private void fireDome(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        for (int t = 0; t < 16; t++) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                for (int i = 0; i < 40; i++) {
+                    double phi = Math.PI * i / 40;
+                    double theta = Math.PI * 2 * ((i * 37) % 40) / 40.0;
+                    world.spawnParticle(Particle.SOUL_FIRE_FLAME,
+                            at.clone().add(Math.sin(phi) * Math.cos(theta) * 4,
+                                    Math.abs(Math.cos(phi)) * 4, Math.sin(phi) * Math.sin(theta) * 4),
+                            1, 0.05, 0.05, 0.05, 0);
+                }
+            }, t * 10L);
+        }
+        world.playSound(at, Sound.ITEM_FIRECHARGE_USE, 1.2f, 0.7f);
+    }
+
+    /** Дымовая завеса: столб дыма 12 высотой на 10 секунд. */
+    private void smokeVeil(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        for (int t = 0; t < 20; t++) {
+            Bukkit.getScheduler().runTaskLater(plugin, () ->
+                    world.spawnParticle(Particle.WHITE_SMOKE, at.clone().add(0, 1, 0),
+                            40, 0.5, 6, 0.5, 0.02), t * 10L);
+        }
+    }
+
+    /** Искровой ливень: 8 секунд сыплются пламя-искры с неба в 15 блоках. */
+    private void sparkRain(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        for (int t = 0; t < 16; t++) {
+            Bukkit.getScheduler().runTaskLater(plugin, () ->
+                    world.spawnParticle(Particle.FLAME, at.clone().add(0, 8, 0),
+                            160, 15, 1.5, 15, 0.02), t * 10L);
+        }
+    }
+
+    /** Огненное кольцо: три расширяющихся круга пламени, свист огня. */
+    private void fireRing(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        for (int wave = 0; wave < 3; wave++) {
+            final double r = 2 + wave * 2.5;
+            final int fw = wave;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                for (int i = 0; i < 44; i++) {
+                    double a = (Math.PI * 2 * i) / 44;
+                    world.spawnParticle(Particle.FLAME,
+                            at.clone().add(Math.cos(a) * r, 0.3, Math.sin(a) * r), 1, 0.05, 0.15, 0.05, 0);
+                }
+                world.playSound(at, Sound.ITEM_FIRECHARGE_USE, SoundCategory.BLOCKS,
+                        1.0f, 0.6f + fw * 0.15f);
+            }, wave * 6L);
+        }
+        shakeNearby(at, 30, 2);
+    }
+
+    /** Кровавый дождь: тёплые капли лавы с неба в 15 блоках 8 секунд. */
+    private void lavaRain(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        for (int t = 0; t < 16; t++) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                world.spawnParticle(Particle.DRIPPING_LAVA, at.clone().add(0, 7, 0), 90, 15, 1, 15, 0.01);
+                world.spawnParticle(Particle.FALLING_LAVA, at.clone().add(0, 7, 0), 60, 15, 1, 15, 0.01);
+            }, t * 10L);
+        }
+    }
+
+    /** Землетрясение: шесть ударов тряски + качающийся грохот гравия кругом. */
+    private void quake(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        shakeNearby(at, 40, 6);
+        for (int wave = 0; wave < 4; wave++) {
+            final int fw = wave;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                for (Player near : playersIn(at, 40)) {
+                    near.playSound(at, Sound.BLOCK_GRAVEL_BREAK, SoundCategory.BLOCKS, 1.4f, 0.6f + fw * 0.1f);
+                    near.playSound(at, Sound.BLOCK_GRAVEL_STEP, SoundCategory.BLOCKS, 1.2f, 0.5f);
+                }
+            }, wave * 6L);
+        }
+    }
+
+    /** Хор эндерменов: шесть телепортов по кругу + фиолетовые шлейфы. */
+    private void enderChoir(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        for (int i = 0; i < 6; i++) {
+            final int fi = i;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                double a = (Math.PI * 2 * fi) / 6;
+                Location spot = at.clone().add(Math.cos(a) * 5, 1, Math.sin(a) * 5);
+                world.playSound(spot, Sound.ENTITY_ENDERMAN_TELEPORT, 1.2f, 0.5f + fi * 0.12f);
+                world.spawnParticle(Particle.PORTAL, spot, 40, 0.4, 0.8, 0.4, 0.04);
+                world.spawnParticle(Particle.REVERSE_PORTAL, at.clone().add(0, 1, 0), 24, 0.3, 0.6, 0.3, 0.02);
+            }, i * 8L);
+        }
+    }
+
+    /** Вспышка-разряд: мгновенная вспышка, глухой гром, магма-пыль от ног. */
+    private void flashDischarge(Player player) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        world.spawnParticle(Particle.FLASH, at.clone().add(0, 2, 0), 1, 0, 0, 0, 0);
+        for (Player near : playersIn(at, 120)) {
+            near.playSound(at, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.WEATHER, 2.5f, 1.5f);
+        }
+        for (int i = 0; i < 36; i++) {
+            double a = (Math.PI * 2 * i) / 36;
+            world.spawnParticle(Particle.FLAME, at.clone().add(Math.cos(a) * 1.5, 0.4, Math.sin(a) * 1.5),
+                    2, 0.1, 0.15, 0.1, 0.005);
+            world.spawnParticle(Particle.ASH, at.clone().add(Math.cos(a) * 2.2, 0.8, Math.sin(a) * 2.2),
+                    1, 0.1, 0.2, 0.1, 0.005);
         }
     }
 }
