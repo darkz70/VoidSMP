@@ -113,6 +113,10 @@ jobs:
             echo "::error::Ошибки загрузки датапака/лут-таблицы"
             FAIL=1
           fi
+          if grep -q "неизвестный предмет" server.log; then
+            echo "::error::config.yml: есть неизвестные предметы (см. лог)"
+            FAIL=1
+          fi
           if grep "ERROR" server.log | grep -iE "voidsmp|loot|datapack|vault"; then
             echo "::error::ERROR в логе сервера про VoidSMP/лут"
             FAIL=1

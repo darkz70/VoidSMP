@@ -16,7 +16,7 @@ loot:
     - material: SPONGE
       count: 32
       weight: 10
-    - material: PRISMARINE_SHARDS
+    - material: PRISMARINE_SHARD
       count: 64
       weight: 5
     - material: PRISMARINE_CRYSTALS
