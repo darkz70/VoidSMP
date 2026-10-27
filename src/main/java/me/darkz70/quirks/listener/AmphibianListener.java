@@ -136,4 +136,6 @@ public final class AmphibianListener implements Listener {
     }
 
     /** 5 ур.: лечебный ручей — стоя в воде, медленно исцеляется (каждый тик пассивы EffectsTask). */
+
+    private static org.bukkit.World world_(Player p) { return p.getWorld(); }
 }

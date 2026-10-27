@@ -228,4 +228,20 @@ public final class EffectsTask extends BukkitRunnable {
         dmg.setDamage(Math.max(0, dmg.getDamage() - 2));
         item.setItemMeta(dmg);
     }
+
+    /** Частица ауры 5-го уровня причуды (эндгейм-мерцание). */
+    private static Particle auraParticle(Quirk quirk) {
+        return switch (quirk) {
+            case ENGINEER -> Particle.CRIT;
+            case CAT -> Particle.NOTE;
+            case BEDROCK -> Particle.ASH;
+            case AXE -> Particle.SWEEP_ATTACK;
+            case SCULK, SCULK_LEADER -> Particle.SCULK_SOUL;
+            case FARMER -> Particle.HAPPY_VILLAGER;
+            case AMPHIBIAN -> Particle.SPLASH;
+            case SPIDER -> Particle.SQUID_INK;
+            default -> Particle.END_ROD;
+        };
+    }
 }
+
