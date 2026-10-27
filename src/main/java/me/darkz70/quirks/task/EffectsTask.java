@@ -70,6 +70,21 @@ public final class EffectsTask extends BukkitRunnable {
             if (web && (cat > 0 || sculk > 0)) {
                 ambient(player, PotionEffectType.BLINDNESS, 0);
             }
+            // Паук 4 ур.: в своей паутине — домашний запад
+            if (web && spider >= 4) {
+                ambient(player, PotionEffectType.SPEED, 1);
+                ambient(player, PotionEffectType.JUMP_BOOST, 0);
+            }
+
+            // Эндгейм-аура: 5 уровень любой причуды мерцает частицами стихии
+            if (data.entries().stream().anyMatch(en -> en.getValue() >= 5)) {
+                Quirk mastery = data.entries().stream().filter(en -> en.getValue() >= 5)
+                        .map(Map.Entry::getKey).findFirst().orElse(null);
+                if (mastery != null && ScanUtil.tryUse(player.getUniqueId(), "aura5", 2000L)) {
+                    player.getWorld().spawnParticle(auraParticle(mastery),
+                            player.getLocation().add(0, 0.9, 0), 6, 0.35, 0.6, 0.35, 0.01);
+                }
+            }
 
             // отдельные периодики классов
             if (spider > 0) SpiderListener.applyPassive(plugin, player, spider);

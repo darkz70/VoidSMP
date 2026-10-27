@@ -21,6 +21,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
@@ -208,5 +209,31 @@ public final class SpiderListener implements Listener {
         if (!(event.getEntity() instanceof LivingEntity victim)) return;
         if (plugin.quirks().levelOf(attacker, Quirk.SPIDER) < 5) return;
         victim.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 80, 0, true, false, true));
+    }
+
+    /** 5 ур.: кокон-щит — при падении ниже 30% HP окутывает себя паутиной (КД 3 мин). */
+    @EventHandler(ignoreCancelled = true)
+    public void onCocoonShield(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (plugin.quirks().levelOf(player, Quirk.SPIDER) < 5) return;
+        double maxHp = player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH) == null ? 20
+                : player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue();
+        if (player.getHealth() - event.getFinalDamage() > maxHp * 0.3) return;
+        if (!me.darkz70.quirks.util.ScanUtil.tryUse(player.getUniqueId(), "spider-cocoon", 3 * 60_000L)) return;
+        Location c = player.getLocation();
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                if (dx == 0 && dz == 0) continue;
+                Block ring = player.getWorld().getBlockAt(c.getBlockX() + dx, c.getBlockY(), c.getBlockZ() + dz);
+                if (ring.getType() == Material.AIR) {
+                    ring.setType(Material.COBWEB);
+                    final Block ref = ring;
+                    Bukkit.getScheduler().runTaskLater(plugin,
+                            () -> { if (ref.getType() == Material.COBWEB) ref.setType(Material.AIR); }, 160L);
+                }
+            }
+        }
+        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 200, 0, true, false, true));
+        player.getWorld().playSound(c, Sound.ENTITY_SPIDER_AMBIENT, 1f, 0.5f);
     }
 }

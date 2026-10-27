@@ -3,9 +3,9 @@ package me.darkz70.quirks.magic;
 /** Описание заклинания: имя, стоимость маны, кулдаун (сек), требуемый уровень магии. */
 public record Spell(String name, int mana, long cooldownSeconds, int requiredLevel) {
 
-    public static final int[] UNLOCK_LEVELS = {1, 10, 10, 20, 20, 30, 41, 42, 43, 44};
+    public static final int[] UNLOCK_LEVELS = {1, 10, 10, 20, 20, 30, 41, 42, 43, 44, 45, 46};
 
-    /** Десять заклинаний каждой стихии. */
+    /** Двенадцать заклинаний каждой стихии (эндгейм-ульты: 45/46). */
     public static Spell[] of(Element element) {
         return switch (element) {
             case FIRE -> new Spell[]{
@@ -18,7 +18,9 @@ public record Spell(String name, int mana, long cooldownSeconds, int requiredLev
                 new Spell("Огненный бог", 300, 600, 41),
                 new Spell("Метеорный дождь", 350, 900, 42),
                 new Spell("Пепельный вихрь", 400, 1500, 43),
-                new Spell("Перерождение феникса", 450, 2400, 44)
+                new Spell("Перерождение феникса", 450, 2400, 44),
+                new Spell("Башня пламени", 450, 1800, 45),
+                new Spell("Солярное затмение", 470, 3600, 46)
             };
             case WATER -> new Spell[]{
                 new Spell("Водяной шар", 10, 30, 1),
@@ -30,7 +32,9 @@ public record Spell(String name, int mana, long cooldownSeconds, int requiredLev
                 new Spell("Водный бог", 300, 600, 41),
                 new Spell("Цунами", 350, 900, 42),
                 new Spell("Ледяной плен", 400, 1500, 43),
-                new Spell("Глубинный апогей", 450, 2400, 44)
+                new Spell("Глубинный апогей", 450, 2400, 44),
+                new Spell("Бурлящий шторм", 450, 1800, 45),
+                new Spell("Мировой потоп", 470, 3600, 46)
             };
             case WIND -> new Spell[]{
                 new Spell("Порыв", 10, 15, 1),
@@ -42,7 +46,9 @@ public record Spell(String name, int mana, long cooldownSeconds, int requiredLev
                 new Spell("Ветряной бог", 300, 600, 41),
                 new Spell("Штормовой рывок", 350, 900, 42),
                 new Spell("Ураган", 400, 1500, 43),
-                new Spell("Повелитель небес", 450, 2400, 44)
+                new Spell("Повелитель небес", 450, 2400, 44),
+                new Spell("Безмолвный охотник", 450, 1800, 45),
+                new Spell("Абсолютный гром", 470, 3600, 46)
             };
             case EARTH -> new Spell[]{
                 new Spell("Каменный кулак", 10, 22, 1),
@@ -54,7 +60,9 @@ public record Spell(String name, int mana, long cooldownSeconds, int requiredLev
                 new Spell("Земляной бог", 300, 600, 41),
                 new Spell("Каменная гробница", 350, 900, 42),
                 new Spell("Лавовое ядро", 400, 1500, 43),
-                new Spell("Пробуждение титана", 450, 2400, 44)
+                new Spell("Пробуждение титана", 450, 2400, 44),
+                new Spell("Гигантская кладка", 450, 1800, 45),
+                new Spell("Девятый вал земли", 470, 3600, 46)
             };
             case DARK -> new Spell[]{
                 new Spell("Тёмный шёпот", 10, 30, 1),
@@ -66,7 +74,9 @@ public record Spell(String name, int mana, long cooldownSeconds, int requiredLev
                 new Spell("Тёмный бог", 300, 600, 41),
                 new Spell("Разрыв души", 350, 900, 42),
                 new Spell("Демонический обмен", 400, 1500, 43),
-                new Spell("Абсолютная тьма", 450, 2400, 44)
+                new Spell("Абсолютная тьма", 450, 2400, 44),
+                new Spell("Теневая призма", 450, 1800, 45),
+                new Spell("Голод пустоты", 470, 3600, 46)
             };
             case LIGHT -> new Spell[]{
                 new Spell("Светящийся шар", 10, 30, 1),
@@ -78,7 +88,9 @@ public record Spell(String name, int mana, long cooldownSeconds, int requiredLev
                 new Spell("Светлый бог", 300, 600, 41),
                 new Spell("Солнечный удар", 350, 900, 42),
                 new Spell("Обитель света", 400, 1500, 43),
-                new Spell("Архангел", 450, 2400, 44)
+                new Spell("Архангел", 450, 2400, 44),
+                new Spell("Небесный хор", 450, 1800, 45),
+                new Spell("Судный свет", 470, 3600, 46)
             };
         };
     }

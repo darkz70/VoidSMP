@@ -30,6 +30,7 @@ public final class Keys {
     public static NamespacedKey reach;           // инженер: модификатор дальности блока
     public static NamespacedKey bedrockKbr;      // бедрок: сопротивление нокбэку (4 ур.)
     public static NamespacedKey bedrockArmor;    // бедрок: +броня (5 ур.)
+    public static NamespacedKey engineerDamage;  // инженер: механическая рука (+урон)
     public static NamespacedKey zkRole;          // зайцекрол: роль (farmer/guard/elite/resident/tsar)
     public static NamespacedKey zkHome;          // зайцекрол: точка появления "x,y,z"
     public static NamespacedKey zkGen;           // зайцекрол-житель: поколение (с 60)
@@ -62,6 +63,7 @@ public final class Keys {
         reach = new NamespacedKey(plugin, "engineer_reach");
         bedrockKbr = new NamespacedKey(plugin, "bedrock_kbr");
         bedrockArmor = new NamespacedKey(plugin, "bedrock_armor");
+        engineerDamage = new NamespacedKey(plugin, "engineer_damage");
         zkRole = new NamespacedKey(plugin, "zk_role");
         zkHome = new NamespacedKey(plugin, "zk_home");
         zkGen = new NamespacedKey(plugin, "zk_gen");

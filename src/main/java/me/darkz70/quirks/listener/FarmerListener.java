@@ -66,11 +66,17 @@ public final class FarmerListener implements Listener {
         }
     }
 
-    /** Запрет сырой еды (2 ур.). */
+    /** Запрет сырой еды (2 ур.); 4 ур.: еда сытнее (+2 еды). */
     @EventHandler(ignoreCancelled = true)
     public void onEat(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
-        if (level(player) < 2) return;
+        int lvl = level(player);
+        if (lvl >= 4 && event.getItem().getType().isEdible()) {
+            player.setFoodLevel(Math.min(20, player.getFoodLevel() + 2));
+            player.setSaturation(Math.min(player.getFoodLevel(), player.getSaturation() + 2.0f));
+            player.spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation().add(0, 1, 0), 5, 0.3, 0.3, 0.3, 0.01);
+        }
+        if (lvl < 2) return;
         Material eaten = event.getItem().getType();
         if (!eaten.isEdible()) return;
         if (MaterialLists.isFarmerRaw(eaten)) {
@@ -119,6 +125,19 @@ public final class FarmerListener implements Listener {
             }
             growCrops(plugin, player);
             if (level >= 4) growCrops(plugin, player); // 4 ур.: двойной рост
+            // 5 ур.: лукошко природы — раз в минуту случайный корнеплод в инвентарь
+            if (level >= 5 && me.darkz70.quirks.util.ScanUtil.tryUse(
+                    player.getUniqueId(), "farmer-basket", 60_000L)) {
+                Material gift = switch (RANDOM.nextInt(5)) {
+                    case 0 -> Material.WHEAT;
+                    case 1 -> Material.CARROT;
+                    case 2 -> Material.BEETROOT;
+                    case 3 -> Material.POTATO;
+                    default -> Material.PUMPKIN_SEEDS;
+                };
+                player.getInventory().addItem(new ItemStack(gift, 1 + RANDOM.nextInt(3))).values()
+                        .forEach(rest -> player.getWorld().dropItemNaturally(player.getLocation(), rest));
+            }
         }
 
     }

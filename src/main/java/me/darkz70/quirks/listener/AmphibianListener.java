@@ -69,6 +69,16 @@ public final class AmphibianListener implements Listener {
             if (level >= 3) {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 100, 1, true, false, true));
             }
+            // 4 ур.: живой кондуит — сам может всё, и делится дыханием с союзниками рядом
+            if (level >= 4) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.CONDUIT_POWER, 300, 0, true, false, true));
+                for (org.bukkit.entity.Entity e : world_(player).getNearbyEntities(player.getLocation(), 6, 6, 6)) {
+                    if (e instanceof Player ally && ally != player && ally.isInWater()) {
+                        ally.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 160, 0, true, false, false));
+                        ally.addPotionEffect(new PotionEffect(PotionEffectType.DOLPHINS_GRACE, 160, 0, true, false, false));
+                    }
+                }
+            }
             // 5 ур.: живая вода — в воду погружённый исцеляется
             if (level >= 5) {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 1, true, false, true));

@@ -13,8 +13,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -206,5 +208,28 @@ public final class CatListener implements Listener {
         player.showTitle(Title.title(
                 Msg.color("&e&lДевять жизней"), Msg.color("&7−1 жизнь · перекурка час"),
                 Title.Times.times(Duration.ofMillis(200), Duration.ofSeconds(2), Duration.ofMillis(600))));
+    }
+
+    /** 4 ур.: кошачья походка — в крадущемся шаге скорость II. */
+    @EventHandler
+    public void onSneakShift(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        if (plugin.quirks().levelOf(player, Quirk.CAT) < 4) return;
+        if (!player.isSneaking()) return;
+        if (!ScanUtil.tryUse(player.getUniqueId(), "cat-soft-paws", 900)) return;
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 40, 1, true, false, false));
+    }
+
+    /** 5 ур.: царапина когтями — удар голой лапой отравляет и замедляет, КД 20 сек. */
+    @EventHandler(ignoreCancelled = true)
+    public void onClawStrike(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player attacker)) return;
+        if (!(event.getEntity() instanceof LivingEntity victim)) return;
+        if (plugin.quirks().levelOf(attacker, Quirk.CAT) < 5) return;
+        if (!attacker.getInventory().getItemInMainHand().getType().isAir()) return; // только лапой
+        if (!ScanUtil.tryUse(attacker.getUniqueId(), "cat-claw", 20_000L)) return;
+        victim.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 60, 0, true, false, true));
+        victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 1, true, false, false));
+        attacker.getWorld().playSound(attacker.getLocation(), Sound.ENTITY_CAT_HISS, 0.8f, 1.2f);
     }
 }

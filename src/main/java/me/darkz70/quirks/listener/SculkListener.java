@@ -110,4 +110,40 @@ public final class SculkListener implements Listener {
     }
 
     /** 4 ур.: темнота для него = дом: ночное зрение в темноте обрабатывается в EffectsTask. */
+
+    /** 4 ур.: эхо-локатор — жертва светится (скалк чувствует её сквозь стены). */
+    @EventHandler(ignoreCancelled = true)
+    public void onEchoLocate(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player attacker)) return;
+        if (!(event.getEntity() instanceof org.bukkit.entity.LivingEntity victim)) return;
+        int lvl = Math.max(plugin.quirks().levelOf(attacker, me.darkz70.quirks.Quirk.SCULK),
+                plugin.quirks().levelOf(attacker, me.darkz70.quirks.Quirk.SCULK_LEADER));
+        if (lvl < 4) return;
+        victim.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                org.bukkit.potion.PotionEffectType.GLOWING, 60, 0, true, false, false));
+        victim.getWorld().spawnParticle(org.bukkit.Particle.SCULK_SOUL,
+                victim.getLocation().add(0, 1, 0), 6, 0.3, 0.5, 0.3, 0.01);
+    }
+
+    /** 5 ур.: крик глубин — при смертельном ударе отталкивает и ослепляет всех рядом, КД 10 мин. */
+    @EventHandler(ignoreCancelled = true)
+    public void onDepthScream(org.bukkit.event.entity.EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        int lvl = Math.max(plugin.quirks().levelOf(player, me.darkz70.quirks.Quirk.SCULK),
+                plugin.quirks().levelOf(player, me.darkz70.quirks.Quirk.SCULK_LEADER));
+        if (lvl < 5) return;
+        if (player.getHealth() - event.getFinalDamage() > 0) return;
+        if (!ScanUtil.tryUse(player.getUniqueId(), "sculk-depth-scream", 10 * 60_000L)) return;
+        player.setHealth(2.0);
+        player.getWorld().playSound(player.getLocation(),
+                org.bukkit.Sound.ENTITY_WARDEN_SONIC_BOOM, 1.2f, 0.6f);
+        for (org.bukkit.entity.Entity e : player.getWorld().getNearbyEntities(player.getLocation(), 6, 4, 6)) {
+            if (e instanceof org.bukkit.entity.LivingEntity v && e != player) {
+                v.setVelocity(v.getLocation().toVector().subtract(player.getLocation().toVector())
+                        .normalize().multiply(1.4).setY(0.6));
+                v.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                        org.bukkit.potion.PotionEffectType.BLINDNESS, 60, 0, true, false, false));
+            }
+        }
+    }
 }

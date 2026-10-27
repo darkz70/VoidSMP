@@ -158,7 +158,7 @@ public final class MagicSystem {
     // ---------- мана ----------
 
     public int maxMana(int level) {
-        return 20 + level * 10;
+        return 20 + level * 12;
     }
 
     public double manaPerTick() {
@@ -784,6 +784,32 @@ public final class MagicSystem {
                 world.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 1f, 0.8f);
                 Msg.send(player, "magic-cast-fire10");
             }
+            case 10 -> { // Башня пламени: 5 восходящих взрывов, враги горят 15с
+                for (int i = 0; i < 5; i++) {
+                    final int w = i;
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        Location up = player.getLocation().add(0, w * 1.6, 0);
+                        burst(player, up, 4, 5, Element.FIRE, 0.8, v -> v.setFireTicks(300));
+                        world.spawnParticle(Particle.LAVA, up, 40, 1.2, 0.6, 1.2, 0.02);
+                        world.playSound(up, Sound.ENTITY_GENERIC_EXPLODE, 0.8f, 0.9f + w * 0.1f);
+                    }, w * 8L);
+                }
+                Msg.send(player, "magic-cast-fire11");
+            }
+            case 11 -> { // Солярное затмение: 20 мини-взрывов по случайным точкам вокруг
+                for (int i = 0; i < 20; i++) {
+                    final int w = i;
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        double a = Math.random() * Math.PI * 2;
+                        double d = 3 + Math.random() * 8;
+                        Location spot = player.getLocation().add(Math.cos(a) * d, 0, Math.sin(a) * d);
+                        spot.setY(world.getHighestBlockYAt(spot) + 0.5);
+                        world.createExplosion(spot, 1.6f, true, false, player);
+                    }, w * 5L);
+                }
+                stamp(invulnUntil, player, 6_000);
+                Msg.send(player, "magic-cast-fire12");
+            }
         }
         fx(player, Particle.FLAME);
     }
@@ -845,6 +871,33 @@ public final class MagicSystem {
                 stamp(waterAuraUntil, player, 60_000);
                 burst(player, player.getLocation(), 7, 8, Element.WATER, 1.2, null);
                 Msg.send(player, "magic-cast-water10");
+            }
+            case 10 -> { // Бурлящий шторм: три волны цунами, враги взмывают
+                for (int i = 0; i < 3; i++) {
+                    final double r = 5.0 + i * 2.5;
+                    final int w = i;
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        burst(player, player.getLocation(), r, 7, Element.WATER, 1.0,
+                                v -> v.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 14, 2, false, false)));
+                        world.spawnParticle(Particle.SPLASH, player.getLocation(), 200, r * 0.4, 1.0, r * 0.4, 0.03);
+                        world.spawnParticle(Particle.BUBBLE_COLUMN_UP, player.getLocation(), 140, r * 0.4, 1.4, r * 0.4, 0.03);
+                    }, w * 14L);
+                }
+                Msg.send(player, "magic-cast-water11");
+            }
+            case 11 -> { // Мировой потоп: все враги в 12 блоках тонут, маг исцелён
+                stamp(invulnUntil, player, 8_000);
+                heal(player, 20);
+                for (Entity entity : world.getNearbyEntities(player.getLocation(), 12, 12, 12)) {
+                    if (entity instanceof LivingEntity victim && entity != player) {
+                        victim.damage(computeDamage(player, victim, 12, Element.WATER), player);
+                        victim.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 30, 1, false, false));
+                        victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 140, 1, false, false));
+                    }
+                }
+                world.spawnParticle(Particle.FALLING_WATER, player.getLocation(), 300, 6, 2.5, 6, 0.05);
+                world.playSound(player.getLocation(), Sound.ENTITY_PLAYER_SPLASH_HIGH_SPEED, 1f, 0.6f);
+                Msg.send(player, "magic-cast-water12");
             }
         }
         fx(player, Particle.SPLASH);
@@ -914,6 +967,29 @@ public final class MagicSystem {
                 }
                 Msg.send(player, "magic-cast-wind10");
             }
+            case 10 -> { // Безмолвный охотник: полёт 45с, скорость II, защита ветра
+                flight(player, 45);
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 45 * 20, 1));
+                stamp(windProtUntil, player, 45_000);
+                world.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 0.8f, 1.3f);
+                Msg.send(player, "magic-cast-wind11");
+            }
+            case 11 -> { // Абсолютный гром: молнии по кольцу + реальные по 3 ближайшим
+                int stuck = 0;
+                for (Entity entity : world.getNearbyEntities(player.getLocation(), 10, 10, 10)) {
+                    if (entity instanceof LivingEntity victim && entity != player && stuck < 3) {
+                        world.strikeLightning(victim.getLocation());
+                        stuck++;
+                    }
+                }
+                for (int i = 0; i < 12; i++) {
+                    double a = (Math.PI * 2 * i) / 12;
+                    Location spot = player.getLocation().add(Math.cos(a) * 7, 0, Math.sin(a) * 7);
+                    world.strikeLightningEffect(spot);
+                }
+                stamp(invulnUntil, player, 6_000);
+                Msg.send(player, "magic-cast-wind12");
+            }
         }
         fx(player, Particle.CLOUD);
     }
@@ -964,6 +1040,40 @@ public final class MagicSystem {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 30 * 20, 0));
                 world.playSound(player.getLocation(), Sound.ENTITY_RAVAGER_ROAR, 1f, 0.7f);
                 Msg.send(player, "magic-cast-earth10");
+            }
+            case 10 -> { // Гигантская кладка: три кольца стены земли 3/5/7
+                for (int ring = 0; ring < 3; ring++) {
+                    final int radius = 3 + ring * 2;
+                    final int rr = ring;
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        for (int i = 0; i < 24; i++) {
+                            double a = (Math.PI * 2 * i) / 24;
+                            Block b = world.getBlockAt(player.getLocation().getBlockX()
+                                    + (int) Math.round(Math.cos(a) * radius),
+                                    player.getLocation().getBlockY(),
+                                    player.getLocation().getBlockZ()
+                                    + (int) Math.round(Math.sin(a) * radius));
+                            if (b.getType().isAir() || !b.getType().isSolid()) {
+                                b.setType(Material.DIRT);
+                                Block top = b.getRelative(0, 1, 0);
+                                if (top.getType().isAir()) top.setType(Material.COBBLESTONE);
+                            }
+                        }
+                        world.playSound(player.getLocation(), Sound.BLOCK_GRAVEL_BREAK, 0.9f, 0.7f + rr * 0.15f);
+                    }, ring * 6L);
+                }
+                Msg.send(player, "magic-cast-earth11");
+            }
+            case 11 -> { // Девятый вал земли: волна из шипов наружу
+                for (int i = 0; i < 9; i++) {
+                    final double r = 2.0 + i * 1.5;
+                    final int w = i;
+                    Bukkit.getScheduler().runTaskLater(plugin, () ->
+                            spikes(player, 6, r, Math.max(8, (int) (r * 4)), Particle.CRIT), w * 4L);
+                }
+                stamp(invulnUntil, player, 5_000);
+                world.playSound(player.getLocation(), Sound.ENTITY_RAVAGER_ROAR, 1f, 0.5f);
+                Msg.send(player, "magic-cast-earth12");
             }
         }
         fx(player, Particle.WAX_OFF);
@@ -1029,6 +1139,25 @@ public final class MagicSystem {
                 world.playSound(player.getLocation(), Sound.ENTITY_WARDEN_ROAR, 1f, 0.6f);
                 Anims.tornado(plugin, player.getLocation(), Particle.SCULK_SOUL, 30, 2.4, 3.2);
                 Msg.send(player, "magic-cast-dark10");
+            }
+            case 10 -> { // Теневая призма: стелс+уворот+эхо на 3 минуты
+                stamp(darkStealthUntil, player, 180_000);
+                stamp(darkEvadeUntil, player, 180_000);
+                stamp(echoUntil, player, 180_000);
+                world.spawnParticle(Particle.WITCH, player.getLocation(), 80, 2.0, 1.2, 2.0, 0.02);
+                Msg.send(player, "magic-cast-dark11");
+            }
+            case 11 -> { // Голод пустоты: 12 урона всем в 8 блоках, лечение за жертв
+                List<LivingEntity> victims = new ArrayList<>();
+                burst(player, player.getLocation(), 8, 12, Element.DARK, 1.0, victims::add);
+                for (LivingEntity v : victims) {
+                    v.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 200, 0, false, false));
+                    v.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 1, false, false));
+                }
+                player.setHealth(Math.min(maxHealth(player), player.getHealth() + victims.size() * 5.0));
+                Anims.tornado(plugin, player.getLocation(), Particle.SCULK_SOUL, 40, 2.6, 3.6);
+                world.playSound(player.getLocation(), Sound.ENTITY_WARDEN_SONIC_BOOM, 0.9f, 0.5f);
+                Msg.send(player, "magic-cast-dark12");
             }
         }
         fx(player, Particle.SCULK_SOUL);
@@ -1125,6 +1254,36 @@ public final class MagicSystem {
                 world.spawnParticle(Particle.TOTEM_OF_UNDYING, player.getLocation(), 100, 3.0, 2.0, 3.0, 0.04);
                 world.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 0.6f);
                 Msg.send(player, "magic-cast-light10");
+            }
+            case 10 -> { // Небесный хор: союзники лечатся, нежить горит
+                heal(player, 20);
+                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 2, false, false));
+                for (Entity entity : world.getNearbyEntities(player.getLocation(), 12, 12, 12)) {
+                    if (entity instanceof Player ally) {
+                        ally.setHealth(Math.min(maxHealth(ally), ally.getHealth() + 14));
+                    } else if (entity instanceof LivingEntity victim && isUndead(victim)) {
+                        victim.damage(computeDamage(player, victim, 20, Element.LIGHT), player);
+                        victim.setFireTicks(160);
+                    }
+                }
+                world.playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 1.2f);
+                Msg.send(player, "magic-cast-light11");
+            }
+            case 11 -> { // Судный свет: карающие пучки во все врагов в 15 блоках
+                flight(player, 20);
+                stamp(invulnUntil, player, 10_000);
+                int struck = 0;
+                for (Entity entity : world.getNearbyEntities(player.getLocation(), 15, 15, 15)) {
+                    if (entity instanceof LivingEntity victim && entity != player) {
+                        world.strikeLightningEffect(victim.getLocation());
+                        victim.damage(computeDamage(player, victim, isUndead(victim) ? 30 : 15, Element.LIGHT), player);
+                        victim.setFireTicks(120);
+                        struck++;
+                    }
+                }
+                world.spawnParticle(Particle.END_ROD, player.getLocation(), 200, 6, 3, 6, 0.05);
+                world.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.5f);
+                Msg.send(player, "magic-cast-light12", "%n%", String.valueOf(struck));
             }
         }
         fx(player, Particle.END_ROD);

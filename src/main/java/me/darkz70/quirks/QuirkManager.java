@@ -111,6 +111,8 @@ public final class QuirkManager {
                     applyFlaggedEffect(player, PotionEffectType.WEAKNESS, 0, Keys.effWeakness);
                 }
                 applyReach(player, engineerReach(level)); // дальность блоков по уровню
+                if (level >= 4) applyAttr(player, Keys.engineerDamage,      // механическая рука
+                        org.bukkit.attribute.Attribute.ATTACK_DAMAGE, level >= 5 ? 4.0 : 2.0);
             }
             case BEDROCK -> {
                 BedrockLogic.applyLayout(plugin, player, level);
@@ -151,6 +153,7 @@ public final class QuirkManager {
         switch (quirk) {
             case ENGINEER -> {
                 removeFlaggedEffect(player, PotionEffectType.WEAKNESS, Keys.effWeakness);
+                removeAttr(player, Keys.engineerDamage, org.bukkit.attribute.Attribute.ATTACK_DAMAGE);
                 removeReach(player);
             }
             case BEDROCK -> {
@@ -229,6 +232,9 @@ public final class QuirkManager {
                         applyFlaggedEffect(player, PotionEffectType.WEAKNESS, 0, Keys.effWeakness);
                     }
                     applyReach(player, engineerReach(entry.getValue()));
+                    if (entry.getValue() >= 4) applyAttr(player, Keys.engineerDamage,
+                            org.bukkit.attribute.Attribute.ATTACK_DAMAGE,
+                            entry.getValue() >= 5 ? 4.0 : 2.0);
                 }
                 case BEDROCK -> {
                     if (entry.getValue() >= 4) applyAttr(player, Keys.bedrockKbr,

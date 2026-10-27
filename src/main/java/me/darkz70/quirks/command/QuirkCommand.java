@@ -207,6 +207,12 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                 "%quirk%", quirk.display(),
                 "%level%", String.valueOf(level));
         // скрытность админ-выдачи: получение причуды не анонсируем (спека 1.0)
+        if (level >= 4) { // эндгейм: цель видит вспышку роста (без глобального анонса)
+            target.playSound(target.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1f, level == 5 ? 0.7f : 0.9f);
+            target.getWorld().spawnParticle(org.bukkit.Particle.END_ROD,
+                    target.getLocation().add(0, 1, 0), 30, 0.4, 0.8, 0.4, 0.03);
+            Msg.send(target, "endgame-title", "%quirk%", quirk.display(), "%level%", String.valueOf(level));
+        }
     }
 
     /** /quirk remove_admin <игрок> — снять причуду Админ / АдминПро. */

@@ -193,6 +193,16 @@ public final class GaidFx implements Listener {
         }
         world.spawnParticle(Particle.EXPLOSION_EMITTER, center, 3, 0.4, 0.4, 0.4, 0);
         world.playSound(center, Sound.ENTITY_GENERIC_EXPLODE, SoundCategory.BLOCKS, 1.4f, 0.7f);
+        // языки пламени на кромке — разлом ещё дышит
+        for (int i = 0; i < r * 2; i++) {
+            double a = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
+            Block edge = world.getBlockAt(cx + (int) Math.round(Math.cos(a) * r),
+                    cy, cz + (int) Math.round(Math.sin(a) * r));
+            Block above = edge.getRelative(0, 1, 0);
+            if (above.getType().isAir() && edge.getType().isSolid()) {
+                above.setType(Material.FIRE);
+            }
+        }
     }
     private static boolean canTurn(Block block) {
         return switch (block.getType()) {

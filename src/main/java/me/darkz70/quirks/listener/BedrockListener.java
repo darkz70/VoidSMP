@@ -5,6 +5,9 @@ import me.darkz70.quirks.Quirk;
 import me.darkz70.quirks.VoidQuirksPlugin;
 import me.darkz70.quirks.mechanic.BedrockLogic;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import me.darkz70.quirks.util.ScanUtil;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -148,5 +151,34 @@ public final class BedrockListener implements Listener {
         player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, ticks, 4, true, false, true));
         player.getWorld().playSound(player.getLocation(), Sound.ITEM_TOTEM_USE, 0.7f, 1.2f);
         plugin.notify(player, "bedrock-immortal");
+    }
+
+    /** 4 ур.: сейсмический шаг — падение не ранит, а высота ≥4 блоков гремит кружком. */
+    @EventHandler(ignoreCancelled = true)
+    public void onQuakeFall(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (event.getCause() != EntityDamageEvent.DamageCause.FALL) return;
+        if (plugin.quirks().levelOf(player, Quirk.BEDROCK) < 4) return;
+        event.setCancelled(true);
+        player.getWorld().spawnParticle(Particle.CRIT, player.getLocation(), 40, 2.0, 0.2, 2.0, 0.05);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ZOMBIE_ATTACK_IRON_DOOR, 0.7f, 0.5f);
+        for (Entity e : player.getWorld().getNearbyEntities(player.getLocation(), 4, 3, 4)) {
+            if (e instanceof LivingEntity v && e != player) {
+                v.setVelocity(v.getLocation().toVector().subtract(player.getLocation().toVector())
+                        .normalize().multiply(0.9).setY(0.4));
+            }
+        }
+    }
+
+    /** 5 ур.: опорный столб — стоящего Бедрока атакующих отшвыривает (КД 2 сек). */
+    @EventHandler(ignoreCancelled = true)
+    public void onPillarRepel(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (!(event.getDamager() instanceof LivingEntity attacker)) return;
+        if (plugin.quirks().levelOf(player, Quirk.BEDROCK) < 5) return;
+        if (!ScanUtil.tryUse(player.getUniqueId(), "bedrock-repel", 2_000L)) return;
+        attacker.setVelocity(attacker.getLocation().toVector().subtract(player.getLocation().toVector())
+                .normalize().multiply(1.1).setY(0.5));
+        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 0.6f, 0.7f);
     }
 }

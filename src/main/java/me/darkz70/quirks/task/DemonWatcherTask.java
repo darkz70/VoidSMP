@@ -107,6 +107,21 @@ public final class DemonWatcherTask extends BukkitRunnable {
             } else {
                 watched.playSound(s.loc, Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 0.9f);
             }
+            // азарт: 15% — «укус», 15% — «подарок», иначе просто ушёл
+            double roll = ThreadLocalRandom.current().nextDouble();
+            if (roll < 0.15) {
+                watched.damage(1.0);
+                watched.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                        org.bukkit.potion.PotionEffectType.DARKNESS, 30, 0, true, false, false));
+                me.darkz70.quirks.util.Msg.send(watched, "demon-bite");
+            } else if (roll < 0.30) {
+                watched.giveExp(3 + ThreadLocalRandom.current().nextInt(8));
+                watched.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                        org.bukkit.potion.PotionEffectType.LUCK, 600, 0, true, false, false));
+                watched.getWorld().spawnParticle(Particle.HAPPY_VILLAGER,
+                        watched.getLocation().add(0, 1, 0), 18, 0.4, 0.6, 0.4, 0.02);
+                me.darkz70.quirks.util.Msg.send(watched, "demon-gift");
+            }
         }
     }
 }
