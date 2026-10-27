@@ -203,8 +203,8 @@ public final class CatListener implements Listener {
         event.setCancelled(true);
         player.setHealth(1.0);
         player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 60, 4, true, false, true));
-        player.sendTitle(net.kyori.adventure.title.Title.title(
-                Msg.color("&e&lДевять жизней"), Msg.color("&7−1 жизнь · перекурка час")),
-                net.kyori.adventure.title.Title.Times.times(Duration.ofMillis(200), Duration.ofSeconds(2), Duration.ofMillis(600)));
+        player.showTitle(Title.title(
+                Msg.color("&e&lДевять жизней"), Msg.color("&7−1 жизнь · перекурка час"),
+                Title.Times.times(Duration.ofMillis(200), Duration.ofSeconds(2), Duration.ofMillis(600))));
     }
 }

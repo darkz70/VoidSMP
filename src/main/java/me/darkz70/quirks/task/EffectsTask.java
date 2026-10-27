@@ -76,8 +76,8 @@ public final class EffectsTask extends BukkitRunnable {
             if (amphib > 0) AmphibianListener.applyPassive(plugin, player, amphib);
             if (farmer > 0) FarmerListener.applyPassive(plugin, player, farmer);
             // Инженер 5 ур.: саморемонт — раз в 10 сек чинит предмет в руке на 2 ед.
-            int engineer = data.levelOf(Quirk.ENGINEER);
-            if (engineer >= 5 && ScanUtil.tryUse(player.getUniqueId(), "eng-self-repair", 10_000L)) {
+            int engLvl = data.levelOf(Quirk.ENGINEER);
+            if (engLvl >= 5 && ScanUtil.tryUse(player.getUniqueId(), "eng-self-repair", 10_000L)) {
                 repairHand(player.getInventory().getItemInMainHand());
                 repairHand(player.getInventory().getItemInOffHand());
             }
