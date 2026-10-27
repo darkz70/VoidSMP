@@ -820,13 +820,15 @@ public final class GaidFx implements Listener {
         }
         for (int wave = 0; wave < 3; wave++) {
             final double r = 4 + wave * 4;
+            final int fw = wave;
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 for (int i = 0; i < 48; i++) {
                     double a = (Math.PI * 2 * i) / 48;
                     world.spawnParticle(Particle.SCULK_SOUL,
                             at.clone().add(Math.cos(a) * r, 0.3, Math.sin(a) * r), 2, 0.1, 0.2, 0.1, 0.005);
                 }
-                world.playSound(at, Sound.BLOCK_SCULK_SHRIEKER_SHRIEK, SoundCategory.HOSTILE, 0.8f, 0.6f + wave * 0.1f);
+                world.playSound(at, Sound.BLOCK_SCULK_SHRIEKER_SHRIEK, SoundCategory.HOSTILE,
+                        0.8f, 0.6f + fw * 0.1f);
             }, wave * 8L);
         }
     }
