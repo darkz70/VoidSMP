@@ -141,7 +141,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                 Msg.send(sender, "invalid-level");
                 return;
             }
-            if (level < 1 || level > 5) {
+            if (level < 1 || level > 3) {
                 Msg.send(sender, "invalid-level");
                 return;
             }
@@ -194,7 +194,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                 Msg.send(sender, "invalid-level");
                 return;
             }
-            if (level < 1 || level > 5) {
+            if (level < 1 || level > 3) {
                 Msg.send(sender, "invalid-level");
                 return;
             }
@@ -207,12 +207,6 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                 "%quirk%", quirk.display(),
                 "%level%", String.valueOf(level));
         // скрытность админ-выдачи: получение причуды не анонсируем (спека 1.0)
-        if (level >= 4) { // эндгейм: цель видит вспышку роста (без глобального анонса)
-            target.playSound(target.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1f, level == 5 ? 0.7f : 0.9f);
-            target.getWorld().spawnParticle(org.bukkit.Particle.END_ROD,
-                    target.getLocation().add(0, 1, 0), 30, 0.4, 0.8, 0.4, 0.03);
-            Msg.send(target, "endgame-title", "%quirk%", quirk.display(), "%level%", String.valueOf(level));
-        }
     }
 
     /** /quirk remove_admin <игрок> — снять причуду Админ / АдминПро. */
@@ -457,9 +451,9 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                 if (quirk.startsWith(prefix)) out.add(quirk);
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("item")) {
-            for (String lvl : List.of("1", "2", "3", "4", "5")) {
-                if (lvl.startsWith(args[2])) out.add(lvl);
-            }
+            if ("1".startsWith(args[2])) out.add("1");
+            if ("2".startsWith(args[2])) out.add("2");
+            if ("3".startsWith(args[2])) out.add("3");
         } else if (args.length == 4 && (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("item"))) {
             if (args[0].equalsIgnoreCase("set")) {
                 if ("1".startsWith(args[3])) out.add("1");

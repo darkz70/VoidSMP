@@ -8,8 +8,7 @@ public final class Keys {
     public static NamespacedKey lockedItem;      // пометка барьеров/бедрока
     public static NamespacedKey effWeakness;     // слабость Инженера применена нами
     public static NamespacedKey effSpeed;        // скорость Бедрока
-    public static NamespacedKey effRegen;
-    public static NamespacedKey effNightVision;        // регенерация Бедрока
+    public static NamespacedKey effRegen;        // регенерация Бедрока
     public static NamespacedKey sculkHp;         // +2 HP Скалка (модификатор атрибута)
     public static NamespacedKey shardQuirk;      // осколок души: id причуды
     public static NamespacedKey shardLevel;      // осколок души: уровень
@@ -28,9 +27,6 @@ public final class Keys {
     public static NamespacedKey spiderHp;        // -2 HP Паука 1 ур. (модификатор атрибута)
     public static NamespacedKey effHero;         // герой деревни Фермера применён нами
     public static NamespacedKey reach;           // инженер: модификатор дальности блока
-    public static NamespacedKey bedrockKbr;      // бедрок: сопротивление нокбэку (4 ур.)
-    public static NamespacedKey bedrockArmor;    // бедрок: +броня (5 ур.)
-    public static NamespacedKey engineerDamage;  // инженер: механическая рука (+урон)
     public static NamespacedKey zkRole;          // зайцекрол: роль (farmer/guard/elite/resident/tsar)
     public static NamespacedKey zkHome;          // зайцекрол: точка появления "x,y,z"
     public static NamespacedKey zkGen;           // зайцекрол-житель: поколение (с 60)
@@ -42,7 +38,6 @@ public final class Keys {
         effWeakness = new NamespacedKey(plugin, "eff_weakness");
         effSpeed = new NamespacedKey(plugin, "eff_speed");
         effRegen = new NamespacedKey(plugin, "eff_regen");
-        effNightVision = new NamespacedKey(plugin, "eff_night_vision");
         sculkHp = new NamespacedKey(plugin, "sculk_hp");
         shardQuirk = new NamespacedKey(plugin, "shard_quirk");
         shardLevel = new NamespacedKey(plugin, "shard_level");
@@ -61,9 +56,6 @@ public final class Keys {
         spiderHp = new NamespacedKey(plugin, "spider_hp");
         effHero = new NamespacedKey(plugin, "eff_hero");
         reach = new NamespacedKey(plugin, "engineer_reach");
-        bedrockKbr = new NamespacedKey(plugin, "bedrock_kbr");
-        bedrockArmor = new NamespacedKey(plugin, "bedrock_armor");
-        engineerDamage = new NamespacedKey(plugin, "engineer_damage");
         zkRole = new NamespacedKey(plugin, "zk_role");
         zkHome = new NamespacedKey(plugin, "zk_home");
         zkGen = new NamespacedKey(plugin, "zk_gen");

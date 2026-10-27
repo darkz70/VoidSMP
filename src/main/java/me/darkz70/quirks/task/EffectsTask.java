@@ -70,33 +70,11 @@ public final class EffectsTask extends BukkitRunnable {
             if (web && (cat > 0 || sculk > 0)) {
                 ambient(player, PotionEffectType.BLINDNESS, 0);
             }
-            // Паук 4 ур.: в своей паутине — домашний запад
-            if (web && spider >= 4) {
-                ambient(player, PotionEffectType.SPEED, 1);
-                ambient(player, PotionEffectType.JUMP_BOOST, 0);
-            }
-
-            // Эндгейм-аура: 5 уровень любой причуды мерцает частицами стихии
-            if (data.entries().stream().anyMatch(en -> en.getValue() >= 5)) {
-                Quirk mastery = data.entries().stream().filter(en -> en.getValue() >= 5)
-                        .map(Map.Entry::getKey).findFirst().orElse(null);
-                if (mastery != null && ScanUtil.tryUse(player.getUniqueId(), "aura5", 2000L)) {
-                    player.getWorld().spawnParticle(auraParticle(mastery),
-                            player.getLocation().add(0, 0.9, 0), 6, 0.35, 0.6, 0.35, 0.01);
-                }
-            }
 
             // отдельные периодики классов
             if (spider > 0) SpiderListener.applyPassive(plugin, player, spider);
             if (amphib > 0) AmphibianListener.applyPassive(plugin, player, amphib);
             if (farmer > 0) FarmerListener.applyPassive(plugin, player, farmer);
-            // Инженер 5 ур.: саморемонт — раз в 10 сек чинит предмет в руке на 2 ед.
-            int engLvl = data.levelOf(Quirk.ENGINEER);
-            if (engLvl >= 5 && ScanUtil.tryUse(player.getUniqueId(), "eng-self-repair", 10_000L)) {
-                repairHand(player.getInventory().getItemInMainHand());
-                repairHand(player.getInventory().getItemInOffHand());
-            }
-
 
             // скалковое свечение (2-3 ур.): немного частиц раз в N минут
             if (sculk >= 2) {
@@ -219,29 +197,4 @@ public final class EffectsTask extends BukkitRunnable {
         Location loc = player.getLocation();
         return player.getWorld().getHighestBlockYAt(loc) < loc.getBlockY() + 1;
     }
-
-    /** Чинит предмет на 2 ед. прочности, если он повреждён. */
-    private static void repairHand(org.bukkit.inventory.ItemStack item) {
-        if (item == null || item.getType().isAir()) return;
-        if (!(item.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg)) return;
-        if (dmg.getDamage() <= 0) return;
-        dmg.setDamage(Math.max(0, dmg.getDamage() - 2));
-        item.setItemMeta(dmg);
-    }
-
-    /** Частица ауры 5-го уровня причуды (эндгейм-мерцание). */
-    private static Particle auraParticle(Quirk quirk) {
-        return switch (quirk) {
-            case ENGINEER -> Particle.CRIT;
-            case CAT -> Particle.NOTE;
-            case BEDROCK -> Particle.ASH;
-            case AXE -> Particle.SWEEP_ATTACK;
-            case SCULK, SCULK_LEADER -> Particle.SCULK_SOUL;
-            case FARMER -> Particle.HAPPY_VILLAGER;
-            case AMPHIBIAN -> Particle.SPLASH;
-            case SPIDER -> Particle.SQUID_INK;
-            default -> Particle.END_ROD;
-        };
-    }
 }
-

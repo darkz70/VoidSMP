@@ -3,9 +3,9 @@ package me.darkz70.quirks.magic;
 /** Описание заклинания: имя, стоимость маны, кулдаун (сек), требуемый уровень магии. */
 public record Spell(String name, int mana, long cooldownSeconds, int requiredLevel) {
 
-    public static final int[] UNLOCK_LEVELS = {1, 10, 10, 20, 20, 30, 41, 42, 43, 44, 45, 46};
+    public static final int[] UNLOCK_LEVELS = {1, 10, 10, 20, 20, 30, 41};
 
-    /** Двенадцать заклинаний каждой стихии (эндгейм-ульты: 45/46). */
+    /** Семь заклинаний каждой стихии. */
     public static Spell[] of(Element element) {
         return switch (element) {
             case FIRE -> new Spell[]{
@@ -15,12 +15,7 @@ public record Spell(String name, int mana, long cooldownSeconds, int requiredLev
                 new Spell("Огненный резист", 110, 300, 20),
                 new Spell("Огненный профи", 200, 300, 20),
                 new Spell("Огненный победитель", 250, 600, 30),
-                new Spell("Огненный бог", 300, 600, 41),
-                new Spell("Метеорный дождь", 350, 900, 42),
-                new Spell("Пепельный вихрь", 400, 1500, 43),
-                new Spell("Перерождение феникса", 450, 2400, 44),
-                new Spell("Башня пламени", 450, 1800, 45),
-                new Spell("Солярное затмение", 470, 3600, 46)
+                new Spell("Огненный бог", 300, 600, 41)
             };
             case WATER -> new Spell[]{
                 new Spell("Водяной шар", 10, 30, 1),
@@ -29,12 +24,7 @@ public record Spell(String name, int mana, long cooldownSeconds, int requiredLev
                 new Spell("Водный резист", 110, 300, 20),
                 new Spell("Ледяные шипы", 200, 300, 20),
                 new Spell("Целитель глубин", 250, 600, 30),
-                new Spell("Водный бог", 300, 600, 41),
-                new Spell("Цунами", 350, 900, 42),
-                new Spell("Ледяной плен", 400, 1500, 43),
-                new Spell("Глубинный апогей", 450, 2400, 44),
-                new Spell("Бурлящий шторм", 450, 1800, 45),
-                new Spell("Мировой потоп", 470, 3600, 46)
+                new Spell("Водный бог", 300, 600, 41)
             };
             case WIND -> new Spell[]{
                 new Spell("Порыв", 10, 15, 1),
@@ -43,12 +33,7 @@ public record Spell(String name, int mana, long cooldownSeconds, int requiredLev
                 new Spell("Резист ветра", 110, 300, 20),
                 new Spell("Вихрь", 200, 240, 20),
                 new Spell("Прыжок бури", 250, 450, 30),
-                new Spell("Ветряной бог", 300, 600, 41),
-                new Spell("Штормовой рывок", 350, 900, 42),
-                new Spell("Ураган", 400, 1500, 43),
-                new Spell("Повелитель небес", 450, 2400, 44),
-                new Spell("Безмолвный охотник", 450, 1800, 45),
-                new Spell("Абсолютный гром", 470, 3600, 46)
+                new Spell("Ветряной бог", 300, 600, 41)
             };
             case EARTH -> new Spell[]{
                 new Spell("Каменный кулак", 10, 22, 1),
@@ -57,12 +42,7 @@ public record Spell(String name, int mana, long cooldownSeconds, int requiredLev
                 new Spell("Резист земли", 110, 300, 20),
                 new Spell("Каменные шипы", 200, 300, 20),
                 new Spell("Стена земли", 250, 450, 30),
-                new Spell("Земляной бог", 300, 600, 41),
-                new Spell("Каменная гробница", 350, 900, 42),
-                new Spell("Лавовое ядро", 400, 1500, 43),
-                new Spell("Пробуждение титана", 450, 2400, 44),
-                new Spell("Гигантская кладка", 450, 1800, 45),
-                new Spell("Девятый вал земли", 470, 3600, 46)
+                new Spell("Земляной бог", 300, 600, 41)
             };
             case DARK -> new Spell[]{
                 new Spell("Тёмный шёпот", 10, 30, 1),
@@ -71,12 +51,7 @@ public record Spell(String name, int mana, long cooldownSeconds, int requiredLev
                 new Spell("Теневая защита", 110, 300, 20),
                 new Spell("Теневые копии", 200, 300, 20),
                 new Spell("Пожирание", 250, 450, 30),
-                new Spell("Тёмный бог", 300, 600, 41),
-                new Spell("Разрыв души", 350, 900, 42),
-                new Spell("Демонический обмен", 400, 1500, 43),
-                new Spell("Абсолютная тьма", 450, 2400, 44),
-                new Spell("Теневая призма", 450, 1800, 45),
-                new Spell("Голод пустоты", 470, 3600, 46)
+                new Spell("Тёмный бог", 300, 600, 41)
             };
             case LIGHT -> new Spell[]{
                 new Spell("Светящийся шар", 10, 30, 1),
@@ -85,12 +60,7 @@ public record Spell(String name, int mana, long cooldownSeconds, int requiredLev
                 new Spell("Световой резист", 110, 300, 20),
                 new Spell("Световой щит", 200, 300, 20),
                 new Spell("Кара нежити", 250, 450, 30),
-                new Spell("Светлый бог", 300, 600, 41),
-                new Spell("Солнечный удар", 350, 900, 42),
-                new Spell("Обитель света", 400, 1500, 43),
-                new Spell("Архангел", 450, 2400, 44),
-                new Spell("Небесный хор", 450, 1800, 45),
-                new Spell("Судный свет", 470, 3600, 46)
+                new Spell("Светлый бог", 300, 600, 41)
             };
         };
     }

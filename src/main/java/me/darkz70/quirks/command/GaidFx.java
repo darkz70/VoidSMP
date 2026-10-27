@@ -94,7 +94,10 @@ public final class GaidFx implements Listener {
             }
             default -> { return; }
         }
-        player.closeInventory();
+        // эффект запущен — меню остаётся открытым (переоткрываем, чтобы сбросить курсор/слот)
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (player.isOnline()) open(player);
+        });
     }
 
     // ---------- адские разломы ----------
@@ -133,28 +136,53 @@ public final class GaidFx implements Listener {
                 }
             }, ticks);
         }
-        // 4 трещины-линии по 9 блоков в случайные стороны
+        // трещины-линии РАСТУТ от эпицентра шаг за шагом (слышно и видно продвижение)
         for (int line = 0; line < lines; line++) {
             double angle = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
-            int ticks = line * 6;
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                int len = (int) Math.round(9 * scale);
-                for (int step = 1; step <= len; step++) {
-                    int px = bx + (int) Math.round(Math.cos(angle) * step);
-                    int pz = bz + (int) Math.round(Math.sin(angle) * step);
+            int len = (int) Math.round(9 * scale);
+            for (int step = 1; step <= len; step++) {
+                int px = bx + (int) Math.round(Math.cos(angle) * step);
+                int pz = bz + (int) Math.round(Math.sin(angle) * step);
+                // каждые 2 шага трещины — свой тик (растёт в глазах)
+                int ticks = line * 4 + step * 2;
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
                     Block block = world.getBlockAt(px, by, pz);
-                    if (!canTurn(block)) continue;
+                    if (!canTurn(block)) return;
                     block.setType(Material.MAGMA_BLOCK);
-                    world.spawnParticle(Particle.LAVA, px + 0.5, by + 1.2, pz + 0.5, 2, 0.2, 0.1, 0.2, 0);
-                    world.playSound(new Location(world, px, by, pz),
-                            Sound.BLOCK_LAVA_POP, SoundCategory.BLOCKS, 1.2f, 0.6f);
-                }
+                    Location tip = new Location(world, px + 0.5, by, pz + 0.5);
+                    // раскалённый шов: лава-искры + серный дым + потрескивание
+                    world.spawnParticle(Particle.LAVA, px + 0.5, by + 1.2, pz + 0.5, 3, 0.2, 0.1, 0.2, 0);
+                    world.spawnParticle(Particle.WHITE_SMOKE, px + 0.5, by + 1.0, pz + 0.5, 4, 0.15, 0.3, 0.15, 0.01);
+                    world.spawnParticle(Particle.FLAME, px + 0.5, by + 1.3, pz + 0.5, 2, 0.15, 0.2, 0.15, 0.01);
+                    world.playSound(tip, Sound.BLOCK_LAVA_POP, SoundCategory.BLOCKS, 0.9f, 0.55f + (float) (step * 0.02));
+                    world.playSound(tip, Sound.BLOCK_BASALT_BREAK, SoundCategory.BLOCKS, 0.7f, 0.8f);
+                }, ticks);
+            }
+            // финал линии: всплеск жара (+ кратер при большом разломе)
+            int endTicks = line * 4 + len * 2 + 4;
+            double ex = bx + Math.cos(angle) * len;
+            double ez = bz + Math.sin(angle) * len;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                world.spawnParticle(Particle.LAVA, ex, by + 1.4, ez, 20, 0.6, 0.4, 0.6, 0.02);
+                world.spawnParticle(Particle.EXPLOSION, ex, by + 1.2, ez, 2, 0.1, 0.1, 0.1, 0);
+                world.playSound(new Location(world, ex, by, ez),
+                        Sound.ENTITY_GENERIC_EXPLODE, SoundCategory.BLOCKS, 0.8f, 0.8f);
                 if (scale >= 2) { // большой разлом: кратер на конце трещины
-                    int ex = bx + (int) Math.round(Math.cos(angle) * len);
-                    int ez = bz + (int) Math.round(Math.sin(angle) * len);
-                    crater(world, new Location(world, ex, by, ez), (int) Math.round(2 + scale * 0.6));
+                    crater(world, new Location(world, (int) Math.round(ex), by, (int) Math.round(ez)),
+                            (int) Math.round(2 + scale * 0.6));
                 }
-            }, ticks);
+            }, endTicks);
+        }
+        // бульканье магмы над швами — три волны после завершения роста
+        for (int wave = 0; wave < 3; wave++) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                for (int i = 0; i < lines * 4; i++) {
+                    double a = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
+                    double d = ThreadLocalRandom.current().nextDouble(2, 9 * scale);
+                    world.playSound(new Location(world, bx + Math.cos(a) * d, by, bz + Math.sin(a) * d),
+                            Sound.BLOCK_LAVA_AMBIENT, SoundCategory.BLOCKS, 0.8f, 0.7f);
+                }
+            }, lines * 4 + (int) (20 * wave));
         }
         if (scale >= 2) { // и воронка под эпицентром
             Bukkit.getScheduler().runTaskLater(plugin, () ->
@@ -222,15 +250,30 @@ public final class GaidFx implements Listener {
         int by = at.getBlockY() - 1;
         int bz = at.getBlockZ();
 
-        // три удара прямо в админа
+        // удар 0-й: вспышка неба и низкий гул перед грозой
+        world.spawnParticle(Particle.FLASH, at.clone().add(0, 2, 0), 1, 0, 0, 0, 0);
+        for (Player nearby : playersIn(at, 90)) {
+            nearby.playSound(at, Sound.ENTITY_WITHER_SPAWN, SoundCategory.WEATHER, 0.5f, 0.5f);
+        }
+
+        // три удара прямо в админа — с растущей силой звука
         for (int i = 0; i < 3; i++) {
+            final float pitch = 0.7f + i * 0.1f;
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 world.strikeLightningEffect(at);
-                thunderSounds(at, 90);
-            }, i * 10L);
+                lightningParticles(world, at);
+                for (Player nearby : playersIn(at, 90)) {
+                    nearby.playSound(at, Sound.ENTITY_LIGHTNING_BOLT_THUNDER,
+                            SoundCategory.WEATHER, 3f, pitch);
+                }
+            }, 10L + i * 10L);
         }
         Block base = world.getBlockAt(bx, by, bz);
-        if (canTurn(base)) base.setType(Material.MAGMA_BLOCK);
+        if (canTurn(base)) {
+            base.setType(Material.MAGMA_BLOCK);
+            Block above = base.getRelative(0, 1, 0);
+            if (above.getType().isAir()) above.setType(Material.FIRE);
+        }
 
         // 14 ударов по случайным точкам в 20 блоках, вразнобой
         for (int i = 0; i < 14; i++) {
@@ -244,10 +287,28 @@ public final class GaidFx implements Listener {
                 Location strike = new Location(world, px + 0.5, py, pz + 0.5);
                 world.strikeLightningEffect(strike);
                 Block floor = world.getBlockAt(px, py - 1, pz);
-                if (canTurn(floor)) floor.setType(Material.MAGMA_BLOCK);
+                if (canTurn(floor)) {
+                    floor.setType(ThreadLocalRandom.current().nextInt(3) == 0
+                            ? Material.BLACKSTONE : Material.MAGMA_BLOCK);
+                    Block flame = floor.getRelative(0, 1, 0);
+                    if (flame.getType().isAir()
+                            && ThreadLocalRandom.current().nextBoolean()) flame.setType(Material.FIRE);
+                }
                 lightningParticles(world, strike);
                 thunderSounds(strike, 90);
             }, ticks);
+        }
+        // три «входящих» удара выбивают маленькие кратеры
+        for (int i = 0; i < 3; i++) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                double a = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
+                double r = ThreadLocalRandom.current().nextDouble(6, 16);
+                int px = bx + (int) Math.round(Math.cos(a) * r);
+                int pz = bz + (int) Math.round(Math.sin(a) * r);
+                int py = world.getHighestBlockYAt(px, pz);
+                world.strikeLightningEffect(new Location(world, px + 0.5, py + 1, pz + 0.5));
+                crater(world, new Location(world, px, py, pz), 2);
+            }, 60L + i * 10L);
         }
         shakeNearby(at, 90, 4);
     }
@@ -301,6 +362,28 @@ public final class GaidFx implements Listener {
                 }
             }, 20L * i + 10L);
         }
+        // тень накрывает каждую жертву: скалковые души стягиваются к ногам 4 волнами
+        for (int wave = 0; wave < 4; wave++) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                for (Player victim : victims) {
+                    if (!victim.isOnline()) continue;
+                    Location vl = victim.getLocation();
+                    victim.getWorld().spawnParticle(Particle.SCULK_SOUL,
+                            vl.clone().add(0, 1.2, 0), 22, 1.6, 1.0, 1.6, 0.03);
+                    victim.getWorld().spawnParticle(Particle.SMOKE, vl,
+                            14, 1.2, 0.3, 1.2, 0.02);
+                }
+            }, wave * 15L);
+        }
+        // стук когтей по камню под ногами у каждого — «оно где-то рядом»
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            for (Player victim : victims) {
+                if (victim.isOnline()) {
+                    victim.playSound(victim.getLocation(), Sound.ENTITY_WARDEN_STEP,
+                            SoundCategory.HOSTILE, 0.9f, 0.6f);
+                }
+            }
+        }, 50L);
         admin.sendMessage(Msg.color("&5Страх (" + (int) radius + " блоков) запущен: "
                 + victims.size() + " игроков."));
     }

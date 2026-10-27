@@ -102,7 +102,7 @@ public final class AdminMenu implements Listener {
             int level = data.levelOf(quirk);
             ItemStack icon = button(icons[i], (level > 0 ? "&d" : "&8") + quirk.display()
                     + (level > 0 ? " &7ур. " + level : " &7—"));
-            lore(icon, "&7Клик — сменить уровень (0→1→…→5)");
+            lore(icon, "&7Клик — сменить уровень (0→1→2→3)");
             int slot = 10 + i;
             inv.setItem(slot, icon);
             holder.quirkSlots[slot] = quirk;
@@ -165,7 +165,7 @@ public final class AdminMenu implements Listener {
         Quirk quirk = editor.quirkSlots[slot];
         if (quirk != null) {
             int level = data.levelOf(quirk);
-            int next = (level + 1) % 6;
+            int next = (level + 1) % 4;
             if (next == 0) {
                 plugin.quirks().remove(target, quirk);
             } else {

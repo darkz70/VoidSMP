@@ -12,7 +12,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -69,20 +68,6 @@ public final class AmphibianListener implements Listener {
             if (level >= 3) {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 100, 1, true, false, true));
             }
-            // 4 ур.: живой кондуит — сам может всё, и делится дыханием с союзниками рядом
-            if (level >= 4) {
-                player.addPotionEffect(new PotionEffect(PotionEffectType.CONDUIT_POWER, 300, 0, true, false, true));
-                for (org.bukkit.entity.Entity e : world_(player).getNearbyEntities(player.getLocation(), 6, 6, 6)) {
-                    if (e instanceof Player ally && ally != player && ally.isInWater()) {
-                        ally.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 160, 0, true, false, false));
-                        ally.addPotionEffect(new PotionEffect(PotionEffectType.DOLPHINS_GRACE, 160, 0, true, false, false));
-                    }
-                }
-            }
-            // 5 ур.: живая вода — в воду погружённый исцеляется
-            if (level >= 5) {
-                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 1, true, false, true));
-            }
         }
 
         World world = player.getWorld();
@@ -125,17 +110,4 @@ public final class AmphibianListener implements Listener {
             }
         }
     }
-
-    /** 4 ур.: жабры — отмена урона от утопления. */
-    @EventHandler(ignoreCancelled = true)
-    public void onDrownDamage(EntityDamageEvent event) {
-        if (!(event.getEntity() instanceof Player player)) return;
-        if (event.getCause() != EntityDamageEvent.DamageCause.DROWNING) return;
-        if (plugin.quirks().levelOf(player, Quirk.AMPHIBIAN) < 4) return;
-        event.setCancelled(true);
-    }
-
-    /** 5 ур.: лечебный ручей — стоя в воде, медленно исцеляется (каждый тик пассивы EffectsTask). */
-
-    private static org.bukkit.World world_(Player p) { return p.getWorld(); }
 }

@@ -7,7 +7,6 @@ import me.darkz70.quirks.util.MaterialLists;
 import me.darkz70.quirks.util.Msg;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Entity;
@@ -66,17 +65,11 @@ public final class FarmerListener implements Listener {
         }
     }
 
-    /** Запрет сырой еды (2 ур.); 4 ур.: еда сытнее (+2 еды). */
+    /** Запрет сырой еды (2 ур.). */
     @EventHandler(ignoreCancelled = true)
     public void onEat(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
-        int lvl = level(player);
-        if (lvl >= 4 && event.getItem().getType().isEdible()) {
-            player.setFoodLevel(Math.min(20, player.getFoodLevel() + 2));
-            player.setSaturation(Math.min(player.getFoodLevel(), player.getSaturation() + 2.0f));
-            player.spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation().add(0, 1, 0), 5, 0.3, 0.3, 0.3, 0.01);
-        }
-        if (lvl < 2) return;
+        if (level(player) < 2) return;
         Material eaten = event.getItem().getType();
         if (!eaten.isEdible()) return;
         if (MaterialLists.isFarmerRaw(eaten)) {
@@ -124,20 +117,6 @@ public final class FarmerListener implements Listener {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, 0, true, false, true));
             }
             growCrops(plugin, player);
-            if (level >= 4) growCrops(plugin, player); // 4 ур.: двойной рост
-            // 5 ур.: лукошко природы — раз в минуту случайный корнеплод в инвентарь
-            if (level >= 5 && me.darkz70.quirks.util.ScanUtil.tryUse(
-                    player.getUniqueId(), "farmer-basket", 60_000L)) {
-                Material gift = switch (RANDOM.nextInt(5)) {
-                    case 0 -> Material.WHEAT;
-                    case 1 -> Material.CARROT;
-                    case 2 -> Material.BEETROOT;
-                    case 3 -> Material.POTATO;
-                    default -> Material.PUMPKIN_SEEDS;
-                };
-                player.getInventory().addItem(new ItemStack(gift, 1 + RANDOM.nextInt(3))).values()
-                        .forEach(rest -> player.getWorld().dropItemNaturally(player.getLocation(), rest));
-            }
         }
 
     }
@@ -184,25 +163,4 @@ public final class FarmerListener implements Listener {
             }
         }
     }
-
-    /** 5 ур.: двойной урожай — 50% шанс удвоить дроп созревшего урожая. */
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-    public void onHarvest(BlockBreakEvent event) {
-        Player player = event.getPlayer();
-        if (player == null) return;
-        if (plugin.quirks().levelOf(player, Quirk.FARMER) < 5) return;
-        Block b = event.getBlock();
-        if (!(b.getBlockData() instanceof org.bukkit.block.data.Ageable age)) return;
-        if (age.getMaximumAge() > 0 && age.getAge() < age.getMaximumAge()) return;
-        if (java.util.concurrent.ThreadLocalRandom.current().nextDouble() >= 0.5) return;
-        Location dropLoc = b.getLocation().add(0.5, 0.5, 0.5);
-        for (ItemStack drop : b.getDrops(player.getInventory().getItemInMainHand())) {
-            if (drop.getType().isAir()) continue;
-            ItemStack bonus = drop.clone();
-            b.getWorld().dropItemNaturally(dropLoc, bonus);
-        }
-        player.spawnParticle(Particle.HAPPY_VILLAGER, dropLoc, 8, 0.3, 0.3, 0.3, 0.02);
-    }
-
-    /** 4 ур.: пассивный рост урожая в радиусе конфига (раз в 2 сек движком EffectsTask зовём growCrops passively). */
 }

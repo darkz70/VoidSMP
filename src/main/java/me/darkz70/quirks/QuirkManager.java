@@ -110,9 +110,6 @@ public final class QuirkManager {
                 if (level == 1) {
                     applyFlaggedEffect(player, PotionEffectType.WEAKNESS, 0, Keys.effWeakness);
                 }
-                applyReach(player, engineerReach(level)); // дальность блоков по уровню
-                if (level >= 4) applyAttr(player, Keys.engineerDamage,      // механическая рука
-                        org.bukkit.attribute.Attribute.ATTACK_DAMAGE, level >= 5 ? 4.0 : 2.0);
             }
             case BEDROCK -> {
                 BedrockLogic.applyLayout(plugin, player, level);
@@ -121,17 +118,11 @@ public final class QuirkManager {
                     applyFlaggedEffect(player, PotionEffectType.SPEED, 0, Keys.effSpeed);
                     applyFlaggedEffect(player, PotionEffectType.REGENERATION, 0, Keys.effRegen);
                 }
-                if (level >= 4) applyAttr(player, Keys.bedrockKbr,   // 4 ур.: почти без нокбэка
-                        org.bukkit.attribute.Attribute.KNOCKBACK_RESISTANCE, 0.9);
-                if (level >= 5) applyAttr(player, Keys.bedrockArmor, // 5 ур.: +4 брони
-                        org.bukkit.attribute.Attribute.ARMOR, 4.0);
             }
             case SCULK -> {
-                if (level >= 4) applyFlaggedEffect(player, PotionEffectType.NIGHT_VISION, 0, Keys.effNightVision);
                 if (level == 3) ensureSculkHp(player);
             }
             case SCULK_LEADER -> {
-                if (level >= 4) applyFlaggedEffect(player, PotionEffectType.NIGHT_VISION, 0, Keys.effNightVision);
                 if (level == 3) ensureSculkHp(player);
             }
             case SPIDER -> {
@@ -153,25 +144,16 @@ public final class QuirkManager {
         switch (quirk) {
             case ENGINEER -> {
                 removeFlaggedEffect(player, PotionEffectType.WEAKNESS, Keys.effWeakness);
-                removeAttr(player, Keys.engineerDamage, org.bukkit.attribute.Attribute.ATTACK_DAMAGE);
                 removeReach(player);
             }
             case BEDROCK -> {
                 removeFlaggedEffect(player, PotionEffectType.SPEED, Keys.effSpeed);
                 removeFlaggedEffect(player, PotionEffectType.REGENERATION, Keys.effRegen);
-                removeAttr(player, Keys.bedrockKbr, org.bukkit.attribute.Attribute.KNOCKBACK_RESISTANCE);
-                removeAttr(player, Keys.bedrockArmor, org.bukkit.attribute.Attribute.ARMOR);
                 BedrockLogic.clearLayout(player);
                 player.setMaximumAir(300);
             }
-            case SCULK -> {
-                removeFlaggedEffect(player, PotionEffectType.NIGHT_VISION, Keys.effNightVision);
-                removeSculkHp(player);
-            }
-            case SCULK_LEADER -> {
-                removeFlaggedEffect(player, PotionEffectType.NIGHT_VISION, Keys.effNightVision);
-                removeSculkHp(player);
-            }
+            case SCULK -> removeSculkHp(player);
+            case SCULK_LEADER -> removeSculkHp(player);
             case SPIDER -> removeSpiderHp(player);
             case FARMER -> {
                 removeFlaggedEffect(player, PotionEffectType.HERO_OF_THE_VILLAGE, Keys.effHero);
@@ -190,33 +172,6 @@ public final class QuirkManager {
         if (!inst.getModifiers().contains(mod)) inst.addModifier(mod);
     }
 
-    /** Дальность блоков инженера по уровню: 1-2 ур +2, 3 +3, 4 +4, 5 +5. */
-    private static int engineerReach(int level) {
-        return switch (level) {
-            case 1, 2 -> 2;
-            case 3 -> 3;
-            case 4 -> 4;
-            default -> level >= 5 ? 5 : 0;
-        };
-    }
-
-    /** Общий именованный атрибут-модификатор (идемпотентно). */
-    private void applyAttr(Player player, org.bukkit.NamespacedKey key,
-                          org.bukkit.attribute.Attribute attribute, double amount) {
-        var inst = player.getAttribute(attribute);
-        if (inst == null) return;
-        var mod = new org.bukkit.attribute.AttributeModifier(key, amount,
-                org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER);
-        inst.getModifiers().removeIf(m -> m.getKey().equals(key));
-        inst.addModifier(mod);
-    }
-
-    private void removeAttr(Player player, org.bukkit.NamespacedKey key,
-                           org.bukkit.attribute.Attribute attribute) {
-        var inst = player.getAttribute(attribute);
-        if (inst != null) inst.getModifiers().removeIf(m -> m.getKey().equals(key));
-    }
-
     private void removeReach(Player player) {
         org.bukkit.attribute.AttributeInstance inst = player.getAttribute(org.bukkit.attribute.Attribute.BLOCK_INTERACTION_RANGE);
         if (inst == null) return;
@@ -231,16 +186,8 @@ public final class QuirkManager {
                     if (entry.getValue() == 1 && !player.hasPotionEffect(PotionEffectType.WEAKNESS)) {
                         applyFlaggedEffect(player, PotionEffectType.WEAKNESS, 0, Keys.effWeakness);
                     }
-                    applyReach(player, engineerReach(entry.getValue()));
-                    if (entry.getValue() >= 4) applyAttr(player, Keys.engineerDamage,
-                            org.bukkit.attribute.Attribute.ATTACK_DAMAGE,
-                            entry.getValue() >= 5 ? 4.0 : 2.0);
                 }
                 case BEDROCK -> {
-                    if (entry.getValue() >= 4) applyAttr(player, Keys.bedrockKbr,
-                            org.bukkit.attribute.Attribute.KNOCKBACK_RESISTANCE, 0.9);
-                    if (entry.getValue() >= 5) applyAttr(player, Keys.bedrockArmor,
-                            org.bukkit.attribute.Attribute.ARMOR, 4.0);
                     int air = plugin.getConfig().getInt("bedrock.max-air", 150);
                     if (player.getMaximumAir() != air) player.setMaximumAir(air);
                     if (entry.getValue() == 3) {
@@ -253,15 +200,7 @@ public final class QuirkManager {
                     }
                 }
                 case SCULK -> {
-                    if (entry.getValue() >= 4 && !player.hasPotionEffect(PotionEffectType.NIGHT_VISION)) {
-                        applyFlaggedEffect(player, PotionEffectType.NIGHT_VISION, 0, Keys.effNightVision);
-                    }
                     if (entry.getValue() == 3) ensureSculkHp(player);
-                }
-                case SCULK_LEADER -> {
-                    if (entry.getValue() >= 4 && !player.hasPotionEffect(PotionEffectType.NIGHT_VISION)) {
-                        applyFlaggedEffect(player, PotionEffectType.NIGHT_VISION, 0, Keys.effNightVision);
-                    }
                 }
                 case SPIDER -> {
                     if (entry.getValue() == 1) ensureSpiderHp(player);

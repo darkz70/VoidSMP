@@ -7,21 +7,15 @@ import me.darkz70.quirks.task.WebPhysicsTask;
 import me.darkz70.quirks.util.MaterialLists;
 import me.darkz70.quirks.util.Msg;
 import me.darkz70.quirks.util.ScanUtil;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
@@ -173,67 +167,5 @@ public final class SpiderListener implements Listener {
                 && !(level == 2 && inWeb)) {
             player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, 0, true, false, true));
         }
-    }
-
-    /** 4 ур.: оплётённая жертва — удар временно кутает жертву в паутину (КД 30 сек). */
-    @EventHandler(ignoreCancelled = true)
-    public void onWrap(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player attacker)) return;
-        if (!(event.getEntity() instanceof LivingEntity victim)) return;
-        if (plugin.quirks().levelOf(attacker, Quirk.SPIDER) < 4) return;
-        if (!me.darkz70.quirks.util.ScanUtil.tryUse(attacker.getUniqueId(), "spider-wrap-tick", 30_000L)) return;
-        Location head = victim.getLocation().getBlock().getLocation();
-        Block feet = victim.getLocation().getBlock();
-        if (feet.getType() == Material.AIR) {
-            feet.setType(Material.COBWEB);
-            scheduleWebRevert(feet);
-        }
-        Block above = feet.getRelative(BlockFace.UP);
-        if (above.getType() == Material.AIR && victim.getHeight() > 1.5) {
-            above.setType(Material.COBWEB);
-            scheduleWebRevert(above);
-        }
-        victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 1, true, false, false));
-    }
-
-    private void scheduleWebRevert(Block b) {
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (b.getType() == Material.COBWEB) b.setType(Material.AIR);
-        }, 100L);
-    }
-
-    /** 5 ур.: укус отравляет жертву (яд 4 сек). */
-    @EventHandler(ignoreCancelled = true)
-    public void onVenomBite(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player attacker)) return;
-        if (!(event.getEntity() instanceof LivingEntity victim)) return;
-        if (plugin.quirks().levelOf(attacker, Quirk.SPIDER) < 5) return;
-        victim.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 80, 0, true, false, true));
-    }
-
-    /** 5 ур.: кокон-щит — при падении ниже 30% HP окутывает себя паутиной (КД 3 мин). */
-    @EventHandler(ignoreCancelled = true)
-    public void onCocoonShield(EntityDamageEvent event) {
-        if (!(event.getEntity() instanceof Player player)) return;
-        if (plugin.quirks().levelOf(player, Quirk.SPIDER) < 5) return;
-        double maxHp = player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH) == null ? 20
-                : player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue();
-        if (player.getHealth() - event.getFinalDamage() > maxHp * 0.3) return;
-        if (!me.darkz70.quirks.util.ScanUtil.tryUse(player.getUniqueId(), "spider-cocoon", 3 * 60_000L)) return;
-        Location c = player.getLocation();
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                if (dx == 0 && dz == 0) continue;
-                Block ring = player.getWorld().getBlockAt(c.getBlockX() + dx, c.getBlockY(), c.getBlockZ() + dz);
-                if (ring.getType() == Material.AIR) {
-                    ring.setType(Material.COBWEB);
-                    final Block ref = ring;
-                    Bukkit.getScheduler().runTaskLater(plugin,
-                            () -> { if (ref.getType() == Material.COBWEB) ref.setType(Material.AIR); }, 160L);
-                }
-            }
-        }
-        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 200, 0, true, false, true));
-        player.getWorld().playSound(c, Sound.ENTITY_SPIDER_AMBIENT, 1f, 0.5f);
     }
 }
