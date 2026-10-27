@@ -42,23 +42,34 @@ jobs:
           cd "$RUNNER_TEMP/mcserver"
           cp "$GITHUB_WORKSPACE"/build/libs/VoidSMP-*.jar plugins/
 
-          echo "== Скачивание Paper 26.2 =="
+          echo "== Скачивание Paper 26.2 (fill v3 API) =="
+          UA="VoidSMP-CI/1.0 (https://github.com/darkz70/VoidSMP)"
           OK=0
-          if BUILDS=$(curl -fsSL --max-time 30 "https://api.papermc.io/v2/projects/paper/versions/26.2/builds" 2>/dev/null); then
-            BUILD=$(echo "$BUILDS" | jq -r '([.builds[] | select(.channel=="STABLE")] | last | .build) // (.builds | last | .build)')
-            APP=$(echo "$BUILDS" | jq -r ".builds[] | select(.build==$BUILD) | .downloads.application.name")
-            if [ -n "$BUILD" ] && [ "$APP" != "null" ] && [ -n "$APP" ]; then
-              curl -fsSL --max-time 120 -o paper.jar "https://api.papermc.io/v2/projects/paper/versions/26.2/builds/$BUILD/downloads/$APP" && OK=1
-            fi
+          URL=$(curl -fsSL -H "User-Agent: $UA" --max-time 30 \
+            "https://fill.papermc.io/v3/projects/paper/versions/26.2/builds/latest" \
+            | jq -r '."downloads"."server:default".url // empty' 2>/dev/null) || true
+          if [ -z "$URL" ]; then
+            LIST=$(curl -fsSL -H "User-Agent: $UA" --max-time 30 \
+              "https://fill.papermc.io/v3/projects/paper/versions/26.2/builds" 2>/dev/null) || true
+            URL=$(printf '%s' "$LIST" | jq -r '
+              (if type == "array" then . else (.builds // []) end)
+              | (map(select(.channel == "STABLE")) | last // .[-1] // {})
+              | ."downloads"."server:default".url // empty' 2>/dev/null) || true
+          fi
+          echo "resolved url: ${URL:-<пусто>}"
+          if [ -n "$URL" ]; then
+            curl -fsSL -H "User-Agent: $UA" --max-time 180 -o paper.jar "$URL" && OK=1
           fi
           if [ "$OK" != "1" ]; then
-            echo "v2 API не сработал, пробую fill.papermc.io"
-            URL=$(curl -fsSL --max-time 30 "https://fill.papermc.io/v3/projects/paper/versions/26.2/builds/latest" 2>/dev/null | jq -r '.downloads.application.url // empty')
-            if [ -n "$URL" ]; then
-              curl -fsSL --max-time 120 -o paper.jar "$URL" && OK=1
-            fi
-          fi
-          if [ "$OK" != "1" ]; then
+            {
+              echo "=== Диагностика скачивания Paper 26.2 ==="
+              echo "-- fill v3 builds/latest:"
+              curl -sS -H "User-Agent: $UA" --max-time 30 -w "\nHTTP %{http_code}\n" \
+                "https://fill.papermc.io/v3/projects/paper/versions/26.2/builds/latest" | head -c 2500 || true
+              echo "-- fill v3 builds:"
+              curl -sS -H "User-Agent: $UA" --max-time 30 -w "\nHTTP %{http_code}\n" \
+                "https://fill.papermc.io/v3/projects/paper/versions/26.2/builds" | head -c 1500 || true
+            } | tee /tmp/paper-download-diag.txt
             echo "::error::Не удалось скачать Paper 26.2"
             exit 1
           fi
@@ -126,6 +137,11 @@ jobs:
             echo '```'
             tail -c 5500 /tmp/build.log 2>/dev/null | sed 's/```/`​``/g'
             echo '```'
+            if [ -f /tmp/paper-download-diag.txt ]; then
+              echo '```'
+              cat /tmp/paper-download-diag.txt
+              echo '```'
+            fi
             if [ -f "$RUNNER_TEMP/mcserver/server.log" ]; then
               echo '```'
               tail -c 5500 "$RUNNER_TEMP/mcserver/server.log" 2>/dev/null | sed 's/```/`​``/g'
