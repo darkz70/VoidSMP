@@ -130,11 +130,10 @@ public final class GaidFx implements Listener {
         player.openInventory(inv);
     }
 
-    private static void fx(Inventory inv, int slot, Material icon, String name, String... lore) {
+    private void fx(Inventory inv, int slot, Material icon, String name, String... lore) {
         inv.setItem(slot, btn(icon, name, lore));
     }
 
-    @EventHandler(ignoreCancelled = false)
     @EventHandler(ignoreCancelled = false)
     public void onClick(InventoryClickEvent event) {
         if (!(event.getInventory().getHolder() instanceof Holder)) return;
