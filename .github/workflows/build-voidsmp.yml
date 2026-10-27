@@ -118,7 +118,12 @@ jobs:
             FAIL=1
           fi
           if [ "$FAIL" != "0" ]; then
-            tail -c 8000 server.log
+            {
+              echo "== Ключевые строки server.log (для отладки) =="
+              grep -nE "voidsmp|VoidSMP|datapack|Datapack|data pack|Loot|loot|Couldn't parse|Failed to parse|Exception|ERROR" server.log \
+                | grep -vE "Moonrise|ChunkHolder|Waiting 60s|Halted|Saving chunks|All dimensions" | head -150 || true
+            } > /tmp/smoke-excerpt.txt
+            tail -c 4000 server.log
             exit 1
           fi
           echo "Smoke test OK"
@@ -142,9 +147,14 @@ jobs:
               cat /tmp/paper-download-diag.txt
               echo '```'
             fi
+            if [ -f /tmp/smoke-excerpt.txt ]; then
+              echo '```'
+              cat /tmp/smoke-excerpt.txt
+              echo '```'
+            fi
             if [ -f "$RUNNER_TEMP/mcserver/server.log" ]; then
               echo '```'
-              tail -c 5500 "$RUNNER_TEMP/mcserver/server.log" 2>/dev/null | sed 's/```/`​``/g'
+              tail -c 3000 "$RUNNER_TEMP/mcserver/server.log" 2>/dev/null | sed 's/```/`​``/g'
               echo '```'
             fi
           } | gh issue comment "$ISSUE" --body-file -
