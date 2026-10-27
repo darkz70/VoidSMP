@@ -141,6 +141,7 @@ public final class GaidFx implements Listener {
             double angle = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
             int len = (int) Math.round(9 * scale);
             for (int step = 1; step <= len; step++) {
+                final int fs = step;
                 int px = bx + (int) Math.round(Math.cos(angle) * step);
                 int pz = bz + (int) Math.round(Math.sin(angle) * step);
                 // каждые 2 шага трещины — свой тик (растёт в глазах)
@@ -154,7 +155,7 @@ public final class GaidFx implements Listener {
                     world.spawnParticle(Particle.LAVA, px + 0.5, by + 1.2, pz + 0.5, 3, 0.2, 0.1, 0.2, 0);
                     world.spawnParticle(Particle.WHITE_SMOKE, px + 0.5, by + 1.0, pz + 0.5, 4, 0.15, 0.3, 0.15, 0.01);
                     world.spawnParticle(Particle.FLAME, px + 0.5, by + 1.3, pz + 0.5, 2, 0.15, 0.2, 0.15, 0.01);
-                    world.playSound(tip, Sound.BLOCK_LAVA_POP, SoundCategory.BLOCKS, 0.9f, 0.55f + (float) (step * 0.02));
+                    world.playSound(tip, Sound.BLOCK_LAVA_POP, SoundCategory.BLOCKS, 0.9f, 0.55f + fs * 0.02f);
                     world.playSound(tip, Sound.BLOCK_BASALT_BREAK, SoundCategory.BLOCKS, 0.7f, 0.8f);
                 }, ticks);
             }
