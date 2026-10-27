@@ -1,0 +1,83 @@
+# VoidSMP — лут и еженедельный сброс хранилищ (Vault)
+#
+# Меняется ТОЛЬКО лут ОБЫЧНЫХ хранилищ.
+# Жуткие (синие / ominous) хранилища не меняются.
+# Механика ключей — ванильная (нужен ключ от испытаний).
+
+loot:
+  # Сколько предметов выпадает из хранилища за одно открытие
+  rolls: 2
+
+  # Шансы задаются в процентах (weight). Сумма всех weight = 100.
+  #   material: предмет (имя как в /give), count — сколько штук в стаке,
+  #             potion — содержимое зелья/стрел (для POTION и TIPPED_ARROW).
+  #   group:    случайный ОДИН предмет из списка, шанс делится поровну.
+  entries:
+    - material: SPONGE
+      count: 32
+      weight: 10
+    - material: PRISMARINE_SHARDS
+      count: 64
+      weight: 5
+    - material: PRISMARINE_CRYSTALS
+      count: 64
+      weight: 5
+    - material: GOLDEN_APPLE
+      count: 8
+      weight: 8
+    - material: ARROW
+      count: 16
+      weight: 15
+    - material: POTION
+      potion: healing
+      weight: 5
+    - material: POTION
+      potion: harming
+      weight: 5
+    - material: BREAD
+      count: 32
+      weight: 7
+    - material: DIAMOND
+      count: 3
+      weight: 5
+    - material: DIAMOND_BLOCK
+      weight: 2
+    - material: EMERALD_BLOCK
+      weight: 3
+    - material: EMERALD
+      count: 5
+      weight: 5
+    - material: TIPPED_ARROW
+      potion: poison
+      count: 8
+      weight: 5
+    - material: ENCHANTED_GOLDEN_APPLE
+      weight: 1
+    - group:
+        - IRON_HELMET
+        - IRON_CHESTPLATE
+        - IRON_LEGGINGS
+        - IRON_BOOTS
+      weight: 9
+    - group:
+        - COPPER_HELMET
+        - COPPER_CHESTPLATE
+        - COPPER_LEGGINGS
+        - COPPER_BOOTS
+      weight: 5
+    - group:
+        - IRON_SWORD
+        - IRON_PICKAXE
+        - IRON_AXE
+        - IRON_SHOVEL
+        - IRON_HOE
+      weight: 5
+
+# Еженедельный сброс: у хранилищ стираются «открывшие» игроки,
+# и все снова могут их открыть.
+reset:
+  # День недели: 1 = Понедельник … 7 = Воскресенье
+  day-of-week: 5
+  hour: 0
+  minute: 0
+  timezone: Europe/Warsaw

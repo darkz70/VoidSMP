@@ -1,0 +1,169 @@
+name: Build VoidSMP
+
+on:
+  push:
+    branches:
+      - arena/e1e216ad-voidsmp
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: current
+
+      - name: Build
+        run: |
+          set -o pipefail
+          gradle build --no-daemon --console=plain 2>&1 | tee /tmp/build.log
+
+      - name: Smoke test на Paper 26.2
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/mcserver/plugins"
+          cd "$RUNNER_TEMP/mcserver"
+          cp "$GITHUB_WORKSPACE"/build/libs/VoidSMP-*.jar plugins/
+
+          echo "== Скачивание Paper 26.2 =="
+          OK=0
+          if BUILDS=$(curl -fsSL --max-time 30 "https://api.papermc.io/v2/projects/paper/versions/26.2/builds" 2>/dev/null); then
+            BUILD=$(echo "$BUILDS" | jq -r '([.builds[] | select(.channel=="STABLE")] | last | .build) // (.builds | last | .build)')
+            APP=$(echo "$BUILDS" | jq -r ".builds[] | select(.build==$BUILD) | .downloads.application.name")
+            if [ -n "$BUILD" ] && [ "$APP" != "null" ] && [ -n "$APP" ]; then
+              curl -fsSL --max-time 120 -o paper.jar "https://api.papermc.io/v2/projects/paper/versions/26.2/builds/$BUILD/downloads/$APP" && OK=1
+            fi
+          fi
+          if [ "$OK" != "1" ]; then
+            echo "v2 API не сработал, пробую fill.papermc.io"
+            URL=$(curl -fsSL --max-time 30 "https://fill.papermc.io/v3/projects/paper/versions/26.2/builds/latest" 2>/dev/null | jq -r '.downloads.application.url // empty')
+            if [ -n "$URL" ]; then
+              curl -fsSL --max-time 120 -o paper.jar "$URL" && OK=1
+            fi
+          fi
+          if [ "$OK" != "1" ]; then
+            echo "::error::Не удалось скачать Paper 26.2"
+            exit 1
+          fi
+          ls -la paper.jar
+
+          echo "== Запуск сервера =="
+          printf 'eula=true\n' > eula.txt
+          printf 'online-mode=false\nlevel-type=minecraft:flat\nview-distance=2\nsimulation-distance=2\nmotd=VoidSMP smoke\n' > server.properties
+          mkfifo in.fifo
+          java -Xms1G -Xmx1G -jar paper.jar --nogui < in.fifo > server.log 2>&1 &
+          MC=$!
+          exec 3>in.fifo
+
+          STARTED=0
+          for i in $(seq 1 120); do
+            if grep -q "Done (" server.log 2>/dev/null; then STARTED=1; break; fi
+            if ! kill -0 "$MC" 2>/dev/null; then break; fi
+            sleep 2
+          done
+          if [ "$STARTED" != "1" ]; then
+            echo "::error::Сервер не стартовал"
+            tail -c 6000 server.log
+            exit 1
+          fi
+
+          echo "/voidsmp status" >&3
+          sleep 8
+          echo "stop" >&3
+          for i in $(seq 1 30); do
+            kill -0 "$MC" 2>/dev/null || break
+            sleep 2
+          done
+          kill -9 "$MC" 2>/dev/null || true
+          exec 3>&- || true
+
+          echo "== Проверки лога =="
+          FAIL=0
+          grep -q "LootTable=LOADED" server.log || { echo "::error::Лут-таблица не загрузилась (нет LootTable=LOADED)"; FAIL=1; }
+          grep -q "NextReset=" server.log || { echo "::error::Команда /voidsmp status не отработала (нет NextReset=)"; FAIL=1; }
+          if grep -E "Couldn't parse|Failed to parse|Exception loading|Error loading|There was an error" server.log; then
+            echo "::error::Ошибки загрузки датапака/лут-таблицы"
+            FAIL=1
+          fi
+          if grep "ERROR" server.log | grep -iE "voidsmp|loot|datapack|vault"; then
+            echo "::error::ERROR в логе сервера про VoidSMP/лут"
+            FAIL=1
+          fi
+          if [ "$FAIL" != "0" ]; then
+            tail -c 8000 server.log
+            exit 1
+          fi
+          echo "Smoke test OK"
+
+      - name: Report failure to issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE=$(gh issue list --state open --search '"CI failure log" in:title' --limit 1 --json number --jq '.[0].number' 2>/dev/null || true)
+          if [ -z "$ISSUE" ] || [ "$ISSUE" = "null" ]; then
+            ISSUE=$(gh issue create --title "CI failure log" --body "Сюда CI пишет логи упавших сборок (автоматически)." | grep -oE '[0-9]+$')
+          fi
+          {
+            echo "### VoidSMP: сборка/тест упала: run ${{ github.run_id }}, коммит ${{ github.sha }}"
+            echo '```'
+            tail -c 5500 /tmp/build.log 2>/dev/null | sed 's/```/`​``/g'
+            echo '```'
+            if [ -f "$RUNNER_TEMP/mcserver/server.log" ]; then
+              echo '```'
+              tail -c 5500 "$RUNNER_TEMP/mcserver/server.log" 2>/dev/null | sed 's/```/`​``/g'
+              echo '```'
+            fi
+          } | gh issue comment "$ISSUE" --body-file -
+
+      - name: Upload jar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VoidSMP-jar
+          path: build/libs/*.jar
+          retention-days: 14
+
+      - name: Update CI release
+        if: github.ref == 'refs/heads/arena/e1e216ad-voidsmp'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete voidsmp-ci --cleanup-tag --yes 2>/dev/null || true
+          gh release create voidsmp-ci build/libs/*.jar \
+            --target "${{ github.sha }}" \
+            --title "VoidSMP — автосборка" \
+            --notes "Собрано из ветки ${{ github.ref_name }}, коммит ${{ github.sha }}. Положи jar в plugins сервера Paper 26.2." \
+            --prerelease --latest=false
+
+      - name: Commit jar в ветку (артефакт для репозитория)
+        if: github.ref == 'refs/heads/arena/e1e216ad-voidsmp'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p dist
+          cp build/libs/VoidSMP-*.jar dist/
+          git add dist/
+          if git diff --cached --quiet; then
+            echo "Артефакт не изменился"
+          else
+            git commit -m "ci: артефакт VoidSMP jar"
+          fi
+          git pull --rebase origin arena/e1e216ad-voidsmp
+          git push origin HEAD:arena/e1e216ad-voidsmp

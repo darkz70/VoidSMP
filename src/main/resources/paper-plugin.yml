@@ -1,0 +1,8 @@
+name: VoidSMP
+version: ${version}
+main: me.darkz70.voidsmp.VoidSMPPlugin
+bootstrapper: me.darkz70.voidsmp.VoidSMPBootstrapper
+api-version: "26.2"
+description: Свой лут в обычных хранилищах (vault) и еженедельный сброс
+authors:
+  - darkz70

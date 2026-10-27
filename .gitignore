@@ -1,0 +1,19 @@
+# Сборка
+.gradle/
+build/
+out/
+bin/
+
+# Локальные исходники Paper (не коммитить)
+.deps/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS
+.DS_Store
