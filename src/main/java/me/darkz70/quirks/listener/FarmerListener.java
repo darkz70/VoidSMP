@@ -7,6 +7,7 @@ import me.darkz70.quirks.util.MaterialLists;
 import me.darkz70.quirks.util.Msg;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Entity;
@@ -117,6 +118,7 @@ public final class FarmerListener implements Listener {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, 0, true, false, true));
             }
             growCrops(plugin, player);
+            if (level >= 4) growCrops(plugin, player); // 4 ур.: двойной рост
         }
 
     }
@@ -163,4 +165,25 @@ public final class FarmerListener implements Listener {
             }
         }
     }
+
+    /** 5 ур.: двойной урожай — 50% шанс удвоить дроп созревшего урожая. */
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    public void onHarvest(BlockBreakEvent event) {
+        Player player = event.getPlayer();
+        if (player == null) return;
+        if (plugin.quirks().levelOf(player, Quirk.FARMER) < 5) return;
+        Block b = event.getBlock();
+        if (!(b.getBlockData() instanceof org.bukkit.block.data.Ageable age)) return;
+        if (age.getMaximumAge() > 0 && age.getAge() < age.getMaximumAge()) return;
+        if (java.util.concurrent.ThreadLocalRandom.current().nextDouble() >= 0.5) return;
+        Location dropLoc = b.getLocation().add(0.5, 0.5, 0.5);
+        for (ItemStack drop : b.getDrops(player.getInventory().getItemInMainHand())) {
+            if (drop.getType().isAir()) continue;
+            ItemStack bonus = drop.clone();
+            b.getWorld().dropItemNaturally(dropLoc, bonus);
+        }
+        player.spawnParticle(Particle.HAPPY_VILLAGER, dropLoc, 8, 0.3, 0.3, 0.3, 0.02);
+    }
+
+    /** 4 ур.: пассивный рост урожая в радиусе конфига (раз в 2 сек движком EffectsTask зовём growCrops passively). */
 }

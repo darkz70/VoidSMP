@@ -94,4 +94,20 @@ public final class SculkListener implements Listener {
         player.setSaturation(Math.min(player.getFoodLevel(), player.getSaturation() + values[1]));
         player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
     }
+
+    /** 5 ур.: эхо-укол — удар по игроку высыхает его (Визер 3 сек), КД 2 мин. */
+    @EventHandler(ignoreCancelled = true)
+    public void onEchoHit(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player attacker)) return;
+        if (!(event.getEntity() instanceof Player victim)) return;
+        if (plugin.quirks().levelOf(attacker, me.darkz70.quirks.Quirk.SCULK) < 5
+                && plugin.quirks().levelOf(attacker, me.darkz70.quirks.Quirk.SCULK_LEADER) < 5) return;
+        if (!ScanUtil.tryUse(attacker.getUniqueId(), "sculk-echo-hit", 2 * 60_000L)) return;
+        victim.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                org.bukkit.potion.PotionEffectType.WITHER, 60, 0, true, false, true));
+        victim.getWorld().playSound(victim.getLocation(),
+                org.bukkit.Sound.ENTITY_WARDEN_SONIC_BOOM, 1f, 1f);
+    }
+
+    /** 4 ур.: темнота для него = дом: ночное зрение в темноте обрабатывается в EffectsTask. */
 }

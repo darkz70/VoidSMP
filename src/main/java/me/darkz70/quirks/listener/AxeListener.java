@@ -165,7 +165,7 @@ public final class AxeListener implements Listener {
 
         // головы мобов — только 3 уровень (легаси-бонус)
         if (lvl >= 3) {
-            int headChance = plugin.getConfig().getInt("axe.head-chance", 2);
+            int headChance = plugin.getConfig().getInt("axe.head-chance", 2) * (lvl >= 4 ? 3 : 1); // 4-5 ур.: +шанс голов
             if (random.nextInt(100) < headChance) {
                 ItemStack head = headItem(dead);
                 if (head != null) {
@@ -173,6 +173,16 @@ public final class AxeListener implements Listener {
                 }
             }
         }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onAxeHit(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player player)) return;
+        int lvl = level(player);
+        if (lvl < 4) return;
+        if (!isAxe(player.getInventory().getItemInMainHand().getType())) return;
+        // 4 ур.: +2 урона; 5 ур.: +4 урона топором
+        event.setDamage(event.getDamage() + (lvl >= 5 ? 4.0 : 2.0));
     }
 
     @Nullable

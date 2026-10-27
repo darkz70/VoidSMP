@@ -183,4 +183,28 @@ public final class CatListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         inWater.remove(event.getPlayer().getUniqueId());
     }
+
+    /** 4 ур.: тихая поступь — мобы игнорят шифтящего кота. */
+    @EventHandler(ignoreCancelled = true)
+    public void onStepTarget(EntityTargetLivingEntityEvent event) {
+        if (!(event.getTarget() instanceof Player player)) return;
+        if (plugin.quirks().levelOf(player, Quirk.CAT) < 4) return;
+        if (!player.isSneaking()) return;
+        event.setCancelled(true);
+    }
+
+    /** 5 ур.: девять жизней — смертельный удар оставляет 1 HP, КД 1 час. */
+    @EventHandler(ignoreCancelled = true)
+    public void onNineLives(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (plugin.quirks().levelOf(player, Quirk.CAT) < 5) return;
+        if (player.getHealth() - event.getFinalDamage() > 0) return;
+        if (!ScanUtil.tryUse(player.getUniqueId(), "cat-nine-lives", 60 * 60_000L)) return;
+        event.setCancelled(true);
+        player.setHealth(1.0);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 60, 4, true, false, true));
+        player.sendTitle(net.kyori.adventure.title.Title.title(
+                Msg.color("&e&lДевять жизней"), Msg.color("&7−1 жизнь · перекурка час")),
+                net.kyori.adventure.title.Title.Times.times(Duration.ofMillis(200), Duration.ofSeconds(2), Duration.ofMillis(600)));
+    }
 }

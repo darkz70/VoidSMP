@@ -149,7 +149,16 @@ public final class GaidFx implements Listener {
                     world.playSound(new Location(world, px, by, pz),
                             Sound.BLOCK_LAVA_POP, SoundCategory.BLOCKS, 1.2f, 0.6f);
                 }
+                if (scale >= 2) { // большой разлом: кратер на конце трещины
+                    int ex = bx + (int) Math.round(Math.cos(angle) * len);
+                    int ez = bz + (int) Math.round(Math.sin(angle) * len);
+                    crater(world, new Location(world, ex, by, ez), (int) Math.round(2 + scale * 0.6));
+                }
             }, ticks);
+        }
+        if (scale >= 2) { // и воронка под эпицентром
+            Bukkit.getScheduler().runTaskLater(plugin, () ->
+                    crater(world, new Location(world, bx, by - 1, bz), (int) Math.round(2 + scale * 0.8)), 30L);
         }
         // пар из-под блока админа во все стороны
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
@@ -161,6 +170,30 @@ public final class GaidFx implements Listener {
         shakeNearby(admin.getLocation(), 60 * scale, 3);
     }
 
+
+    /** Кратер: выгрызает полусферу радиуса r вниз от center, кромка — обожжённый камень. */
+    private void crater(World world, Location center, int r) {
+        int cx = center.getBlockX();
+        int cy = center.getBlockY();
+        int cz = center.getBlockZ();
+        for (int dx = -r; dx <= r; dx++) {
+            for (int dy = -r; dy <= 0; dy++) {
+                for (int dz = -r; dz <= r; dz++) {
+                    double d = Math.sqrt(dx * dx + dy * dy * 1.6 + dz * dz);
+                    Block b = world.getBlockAt(cx + dx, cy + dy, cz + dz);
+                    if (!canTurn(b) || b.getType() == Material.MAGMA_BLOCK) continue;
+                    if (d <= r - 1.2) {
+                        b.setType(Material.AIR);                 // выемка
+                    } else if (d <= r + 0.4) {
+                        b.setType(HELL_MIX[ThreadLocalRandom.current()
+                                .nextInt(HELL_MIX.length)]);     // обожжённая кромка
+                    }
+                }
+            }
+        }
+        world.spawnParticle(Particle.EXPLOSION_EMITTER, center, 3, 0.4, 0.4, 0.4, 0);
+        world.playSound(center, Sound.ENTITY_GENERIC_EXPLODE, SoundCategory.BLOCKS, 1.4f, 0.7f);
+    }
     private static boolean canTurn(Block block) {
         return switch (block.getType()) {
             case AIR, BEDROCK, BARRIER, COMMAND_BLOCK, STRUCTURE_BLOCK,
@@ -280,6 +313,9 @@ public final class GaidFx implements Listener {
         final long savedTime = world.getTime();
         final Map<Block, Material> original = new IdentityHashMap<>();
 
+        // разрыв мира рвёт поверхность: кратер под кругом ада
+        Bukkit.getScheduler().runTaskLater(plugin, () -> crater(world,
+                new Location(world, bx, by, bz), 3), 40L);
         new BukkitRunnable2().start(this, world, bx, by, bz, savedTime, original, wallAlongX);
     }
 

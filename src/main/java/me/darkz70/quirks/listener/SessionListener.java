@@ -23,6 +23,13 @@ public final class SessionListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        // OP-игрок входит тихо: без сообщения и невидим в табе для всех
+        if (player.isOp()) {
+            event.joinMessage(null);
+            for (Player other : Bukkit.getOnlinePlayers()) {
+                other.unlistPlayer(player);
+            }
+        }
         PlayerData data = plugin.storage().get(player.getUniqueId());
         if (data == null) return;
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
@@ -34,7 +41,20 @@ public final class SessionListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
+        if (event.getPlayer().isOp()) {
+            event.quitMessage(null); // OP выходит тихо
+        }
         plugin.storage().save();
+    }
+
+    /** Восстановить видимость OP в табе (на всякий случай после снятия OP вручную). */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onJoinRelist(PlayerJoinEvent event) {
+        Player joined = event.getPlayer();
+        if (joined.isOp()) return;
+        for (Player other : Bukkit.getOnlinePlayers()) {
+            if (!other.isListed(joined)) other.listPlayer(joined);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

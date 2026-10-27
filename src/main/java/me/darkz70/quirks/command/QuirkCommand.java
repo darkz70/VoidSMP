@@ -141,7 +141,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                 Msg.send(sender, "invalid-level");
                 return;
             }
-            if (level < 1 || level > 3) {
+            if (level < 1 || level > 5) {
                 Msg.send(sender, "invalid-level");
                 return;
             }
@@ -194,7 +194,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                 Msg.send(sender, "invalid-level");
                 return;
             }
-            if (level < 1 || level > 3) {
+            if (level < 1 || level > 5) {
                 Msg.send(sender, "invalid-level");
                 return;
             }
@@ -451,9 +451,9 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                 if (quirk.startsWith(prefix)) out.add(quirk);
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("item")) {
-            if ("1".startsWith(args[2])) out.add("1");
-            if ("2".startsWith(args[2])) out.add("2");
-            if ("3".startsWith(args[2])) out.add("3");
+            for (String lvl : List.of("1", "2", "3", "4", "5")) {
+                if (lvl.startsWith(args[2])) out.add(lvl);
+            }
         } else if (args.length == 4 && (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("item"))) {
             if (args[0].equalsIgnoreCase("set")) {
                 if ("1".startsWith(args[3])) out.add("1");

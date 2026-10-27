@@ -7,15 +7,20 @@ import me.darkz70.quirks.task.WebPhysicsTask;
 import me.darkz70.quirks.util.MaterialLists;
 import me.darkz70.quirks.util.Msg;
 import me.darkz70.quirks.util.ScanUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
@@ -167,5 +172,41 @@ public final class SpiderListener implements Listener {
                 && !(level == 2 && inWeb)) {
             player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, 0, true, false, true));
         }
+    }
+
+    /** 4 ур.: оплётённая жертва — удар временно кутает жертву в паутину (КД 30 сек). */
+    @EventHandler(ignoreCancelled = true)
+    public void onWrap(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player attacker)) return;
+        if (!(event.getEntity() instanceof LivingEntity victim)) return;
+        if (plugin.quirks().levelOf(attacker, Quirk.SPIDER) < 4) return;
+        if (!me.darkz70.quirks.util.ScanUtil.tryUse(attacker.getUniqueId(), "spider-wrap-tick", 30_000L)) return;
+        Location head = victim.getLocation().getBlock().getLocation();
+        Block feet = victim.getLocation().getBlock();
+        if (feet.getType() == Material.AIR) {
+            feet.setType(Material.COBWEB);
+            scheduleWebRevert(feet);
+        }
+        Block above = feet.getRelative(BlockFace.UP);
+        if (above.getType() == Material.AIR && victim.getHeight() > 1.5) {
+            above.setType(Material.COBWEB);
+            scheduleWebRevert(above);
+        }
+        victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 1, true, false, false));
+    }
+
+    private void scheduleWebRevert(Block b) {
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (b.getType() == Material.COBWEB) b.setType(Material.AIR);
+        }, 100L);
+    }
+
+    /** 5 ур.: укус отравляет жертву (яд 4 сек). */
+    @EventHandler(ignoreCancelled = true)
+    public void onVenomBite(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player attacker)) return;
+        if (!(event.getEntity() instanceof LivingEntity victim)) return;
+        if (plugin.quirks().levelOf(attacker, Quirk.SPIDER) < 5) return;
+        victim.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 80, 0, true, false, true));
     }
 }

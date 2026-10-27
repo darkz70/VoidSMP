@@ -75,6 +75,13 @@ public final class EffectsTask extends BukkitRunnable {
             if (spider > 0) SpiderListener.applyPassive(plugin, player, spider);
             if (amphib > 0) AmphibianListener.applyPassive(plugin, player, amphib);
             if (farmer > 0) FarmerListener.applyPassive(plugin, player, farmer);
+            // Инженер 5 ур.: саморемонт — раз в 10 сек чинит предмет в руке на 2 ед.
+            int engineer = data.levelOf(Quirk.ENGINEER);
+            if (engineer >= 5 && ScanUtil.tryUse(player.getUniqueId(), "eng-self-repair", 10_000L)) {
+                repairHand(player.getInventory().getItemInMainHand());
+                repairHand(player.getInventory().getItemInOffHand());
+            }
+
 
             // скалковое свечение (2-3 ур.): немного частиц раз в N минут
             if (sculk >= 2) {
@@ -196,5 +203,14 @@ public final class EffectsTask extends BukkitRunnable {
     public static boolean exposedToSky(Player player) {
         Location loc = player.getLocation();
         return player.getWorld().getHighestBlockYAt(loc) < loc.getBlockY() + 1;
+    }
+
+    /** Чинит предмет на 2 ед. прочности, если он повреждён. */
+    private static void repairHand(org.bukkit.inventory.ItemStack item) {
+        if (item == null || item.getType().isAir()) return;
+        if (!(item.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg)) return;
+        if (dmg.getDamage() <= 0) return;
+        dmg.setDamage(Math.max(0, dmg.getDamage() - 2));
+        item.setItemMeta(dmg);
     }
 }

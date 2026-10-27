@@ -307,6 +307,13 @@ public final class CraftListener implements Listener {
             Msg.send(player, "farmer-craft-denied");
             return;
         }
+        // Инженер 4-5 ур.: мастерская — дубль инструментов/оружия/брони
+        int engLvl = plugin.quirks().levelOf(player, Quirk.ENGINEER);
+        if (engLvl >= 4 && result != null && !event.isShiftClick() && isEngineerDuplicable(result.getType())) {
+            ItemStack copy = result.clone();
+            player.getInventory().addItem(copy).values()
+                    .forEach(rest -> player.getWorld().dropItemNaturally(player.getLocation(), rest));
+        }
         // яично-океанская тройка: светлый фолиант ложится стеком, тёмный — бонусом
         if (result != null && "duo:dark".equals(result.getPersistentDataContainer()
                 .get(Keys.brewTarget, org.bukkit.persistence.PersistentDataType.STRING))) {
@@ -343,5 +350,15 @@ public final class CraftListener implements Listener {
         item.setAmount(item.getAmount() - 1);
         player.swingMainHand();
         player.getWorld().playSound(clicked.getLocation(), Sound.ITEM_BONE_MEAL_USE, 1.0f, 1.2f);
+    }
+
+    /** Инструменты, оружие и броня, которые Инженер дублирует при крафте (4 ур.). */
+    private static boolean isEngineerDuplicable(org.bukkit.Material m) {
+        String n = m.name();
+        return n.endsWith("_SWORD") || n.endsWith("_PICKAXE") || n.endsWith("_AXE")
+                || n.endsWith("_SHOVEL") || n.endsWith("_HOE") || n.endsWith("_HELMET")
+                || n.endsWith("_CHESTPLATE") || n.endsWith("_LEGGINGS") || n.endsWith("_BOOTS")
+                || n.equals("SHIELD") || n.equals("BOW") || n.equals("CROSSBOW")
+                || n.equals("FISHING_ROD") || n.equals("SHEARS") || n.equals("FLINT_AND_STEEL");
     }
 }
