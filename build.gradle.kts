@@ -3,14 +3,20 @@ plugins { java }
 group = "ru.voidsmp"
 version = "1.0.0"
 
+// API привязан к конкретному билду Paper. Динамический диапазон удобнее (сам тянет
+// свежий стабильный билд), но сборка от него не воспроизводима, а Gradle при
+// истёкшем кэше метаданных снова идёт в репозиторий Paper — и падает, если тот
+// временно недоступен. Обновляйте версию вместе с ядром сервера.
+val paperApi = "io.papermc.paper:paper-api:26.2.build.135-stable"
+
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:26.2.+")
-    testImplementation("io.papermc.paper:paper-api:26.2.+")
+    compileOnly(paperApi)
+    testImplementation(paperApi)
     testImplementation(platform("org.junit:junit-bom:5.12.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
