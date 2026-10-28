@@ -21,6 +21,10 @@ public final class GaidCommand implements CommandExecutor {
             sender.sendMessage("Только для игроков.");
             return true;
         }
+        if (!player.hasPermission("quirks.admin")) {
+            me.darkz70.quirks.util.Msg.send(player, "no-permission");
+            return true;
+        }
         plugin.gaidMenus().openRoot(player);
         return true;
     }

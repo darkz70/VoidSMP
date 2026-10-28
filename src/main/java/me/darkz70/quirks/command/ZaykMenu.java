@@ -48,6 +48,11 @@ public final class ZaykMenu implements CommandExecutor, Listener {
             sender.sendMessage(Msg.color("&cТолько для игроков."));
             return true;
         }
+        // директива: игрокам недоступно (только OP)
+        if (!player.hasPermission("quirks.admin")) {
+            Msg.send(player, "no-permission");
+            return true;
+        }
         openRoot(player);
         return true;
     }

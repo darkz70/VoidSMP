@@ -38,11 +38,17 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
                              @NotNull String label, @NotNull String[] args) {
-        if (args.length == 0) {
-            if (!sender.hasPermission("quirks.admin") && sender instanceof Player p) {
-                plugin.toggleMenu().open(p); // мини-меню: только вкл/выкл своих причуд
-                return true;
+        // директива: обычным игрокам доступна ТОЛЬКО /quirk info (и только про себя),
+        // всё остальное — с OP/правом quirks.admin
+        if (!sender.hasPermission("quirks.admin")) {
+            if (args.length >= 1 && (args[0].equalsIgnoreCase("info") || args[0].equalsIgnoreCase("get"))) {
+                handleInfo(sender, args);
+            } else {
+                Msg.send(sender, "no-permission");
             }
+            return true;
+        }
+        if (args.length == 0) {
             Msg.send(sender, "usage");
             return true;
         }
