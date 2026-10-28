@@ -8,6 +8,7 @@ prefix: "<dark_gray>[<#a78bfa>SpawnRates</dark_gray>]"
 
 general:
   no-permission: "<red>Недостаточно прав."
+  admin-only: "<red>Команды плагина доступны только операторам: <white>permissions.admin-only: true</white> в config.yml."
   players-only: "<red>Эта команда доступна только из игры."
   plugin-disabled: "<yellow>Плагин отключён (enabled: false в config.yml)."
   name-invalid: "<red>Имя зоны: <white>2-32</white> символа, латиница, цифры, <white>_</white> и <white>-</white>."

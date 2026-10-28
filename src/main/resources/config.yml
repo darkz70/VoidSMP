@@ -91,4 +91,13 @@ preview:
   # Показывать игроку в action bar зону, внутри которой он стоит.
   hud: true
 
+permissions:
+  # true (по умолчанию) — все подкоманды плагина, включая просмотр (list, info,
+  # near, mobs, stats, show, hide) и tp, требуют voidspawnrates.admin. Вместе с
+  # тем, что voidspawnrates.view по умолчанию выдан только операторам, это даёт
+  # «команды только у операторов»: игрок без OP не увидит /spawnrate даже в Tab.
+  # false — просмотр остаётся на voidspawnrates.view, телепорт на
+  # voidspawnrates.teleport, и эти права можно выдать игрокам отдельно.
+  admin-only: true
+
 debug: false

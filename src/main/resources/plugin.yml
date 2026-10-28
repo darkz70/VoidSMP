@@ -10,6 +10,11 @@ commands:
     description: Создание и настройка зон спавна мобов
     usage: /spawnrate help
     aliases: [zsr, mobrate]
+    # Гейт на уровне Bukkit: без voidspawnrates.view команда не выполняется и не
+    # попадает в автодополнение. Voidspawnrates.view по умолчанию выдан операторам,
+    # поэтому для игроков команды нет ни в Tab, ни в чате.
+    permission: voidspawnrates.view
+    permission-message: Недостаточно прав: команды VoidSpawnRates доступны только операторам.
 permissions:
   voidspawnrates.admin:
     description: Создание/удаление/изменение зон

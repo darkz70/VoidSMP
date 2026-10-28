@@ -67,6 +67,12 @@ JDBC-драйвер SQLite кладёт на свой classloader сам сер�
 | `/spawnrate save`, `reload`, `debug [true\|false]` | обслуживание | admin |
 
 Права: `voidspawnrates.admin` (все изменения зон; включает `view` и `teleport`), `voidspawnrates.view` (список, справка, статистика, рамка зоны), `voidspawnrates.teleport` (`/spawnrate tp`). Все три по умолчанию выданы операторам.
+
+Пока в `config.yml` стоит `permissions.admin-only: true` (значение по умолчанию),
+доступна только операторам вся команда целиком: даже `/spawnrate list`, `info`,
+`show` и `tp` требуют `voidspawnrates.admin`, а без `voidspawnrates.view`
+`/spawnrate` не выполняется и не подсказывается в Tab. Поставить `false` есть
+смысл, если игрокам хотят разрешить смотреть зоны или телепортироваться к ним.
 (по умолчанию — OP).
 
 ### Как считается «спавн рейт»

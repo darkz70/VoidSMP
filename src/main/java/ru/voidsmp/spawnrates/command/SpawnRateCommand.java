@@ -53,15 +53,14 @@ public final class SpawnRateCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (args.length == 0) {
-            help(sender, label);
-            return true;
-        }
-        String sub = args[0].toLowerCase(Locale.ROOT);
-        if (!plugin.settings().enabled) {
-            send(sender, "general.plugin-disabled", Args.of());
-        }
+        String sub = args.length == 0 ? "help" : args[0].toLowerCase(Locale.ROOT);
         try {
+            // Право проверяется до разбора аргументов: без него человек не должен
+            // узнавать ни список зон, ни то, что такая-то зона существует.
+            requirePermission(sender, permissionFor(sub));
+            if (!plugin.settings().enabled) {
+                send(sender, "general.plugin-disabled", Args.of());
+            }
             switch (sub) {
                 case "help" -> help(sender, label);
                 case "wand" -> giveWand(sender);
@@ -655,10 +654,38 @@ public final class SpawnRateCommand implements CommandExecutor, TabCompleter {
         return player;
     }
 
-    private void requirePermission(CommandSender sender, String permission) {
-        if (!sender.hasPermission(permission)) {
-            throw new UsageException("general.no-permission", Args.of().asMap());
+    /** Подкоманды, которые ничего не меняют. */
+    private static final Set<String> READ_ONLY =
+            Set.of("help", "list", "info", "near", "mobs", "stats", "show", "hide");
+
+    /**
+     * Право подкоманды с учётом <code>permissions.admin-only</code>: по умолчанию
+     * («только операторы») просмотр и телепорт тоже требуют voidspawnrates.admin.
+     * С admin-only: false остаётся voidspawnrates.view / voidspawnrates.teleport.
+     */
+    private String permissionFor(String sub) {
+        String base;
+        if (sub.equals("tp") || sub.equals("goto")) {
+            base = VoidSpawnRatesPlugin.PERMISSION_TELEPORT;
+        } else if (READ_ONLY.contains(sub)) {
+            base = VoidSpawnRatesPlugin.PERMISSION_VIEW;
+        } else {
+            base = VoidSpawnRatesPlugin.PERMISSION_ADMIN;
         }
+        boolean soft = !base.equals(VoidSpawnRatesPlugin.PERMISSION_ADMIN);
+        return soft && plugin.settings().adminOnlyCommands
+                ? VoidSpawnRatesPlugin.PERMISSION_ADMIN : base;
+    }
+
+    private void requirePermission(CommandSender sender, String permission) {
+        if (sender.hasPermission(permission)) {
+            return;
+        }
+        // Если просмотр закрыт настройкой, честнее сказать про неё, а не про права.
+        boolean hiddenByConfig = plugin.settings().adminOnlyCommands
+                && !permission.equals(VoidSpawnRatesPlugin.PERMISSION_ADMIN);
+        throw new UsageException(hiddenByConfig ? "general.admin-only" : "general.no-permission",
+                Args.of().asMap());
     }
 
     private static void checkSize(int size, int max) {
@@ -719,7 +746,15 @@ public final class SpawnRateCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return filter(SUBCOMMANDS, args[0], 50);
+            // Подсказываем только то, на что есть право — иначе Tab обещает
+            // /spawnrate delete, а сервер отвечает «недостаточно прав».
+            List<String> allowed = new ArrayList<>();
+            for (String name : SUBCOMMANDS) {
+                if (sender.hasPermission(permissionFor(name))) {
+                    allowed.add(name);
+                }
+            }
+            return filter(allowed, args[0], 50);
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
         List<String> names = zoneNames();

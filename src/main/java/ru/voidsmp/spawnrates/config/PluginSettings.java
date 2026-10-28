@@ -65,6 +65,9 @@ public final class PluginSettings {
 
     public volatile boolean debug = false;
 
+    /** Все подкоманды (даже просмотр) требуют voidspawnrates.admin — «только операторы». */
+    public volatile boolean adminOnlyCommands = true;
+
     /**
      * Применяет конфиг. Всё, что нельзя распарсить, молча возвращается к
      * безопасному значению, но попадает в список предупреждений — их печатает
@@ -126,6 +129,7 @@ public final class PluginSettings {
         hud = config.getBoolean("preview.hud", hud);
 
         debug = config.getBoolean("debug", debug);
+        adminOnlyCommands = config.getBoolean("permissions.admin-only", adminOnlyCommands);
         return warnings;
     }
 
