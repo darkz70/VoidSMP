@@ -13,115 +13,97 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
- * «Демон азарта» — паранормальный силуэт в углу зрения.
+ * «Демон азарта» (пассивный фон): изредка вдали от игроков (25–50 блоков)
+ * возникает тёмный силуэт в два блока ростом со скалковыми И АДСКИМИ
+ * частицами, стоит несколько секунд и растворяется.
  *
- * Каждые N секунд с шансом X у игрока в 4–8 блоках возникает тёмный силуэт
- * ~2 блока высотой, стоит 3–6 секунд и растворяется в искрах.
- * Ложка прикольного: если игрок смотрит прямо на силуэт — тот шарахаетя
- * и исчезает раньше, оставляя клуб дыма и тихий шёпот.
+ * Никаких сообщений в чат, звуки — только тихие, по месту силуэта.
+ * Настраивается: demon.enabled (вкл/выкл), demon.interval-minutes
+ * (5/10/15/20/30/60), demon.min-distance, demon.max-distance.
  */
 public final class DemonWatcherTask extends BukkitRunnable {
 
+    /** Допустимые интервалы появления (минуты), переключаются в меню /gaid. */
+    public static final int[] INTERVALS_MIN = {5, 10, 15, 20, 30, 60};
+
     private final VoidQuirksPlugin plugin;
-    /** Активные силуэты: uuid силуэта -> состояние. */
+    /** Активные силуэты. */
     private final Map<UUID, Silhouette> active = new ConcurrentHashMap<>();
+    private long nextAttemptAt = 0;
 
     public DemonWatcherTask(VoidQuirksPlugin plugin) {
         this.plugin = plugin;
     }
 
-    private record Silhouette(Location loc, Location base, long bornAt, long dieAt, UUID target) { }
-
-    private long nextAttemptAt = 0;
+    private record Silhouette(Location loc, long dieAt) { }
 
     @Override
     public void run() {
         var cfg = plugin.getConfig();
-        if (!cfg.getBoolean("demon.enabled", true)) return;
+        if (!cfg.getBoolean("demon.enabled", false)) {
+            active.clear();
+            return;
+        }
         long now = System.currentTimeMillis();
-        double chance = cfg.getDouble("demon.chance", 0.35);
-        int minD = cfg.getInt("demon.min-distance", 4);
-        int maxD = cfg.getInt("demon.max-distance", 8);
-        int minLife = cfg.getInt("demon.min-lifetime-seconds", 3) * 1000;
-        int maxLife = cfg.getInt("demon.max-lifetime-seconds", 6) * 1000;
 
-        // 1) умирающие силуэты — растворяем
+        // 1) живые силуэты: тёмный столб ~2 блока — скалка И ад
         active.entrySet().removeIf(e -> {
             Silhouette s = e.getValue();
-            Player watched = Bukkit.getPlayer(s.target);
-            boolean lookedAt = watched != null && watched.isOnline() && isLookingAt(watched, s.loc);
-            if (now >= s.dieAt || lookedAt || watched == null) {
-                fadeOut(s, watched, lookedAt);
+            if (now >= s.dieAt) {
+                // растворение: адские искры + дым, тихо
+                s.loc.getWorld().spawnParticle(Particle.END_ROD, s.loc.clone().add(0, 1, 0),
+                        14, 0.3, 0.6, 0.3, 0.02);
+                s.loc.getWorld().spawnParticle(Particle.LAVA, s.loc.clone().add(0, 1, 0),
+                        8, 0.3, 0.5, 0.3, 0.0);
+                s.loc.getWorld().playSound(s.loc, Sound.ENTITY_ENDERMAN_TELEPORT, 0.4f, 0.7f);
                 return true;
             }
-            // живой силуэт: тёмный «столб» ~2 блока
-            s.loc.getWorld().spawnParticle(Particle.SCULK_SOUL, s.loc.clone().add(0, 0.5, 0),
-                    3, 0.18, 0.3, 0.18, 0.005);
-            s.loc.getWorld().spawnParticle(Particle.SMOKE, s.loc.clone().add(0, 1.4, 0),
-                    3, 0.16, 0.3, 0.16, 0.005);
-            s.loc.getWorld().spawnParticle(Particle.SCULK_SOUL, s.loc.clone().add(0, 1.9, 0),
-                    1, 0.1, 0.05, 0.1, 0.0); // «глаза»
+            var w = s.loc.getWorld();
+            // скалковая половина
+            w.spawnParticle(Particle.SCULK_SOUL, s.loc.clone().add(0, 0.5, 0), 3, 0.18, 0.3, 0.18, 0.005);
+            w.spawnParticle(Particle.SMOKE, s.loc.clone().add(0, 1.4, 0), 3, 0.16, 0.3, 0.16, 0.005);
+            w.spawnParticle(Particle.SCULK_SOUL, s.loc.clone().add(0, 1.9, 0), 1, 0.1, 0.05, 0.1, 0.0);
+            // адская половина: душевое пламя внизу, обычные искры по бокам, редкие лавовые капли
+            w.spawnParticle(Particle.SOUL_FIRE_FLAME, s.loc.clone().add(0, 0.15, 0), 2, 0.2, 0.1, 0.2, 0.002);
+            w.spawnParticle(Particle.FLAME, s.loc.clone().add(0, 1.1, 0), 2, 0.25, 0.4, 0.25, 0.004);
+            w.spawnParticle(Particle.ASH, s.loc.clone().add(0, 1.6, 0), 3, 0.3, 0.4, 0.3, 0.002);
+            if (ThreadLocalRandom.current().nextInt(4) == 0) {
+                w.spawnParticle(Particle.DRIPPING_LAVA, s.loc.clone().add(0, 2.1, 0), 1, 0.1, 0.05, 0.1, 0.0);
+            }
             return false;
         });
 
-        // 2) новые появления — только по расписанию (силуэты в §1 рисуются каждый тик таска)
+        // 2) новые появления — раз в demon.interval-minutes (по текущему конфигу)
         if (now < nextAttemptAt) return;
-        nextAttemptAt = now + cfg.getInt("demon.period-seconds", 10) * 1000L;
+        int intervalMin = cfg.getInt("demon.interval-minutes", 10);
+        nextAttemptAt = now + intervalMin * 60_000L;
+
+        double chance = cfg.getDouble("demon.chance", 0.6);
+        int minD = cfg.getInt("demon.min-distance", 25);
+        int maxD = cfg.getInt("demon.max-distance", 50);
+        int minLife = cfg.getInt("demon.min-lifetime-seconds", 6) * 1000;
+        int maxLife = cfg.getInt("demon.max-lifetime-seconds", 10) * 1000;
+
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (ThreadLocalRandom.current().nextDouble() >= chance) continue;
-            // один силуэт на игрока
-            boolean already = active.values().stream().anyMatch(s -> s.target.equals(player.getUniqueId()));
-            if (already) continue;
-
             Location around = player.getLocation();
             double angle = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
             double dist = ThreadLocalRandom.current().nextDouble(minD, maxD);
             Location spot = around.clone().add(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
             spot.setY(spot.getWorld().getHighestBlockYAt(spot) + 1.0);
             long life = ThreadLocalRandom.current().nextLong(minLife, Math.max(minLife + 1, maxLife + 1));
-            active.put(UUID.randomUUID(),
-                    new Silhouette(spot, spot.clone(), now, now + life, player.getUniqueId()));
-            // тихий звук появления — слышит только жертва
-            player.playSound(spot, Sound.ENTITY_ENDERMAN_AMBIENT, 0.4f, 0.55f);
+            active.put(UUID.randomUUID(), new Silhouette(spot, now + life));
+            // тихий звук появления — слышат только те, кто рядом с силуэтом; чата нет
+            spot.getWorld().playSound(spot, Sound.ENTITY_ENDERMAN_AMBIENT, 0.5f, 0.5f);
+            spot.getWorld().playSound(spot, Sound.BLOCK_PORTAL_AMBIENT, 0.4f, 0.6f);
         }
     }
 
-    /** Смотрит ли игрок примерно на точку (порог ~15°). */
-    private static boolean isLookingAt(Player player, Location target) {
-        var eye = player.getEyeLocation().toVector();
-        var dir = player.getEyeLocation().getDirection().normalize();
-        var to = target.toVector().add(new org.bukkit.util.Vector(0, 1.0, 0)).subtract(eye).normalize();
-        return dir.dot(to) > 0.965;
-    }
-
-    /** Исчезновение: вспышка искр + дым; если замечен — обидный шёпот. */
-    private void fadeOut(Silhouette s, Player watched, boolean spotted) {
-        s.loc.getWorld().spawnParticle(Particle.END_ROD, s.loc.clone().add(0, 1, 0),
-                24, 0.3, 0.6, 0.3, 0.02);
-        s.loc.getWorld().spawnParticle(Particle.SMOKE, s.loc.clone().add(0, 1, 0),
-                20, 0.35, 0.7, 0.35, 0.01);
-        if (watched != null && watched.isOnline()) {
-            if (spotted) {
-                watched.playSound(s.loc, Sound.ENTITY_ENDERMAN_SCREAM, 0.35f, 1.5f);
-                me.darkz70.quirks.util.Msg.send(watched, "demon-spotted");
-            } else {
-                watched.playSound(s.loc, Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 0.9f);
-            }
-            // азарт: 15% — «укус», 15% — «подарок», иначе просто ушёл
-            double roll = ThreadLocalRandom.current().nextDouble();
-            if (roll < 0.15) {
-                watched.damage(1.0);
-                watched.addPotionEffect(new org.bukkit.potion.PotionEffect(
-                        org.bukkit.potion.PotionEffectType.DARKNESS, 30, 0, true, false, false));
-                me.darkz70.quirks.util.Msg.send(watched, "demon-bite");
-            } else if (roll < 0.30) {
-                watched.giveExp(3 + ThreadLocalRandom.current().nextInt(8));
-                watched.addPotionEffect(new org.bukkit.potion.PotionEffect(
-                        org.bukkit.potion.PotionEffectType.LUCK, 600, 0, true, false, false));
-                watched.getWorld().spawnParticle(Particle.HAPPY_VILLAGER,
-                        watched.getLocation().add(0, 1, 0), 18, 0.4, 0.6, 0.4, 0.02);
-                me.darkz70.quirks.util.Msg.send(watched, "demon-gift");
-            }
+    /** Цикл интервала: 5 → 10 → 15 → 20 → 30 → 60 → 5 … (возвращает новое значение). */
+    public static int nextInterval(int current) {
+        for (int i = 0; i < INTERVALS_MIN.length; i++) {
+            if (INTERVALS_MIN[i] == current) return INTERVALS_MIN[(i + 1) % INTERVALS_MIN.length];
         }
+        return INTERVALS_MIN[0];
     }
 }

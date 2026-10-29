@@ -126,6 +126,17 @@ public final class GaidFx implements Listener {
         fx(inv, 51, Material.FIRE_CHARGE, "&4&lВспышка-разряд",
                 "&7Мгновенная вспышка неба, глухой удар грома,",
                 "&7магма-пыль расходится от твоих ног.");
+        // демон азарта: вкл/выкл (слот 3) и интервал (слот 5)
+        boolean demonOn = plugin.getConfig().getBoolean("demon.enabled", true);
+        int demonInt = plugin.getConfig().getInt("demon.interval-minutes", 10);
+        fx(inv, 3, demonOn ? Material.REDSTONE_TORCH : Material.DEAD_BUSH,
+                demonOn ? "&5&lДемон азарта: &aВКЛ" : "&5&lДемон азарта: &cВЫКЛ",
+                "&7Пассивный силуэт в 25–50 блоках от игроков,",
+                "&7скалка+ад частицы, без чата. Клик — переключить.");
+        fx(inv, 5, Material.CLOCK,
+                "&5&lИнтервал демона: &f" + demonInt + " мин",
+                "&7Клик — цикл: 5 → 10 → 15 → 20 → 30 → 60 минут.",
+                "&7Новый интервал применяется сразу.");
         inv.setItem(4, btn(Material.ARROW, "&7&lНазад"));
         player.openInventory(inv);
     }
@@ -144,6 +155,17 @@ public final class GaidFx implements Listener {
                 player.closeInventory();
                 Bukkit.getScheduler().runTask(plugin, () -> player.performCommand("gaid"));
                 return;
+            }
+            case 3 -> { // демон: вкл/выкл
+                boolean now = !plugin.getConfig().getBoolean("demon.enabled", true);
+                plugin.getConfig().set("demon.enabled", now);
+                plugin.saveConfig();
+            }
+            case 5 -> { // демон: цикл интервала 5/10/15/20/30/60 мин
+                int cur = plugin.getConfig().getInt("demon.interval-minutes", 10);
+                int nxt = me.darkz70.quirks.task.DemonWatcherTask.nextInterval(cur);
+                plugin.getConfig().set("demon.interval-minutes", nxt);
+                plugin.saveConfig();
             }
             case 11 -> hellRift(player);
             case 12 -> hellRift(player, 5.0, 4);

@@ -122,8 +122,9 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         new EffectsTask(this).runTaskTimer(this, interval, interval);
         new WebPhysicsTask(this).runTaskTimer(this, 1L, 1L);
         new MagicTask(this).runTaskTimer(this, 20L, 20L);
-        long demonPeriod = Math.max(2, getConfig().getInt("demon.period-seconds", 10)) * 20L;
-        new DemonWatcherTask(this).runTaskTimer(this, demonPeriod, 10L); // тик чаще периода: живые силуэты рисуются постоянно
+        // Демон азарта: тик каждые полсекунды (картинка силуэтов); появление — раз в
+        // demon.interval-minutes из конфига (5/10/15/20/30/60 мин)
+        new DemonWatcherTask(this).runTaskTimer(this, 40L, 10L);
         zayceTask.runTaskTimer(this, 200L, 200L);
 
         long autosave = Math.max(1, getConfig().getLong("tasks.autosave-minutes", 5)) * 60L * 20L;
