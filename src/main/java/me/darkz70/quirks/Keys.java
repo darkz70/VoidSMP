@@ -30,6 +30,11 @@ public final class Keys {
     public static NamespacedKey zkRole;          // зайцекрол: роль (farmer/guard/elite/resident/tsar)
     public static NamespacedKey zkHome;          // зайцекрол: точка появления "x,y,z"
     public static NamespacedKey zkGen;           // зайцекрол-житель: поколение (с 60)
+    public static NamespacedKey saberItem;       // световой меч: метка предмета
+    public static NamespacedKey saberSide;       // световой меч: сторона игрока ("light"/"dark")
+    public static NamespacedKey saberDecline;    // световой меч: зов тьмы отклонён до (мс)
+    public static NamespacedKey saberDamage;     // световой меч: модификатор урона
+    public static NamespacedKey saberSpeed;      // световой меч: модификатор скорости атаки
 
     private Keys() {}
 
@@ -59,5 +64,10 @@ public final class Keys {
         zkRole = new NamespacedKey(plugin, "zk_role");
         zkHome = new NamespacedKey(plugin, "zk_home");
         zkGen = new NamespacedKey(plugin, "zk_gen");
+        saberItem = new NamespacedKey(plugin, "saber_item");
+        saberSide = new NamespacedKey(plugin, "saber_side");
+        saberDecline = new NamespacedKey(plugin, "saber_decline");
+        saberDamage = new NamespacedKey(plugin, "saber_damage");
+        saberSpeed = new NamespacedKey(plugin, "saber_speed");
     }
 }

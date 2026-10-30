@@ -83,6 +83,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         zayceMobMenu = new me.darkz70.quirks.command.ZayceMobMenu(this);
         toggleMenu = new me.darkz70.quirks.command.ToggleMenu(this);
         Bukkit.getPluginManager().registerEvents(toggleMenu, this);
+        new me.darkz70.quirks.mechanic.SaberSystem(this); // световые мечи (регистрируется сам)
         sculkLeader = new me.darkz70.quirks.listener.SculkLeaderListener(this);
         Bukkit.getPluginManager().registerEvents(sculkLeader, this);
         me.darkz70.quirks.command.DecoyCommand[] decoys = {
