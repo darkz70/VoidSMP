@@ -120,7 +120,7 @@ public final class SaberSystem implements Listener {
                     : "&b&lСветовой меч"));
             List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
             lore.add(Msg.color(dark ? "&5Сторона: ТЁМНАЯ (красный клинок)" : "&3Сторона: СВЕТЛАЯ (синий клинок)"));
-            lore.add(Msg.color("&77 урона · огненный облик IV · неразрушим"));
+            lore.add(Msg.color("&77 урона · огненный облик IV · неразрушимость IV"));
             lore.add(Msg.color("&cНельзя зачаровать · нельзя выбросить"));
             lore.add(Msg.color("&6Осталось до конца ноября: &f" + countdownText()));
             lore.add(Msg.color(dark ? "&8Тёмная сторона не отпускает."
@@ -128,6 +128,7 @@ public final class SaberSystem implements Listener {
             meta.lore(lore);
             meta.setUnbreakable(true);
             meta.addEnchant(Enchantment.FIRE_ASPECT, 4, true); // облик огня IV + мерцание зачарования
+            meta.addEnchant(Enchantment.UNBREAKING, 4, true);  // неразрушимость IV
             meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
             meta.addAttributeModifier(Attribute.ATTACK_DAMAGE, new AttributeModifier(
                     Keys.saberDamage, 6.0, AttributeModifier.Operation.ADD_NUMBER,
@@ -185,12 +186,12 @@ public final class SaberSystem implements Listener {
                 Msg.color("&8Выбери сторону силы"));
         inv.setItem(11, btn(Material.BLUE_CONCRETE, "&b&lСветлая сторона",
                 "&7Выдаётся СИНИЙ световой меч: 7 урона,",
-                "&7огненный облик IV, неразрушим.",
+                "&7огненный облик IV, неразрушимость IV.",
                 "&7ПКМ мечом — можно выслушать зов",
                 "&7тёмной стороны (отказ — раз в 24 часа)."));
         inv.setItem(15, btn(Material.RED_CONCRETE, "&c&lТёмная сторона",
                 "&7Выдаётся КРАСНЫЙ световой меч: 7 урона,",
-                "&7огненный облик IV, неразрушим.",
+                "&7огненный облик IV, неразрушимость IV.",
                 "&4Осторожно: назад дороги нет."));
         player.openInventory(inv);
     }
