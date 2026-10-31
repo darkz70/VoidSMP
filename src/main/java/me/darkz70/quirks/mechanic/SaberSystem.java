@@ -114,7 +114,7 @@ public final class SaberSystem implements Listener {
 
     /** Собирает меч выбранной стороны (таймер пересчитывается при каждой выдаче). */
     public ItemStack makeSaber(boolean dark) {
-        ItemStack sword = new ItemStack(Material.DIAMOND_SWORD); // алмазный базис, реальная модель/текстура придёт позже
+        ItemStack sword = new ItemStack(Material.DIAMOND_SWORD); // алмазный базис; 3D-модель/текстура — из ресурспака по custom_model_data
         sword.editMeta(meta -> {
             meta.displayName(Msg.color(dark
                     ? "&c&lТёмный световой меч"
@@ -130,6 +130,9 @@ public final class SaberSystem implements Listener {
             meta.addEnchant(Enchantment.FIRE_ASPECT, 4, true); // облик огня IV + мерцание зачарования (в описании не показываем)
             // неразрушимость — ИМЕННО атрибутом предмета (ничего не ломается), не чарами
             meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            var cmd = meta.getCustomModelDataComponent();
+            cmd.setStrings(List.of(dark ? "void_saber_dark" : "void_saber_light")); // модель из ресурспака
+            meta.setCustomModelDataComponent(cmd);
             meta.addAttributeModifier(Attribute.ATTACK_DAMAGE, new AttributeModifier(
                     Keys.saberDamage, 6.0, AttributeModifier.Operation.ADD_NUMBER,
                     EquipmentSlotGroup.MAINHAND)); // 1 базовый + 6 = ровно 7 урона
