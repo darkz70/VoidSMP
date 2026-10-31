@@ -1,6 +1,7 @@
 package me.darkz70.quirks;
 
 import me.darkz70.quirks.command.GaidCommand;
+import me.darkz70.quirks.command.IventCommand;
 import me.darkz70.quirks.command.MagicCommand;
 import me.darkz70.quirks.command.QuirkCommand;
 import me.darkz70.quirks.listener.AmphibianListener;
@@ -83,7 +84,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         zayceMobMenu = new me.darkz70.quirks.command.ZayceMobMenu(this);
         toggleMenu = new me.darkz70.quirks.command.ToggleMenu(this);
         Bukkit.getPluginManager().registerEvents(toggleMenu, this);
-        new me.darkz70.quirks.mechanic.SaberSystem(this); // световые мечи (регистрируется сам)
+        sabers = new me.darkz70.quirks.mechanic.SaberSystem(this); // световые мечи (регистрируется сам)
         sculkLeader = new me.darkz70.quirks.listener.SculkLeaderListener(this);
         Bukkit.getPluginManager().registerEvents(sculkLeader, this);
         me.darkz70.quirks.command.DecoyCommand[] decoys = {
@@ -117,6 +118,13 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         PluginCommand gaid = getCommand("gaid");
         if (gaid != null) {
             gaid.setExecutor(gaidCommand);
+        }
+
+        IventCommand iventCommand = new IventCommand(this);
+        PluginCommand ivent = getCommand("ivent");
+        if (ivent != null) {
+            ivent.setExecutor(iventCommand);
+            ivent.setTabCompleter(iventCommand);
         }
 
         int interval = Math.max(20, getConfig().getInt("tasks.effects-interval-ticks", 40));
@@ -153,6 +161,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
 
     private me.darkz70.quirks.task.ZayceKrolTask zayceTask;
     private me.darkz70.quirks.command.ToggleMenu toggleMenu;
+    private me.darkz70.quirks.mechanic.SaberSystem sabers;
     private me.darkz70.quirks.listener.SculkLeaderListener sculkLeader;
     private me.darkz70.quirks.mechanic.PoliticsStore politics;
     private me.darkz70.quirks.command.PoliticsMenu gaipolitics;
@@ -174,6 +183,8 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     public me.darkz70.quirks.command.ZayceMobMenu zayceMobMenu() {
         return zayceMobMenu;
     }
+
+    public me.darkz70.quirks.mechanic.SaberSystem sabers() { return sabers; }
 
     public me.darkz70.quirks.command.ToggleMenu toggleMenu() {
         return toggleMenu;

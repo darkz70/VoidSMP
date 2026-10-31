@@ -21,6 +21,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -113,22 +114,22 @@ public final class SaberSystem implements Listener {
 
     /** Собирает меч выбранной стороны (таймер пересчитывается при каждой выдаче). */
     public ItemStack makeSaber(boolean dark) {
-        ItemStack sword = new ItemStack(Material.IRON_SWORD);
+        ItemStack sword = new ItemStack(Material.DIAMOND_SWORD); // алмазный базис, реальная модель/текстура придёт позже
         sword.editMeta(meta -> {
             meta.displayName(Msg.color(dark
                     ? "&c&lТёмный световой меч"
                     : "&b&lСветовой меч"));
             List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
             lore.add(Msg.color(dark ? "&5Сторона: ТЁМНАЯ (красный клинок)" : "&3Сторона: СВЕТЛАЯ (синий клинок)"));
-            lore.add(Msg.color("&77 урона · огненный облик IV · неразрушимость IV"));
+            lore.add(Msg.color("&77 урона · огненный облик IV · неразрушим"));
             lore.add(Msg.color("&cНельзя зачаровать · нельзя выбросить"));
             lore.add(Msg.color("&6Осталось до конца ноября: &f" + countdownText()));
             lore.add(Msg.color(dark ? "&8Тёмная сторона не отпускает."
                     : "&8ПКМ — тихий зов тёмной стороны…"));
             meta.lore(lore);
-            meta.setUnbreakable(true);
+            meta.setUnbreakable(true); // атрибутная неразрушимость
             meta.addEnchant(Enchantment.FIRE_ASPECT, 4, true); // облик огня IV + мерцание зачарования
-            meta.addEnchant(Enchantment.UNBREAKING, 4, true);  // неразрушимость IV
+            // неразрушимость — ИМЕННО атрибутом предмета (ничего не ломается), не чарами
             meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
             meta.addAttributeModifier(Attribute.ATTACK_DAMAGE, new AttributeModifier(
                     Keys.saberDamage, 6.0, AttributeModifier.Operation.ADD_NUMBER,
@@ -166,6 +167,38 @@ public final class SaberSystem implements Listener {
                 .forEach(rest -> player.getWorld().dropItemNaturally(player.getLocation(), rest));
     }
 
+    /** Текст даты конца ивента (для /ivent status). */
+    public String untilDateText() {
+        return untilDate().toString();
+    }
+
+    /** Админ: принудительная сторона + клинок (старые клинки заменяются). */
+    public void forceSide(Player player, boolean dark) {
+        stripSabers(player);
+        setSide(player, dark ? "dark" : "light");
+        player.getPersistentDataContainer().remove(Keys.saberDecline);
+        ensureSaber(player);
+    }
+
+    /** Админ: забрать все клинки, снять сторону и перерыв зова. */
+    public void reset(Player player) {
+        stripSabers(player);
+        setSide(player, "");
+        player.getPersistentDataContainer().remove(Keys.saberSide);
+        player.getPersistentDataContainer().remove(Keys.saberDecline);
+    }
+
+    /** Держатель команды /ivent: сразу открыть выбор стороны (очистка ивентового пришествия). */
+    public void purgeNow(Player player) {
+        purgeIfExpired(player);
+    }
+
+    private void stripSabers(Player player) {
+        for (int i = 0; i < player.getInventory().getSize(); i++) {
+            if (isSaber(player.getInventory().getItem(i))) player.getInventory().setItem(i, null);
+        }
+    }
+
     /** По окончании ивента мечи сгорают и стороны обнуляются. */
     private void purgeIfExpired(Player player) {
         if (!expired()) return;
@@ -183,16 +216,10 @@ public final class SaberSystem implements Listener {
     /** Меню: светлая или тёмная сторона (минутный выбор после захода). */
     public void openChoice(Player player) {
         Inventory inv = Bukkit.createInventory(new ChoiceHolder(), 27,
-                Msg.color("&8Выбери сторону силы"));
-        inv.setItem(11, btn(Material.BLUE_CONCRETE, "&b&lСветлая сторона",
-                "&7Выдаётся СИНИЙ световой меч: 7 урона,",
-                "&7огненный облик IV, неразрушимость IV.",
-                "&7ПКМ мечом — можно выслушать зов",
-                "&7тёмной стороны (отказ — раз в 24 часа)."));
+                Msg.color("&5&lИвент Недрочабрь"));
+        inv.setItem(11, btn(Material.BLUE_CONCRETE, "&b&lСветлая сторона"));
         inv.setItem(15, btn(Material.RED_CONCRETE, "&c&lТёмная сторона",
-                "&7Выдаётся КРАСНЫЙ световой меч: 7 урона,",
-                "&7огненный облик IV, неразрушимость IV.",
-                "&4Осторожно: назад дороги нет."));
+                "&4Вернуться не получится."));
         player.openInventory(inv);
     }
 
@@ -303,6 +330,18 @@ public final class SaberSystem implements Listener {
             return;
         }
         openDarkCall(player);
+    }
+
+    /** Меню выбора стороны нельзя закрыть даже ESC — переоткрываем, пока не выбрана сторона. */
+    @EventHandler
+    public void onClose(InventoryCloseEvent event) {
+        if (!(event.getInventory().getHolder() instanceof ChoiceHolder)) return;
+        if (!(event.getPlayer() instanceof Player player)) return;
+        if (!enabled() || expired()) return;
+        if (!side(player).isEmpty()) return; // сторона выбрана — меню больше не появляется
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (player.isOnline() && side(player).isEmpty()) openChoice(player);
+        });
     }
 
     /** Клики по меню выбора/зова. */

@@ -19,6 +19,10 @@ commands:
   gaid:
     description: Книга-гайд по механикам VoidSMP (админ)
     usage: /gaid
+  ivent:
+    description: Ивент «Недрочабрь» — световые мечи (админ)
+    usage: /ivent <open|give|reset|status>
+    permission: quirks.admin
   zayk:
     description: Политика зайцекролов для игроков — партии, цари, выборы
     aliases: [зайцекрол]
