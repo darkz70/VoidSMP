@@ -121,16 +121,15 @@ public final class SaberSystem implements Listener {
                     : "&b&lСветовой меч"));
             List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
             lore.add(Msg.color(dark ? "&5Сторона: ТЁМНАЯ (красный клинок)" : "&3Сторона: СВЕТЛАЯ (синий клинок)"));
-            lore.add(Msg.color("&77 урона · огненный облик IV · неразрушим"));
-            lore.add(Msg.color("&cНельзя зачаровать · нельзя выбросить"));
             lore.add(Msg.color("&6Осталось до конца ноября: &f" + countdownText()));
-            lore.add(Msg.color(dark ? "&8Тёмная сторона не отпускает."
-                    : "&8ПКМ — тихий зов тёмной стороны…"));
+            if (!dark) {
+                lore.add(Msg.color("&8ПКМ — тихий зов тёмной стороны…"));
+            }
             meta.lore(lore);
             meta.setUnbreakable(true); // атрибутная неразрушимость
-            meta.addEnchant(Enchantment.FIRE_ASPECT, 4, true); // облик огня IV + мерцание зачарования
+            meta.addEnchant(Enchantment.FIRE_ASPECT, 4, true); // облик огня IV + мерцание зачарования (в описании не показываем)
             // неразрушимость — ИМЕННО атрибутом предмета (ничего не ломается), не чарами
-            meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+            meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
             meta.addAttributeModifier(Attribute.ATTACK_DAMAGE, new AttributeModifier(
                     Keys.saberDamage, 6.0, AttributeModifier.Operation.ADD_NUMBER,
                     EquipmentSlotGroup.MAINHAND)); // 1 базовый + 6 = ровно 7 урона
