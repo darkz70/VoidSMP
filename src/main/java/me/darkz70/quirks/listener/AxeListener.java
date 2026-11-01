@@ -97,7 +97,7 @@ public final class AxeListener implements Listener {
         int lvl = level(player);
         if (lvl == 0 || lvl > 2) return;
         ItemStack stack = event.getItem().getItemStack();
-        if (MaterialLists.isLowSword(lvl, stack.getType())) {
+        if (!plugin.sabers().isSaber(stack) && MaterialLists.isLowSword(lvl, stack.getType())) {
             event.getItem().setItemStack(new ItemStack(Material.STICK, Math.max(1, stack.getAmount())));
             if (ScanUtil.tryUse(player.getUniqueId(), "axe-stick-msg", 3000)) {
                 plugin.notify(player, "axe-sword-to-stick");
@@ -105,19 +105,19 @@ public final class AxeListener implements Listener {
         }
     }
 
-    /** Периодическая зачистка мечей в инвентаре (вызывается из EffectsTask). */
+    /** Периодическая зачистка мечей в инвентаре (вызывается из EffectsTask). Ивентовый световой меч не трогаем. */
     public static void sweepSwords(VoidQuirksPlugin plugin, Player player, int level) {
         PlayerInventory inv = player.getInventory();
         boolean changed = false;
         for (int i = 0; i < inv.getSize(); i++) {
             ItemStack item = inv.getItem(i);
-            if (item != null && MaterialLists.isLowSword(level, item.getType())) {
+            if (item != null && !plugin.sabers().isSaber(item) && MaterialLists.isLowSword(level, item.getType())) {
                 inv.setItem(i, new ItemStack(Material.STICK, Math.max(1, item.getAmount())));
                 changed = true;
             }
         }
         ItemStack cursor = player.getItemOnCursor();
-        if (cursor != null && MaterialLists.isLowSword(level, cursor.getType())) {
+        if (cursor != null && !plugin.sabers().isSaber(cursor) && MaterialLists.isLowSword(level, cursor.getType())) {
             player.setItemOnCursor(new ItemStack(Material.STICK, Math.max(1, cursor.getAmount())));
             changed = true;
         }
