@@ -314,19 +314,20 @@ public final class SaberSystem implements Listener {
         }
     }
 
-    /** Метка наших «боевых» харчков — чтобы отличать от настоящих плевков лам и бить фиксированным уроном. */
-    private static final String SPIT_META_KEY = "void_saber_spit";
-    /** Метка «этот харчок — каждый 5-й» — при попадании ударит молнией (визуальный эффект). */
-    private static final String SPIT_META_LIGHTNING_KEY = "void_saber_spit_lightning";
-    /** Счётчик выстрелов харчком на игрока, для «каждый 5-й выстрел — молния». */
+    /** Счётчик выстрелов лучом на игрока, для «каждый 5-й выстрел — молния». */
     private final java.util.Map<java.util.UUID, Integer> spitShotCount = new java.util.HashMap<>();
+    private static final double BEAM_RANGE = 50.0;
 
-    /** Взмах мечом (даже по воздуху): раз в 5 секунд плюёт харчком ламы вперёд. */
+    /**
+     * Взмах мечом (даже по воздуху): раз в 5 секунд стреляет синим лучом вперёд.
+     * Урон наносится мгновенно через рейтрейс (а не физическим снарядом), поэтому
+     * бьёт гарантированно в то, что реально находится под прицелом, на дистанции до 50 блоков.
+     */
     @EventHandler(ignoreCancelled = true)
     public void onSwing(org.bukkit.event.player.PlayerAnimationEvent event) {
         if (event.getAnimationType() != org.bukkit.event.player.PlayerAnimationType.ARM_SWING) return;
         Player player = event.getPlayer();
-        // харчок ламы — только когда меч именно в офф-хенде (второй руке)
+        // луч — только когда меч именно в офф-хенде (второй руке)
         if (!isSaber(player.getInventory().getItemInOffHand())) return;
 
         long now = System.currentTimeMillis();
@@ -338,40 +339,39 @@ public final class SaberSystem implements Listener {
         boolean lightningShot = shotNumber % 5 == 0;
 
         org.bukkit.Location eye = player.getEyeLocation();
-        org.bukkit.util.Vector dir = eye.getDirection();
-        org.bukkit.entity.LlamaSpit spit = player.getWorld().spawn(
-                eye.clone().add(dir), org.bukkit.entity.LlamaSpit.class);
-        spit.setShooter(player);
-        spit.setVelocity(dir.multiply(1.6));
-        spit.setMetadata(SPIT_META_KEY, new org.bukkit.metadata.FixedMetadataValue(plugin, true));
+        org.bukkit.util.Vector dir = eye.getDirection().normalize();
+        org.bukkit.World world = player.getWorld();
+
+        org.bukkit.util.RayTraceResult hit = world.rayTrace(
+                eye, dir, BEAM_RANGE,
+                org.bukkit.FluidCollisionMode.NEVER, true, 0.4,
+                e -> e != player && e instanceof org.bukkit.entity.LivingEntity);
+
+        org.bukkit.Location end = (hit != null)
+                ? hit.getHitPosition().toLocation(world)
+                : eye.clone().add(dir.clone().multiply(BEAM_RANGE));
+
+        // синий луч из частиц от игрока до точки попадания/максимальной дальности
+        org.bukkit.Particle.DustOptions blue =
+                new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(40, 110, 255), 1.3f);
+        double length = eye.distance(end);
+        org.bukkit.util.Vector step = dir.clone().multiply(0.3);
+        org.bukkit.Location cursor = eye.clone();
+        for (double d = 0; d < length; d += 0.3) {
+            world.spawnParticle(org.bukkit.Particle.DUST, cursor, 1, 0, 0, 0, 0, blue);
+            cursor.add(step);
+        }
+
+        world.playSound(eye, org.bukkit.Sound.ENTITY_GUARDIAN_ATTACK, 1f, 1.6f);
+
+        if (hit != null && hit.getHitEntity() instanceof org.bukkit.entity.LivingEntity target) {
+            double damage = 7.0 + java.util.concurrent.ThreadLocalRandom.current().nextDouble();
+            target.damage(damage, player);
+        }
+
+        // каждый 5-й выстрел — молния в конце луча (визуальный эффект, без поджога/урона от грозы)
         if (lightningShot) {
-            spit.setMetadata(SPIT_META_LIGHTNING_KEY, new org.bukkit.metadata.FixedMetadataValue(plugin, true));
-        }
-        player.getWorld().playSound(eye, org.bukkit.Sound.ENTITY_LLAMA_SPIT, 1f, 1f);
-        player.getWorld().spawnParticle(org.bukkit.Particle.SPIT,
-                eye.clone().add(dir), 10, 0.1, 0.1, 0.1, 0.02);
-    }
-
-    /** Харчок ламы наносит урон сам (как у 2 стрел + немного ~= 7 урона), независимо от ванильного поведения плевка. */
-    @EventHandler
-    public void onSpitHit(org.bukkit.event.entity.ProjectileHitEvent event) {
-        if (!(event.getEntity() instanceof org.bukkit.entity.LlamaSpit spit)) return;
-        if (!spit.hasMetadata(SPIT_META_KEY)) return;
-
-        if (event.getHitEntity() instanceof org.bukkit.entity.LivingEntity target) {
-            if (spit.getShooter() instanceof Player shooter) {
-                target.damage(7.0, shooter);
-            } else {
-                target.damage(7.0);
-            }
-        }
-
-        // каждый 5-й выстрел — молния (визуальный эффект, без поджога/урона от грозы)
-        if (spit.hasMetadata(SPIT_META_LIGHTNING_KEY)) {
-            org.bukkit.Location strikeAt = event.getHitEntity() != null
-                    ? event.getHitEntity().getLocation()
-                    : spit.getLocation();
-            spit.getWorld().strikeLightningEffect(strikeAt);
+            world.strikeLightningEffect(end);
         }
     }
 
