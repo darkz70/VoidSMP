@@ -81,14 +81,14 @@ public final class CraftListener implements Listener {
         // удобрение: 2 костной муки (только Фермер видит/крафтит)
         fertilizerKey = new NamespacedKey(plugin, "super_fertilizer");
         ShapelessRecipe fert = new ShapelessRecipe(fertilizerKey, makeFertilizer());
-        fert.addIngredient(Material.BONE_MEAL, 2);
+        fert.addIngredient(2, Material.BONE_MEAL);
         add(fertilizerKey, fert);
 
         // кристалл фокуса: 4 аметиста + 4 алмаза + 1 стекло
         ShapelessRecipe crystal = new ShapelessRecipe(new NamespacedKey(plugin, "focus_crystal"),
                 BrewTree.makeFocusCrystal());
-        crystal.addIngredient(Material.AMETHYST_SHARD, 4);
-        crystal.addIngredient(Material.DIAMOND, 4);
+        crystal.addIngredient(4, Material.AMETHYST_SHARD);
+        crystal.addIngredient(4, Material.DIAMOND);
         crystal.addIngredient(Material.GLASS);
         add(new NamespacedKey(plugin, "focus_crystal"), crystal);
 
@@ -100,7 +100,7 @@ public final class CraftListener implements Listener {
             ShapelessRecipe book = new ShapelessRecipe(new NamespacedKey(plugin, "elem_book_" + element.id()),
                     makeElementBook(element));
             book.addIngredient(Material.BOOK);
-            book.addIngredient(Material.AMETHYST_SHARD, 4);
+            book.addIngredient(4, Material.AMETHYST_SHARD);
             book.addIngredient(element.catalyst());
             add(new NamespacedKey(plugin, "elem_book_" + element.id()), book);
         }
@@ -108,54 +108,54 @@ public final class CraftListener implements Listener {
         // книги прокачки
         ShapelessRecipe up1 = new ShapelessRecipe(new NamespacedKey(plugin, "up_book_1"), makeUpgradeBook(1));
         up1.addIngredient(Material.BOOK);
-        up1.addIngredient(Material.AMETHYST_SHARD, 4);
-        up1.addIngredient(Material.COPPER_BLOCK, 4);
+        up1.addIngredient(4, Material.AMETHYST_SHARD);
+        up1.addIngredient(4, Material.COPPER_BLOCK);
         add(new NamespacedKey(plugin, "up_book_1"), up1);
 
         ShapelessRecipe up2 = new ShapelessRecipe(new NamespacedKey(plugin, "up_book_2"), makeUpgradeBook(2));
         up2.addIngredient(new RecipeChoice.ExactChoice(makeUpgradeBook(1)));
-        up2.addIngredient(Material.AMETHYST_SHARD, 4);
-        up2.addIngredient(Material.IRON_BLOCK, 4);
+        up2.addIngredient(4, Material.AMETHYST_SHARD);
+        up2.addIngredient(4, Material.IRON_BLOCK);
         add(new NamespacedKey(plugin, "up_book_2"), up2);
 
         ShapelessRecipe up3 = new ShapelessRecipe(new NamespacedKey(plugin, "up_book_3"), makeUpgradeBook(3));
         up3.addIngredient(Material.BOOK); // plain BOOK — так в спеке
-        up3.addIngredient(Material.AMETHYST_SHARD, 4);
-        up3.addIngredient(Material.GOLD_BLOCK, 4);
+        up3.addIngredient(4, Material.AMETHYST_SHARD);
+        up3.addIngredient(4, Material.GOLD_BLOCK);
         add(new NamespacedKey(plugin, "up_book_3"), up3);
 
         ShapelessRecipe up4 = new ShapelessRecipe(new NamespacedKey(plugin, "up_book_4"), makeUpgradeBook(4));
         up4.addIngredient(new RecipeChoice.ExactChoice(makeUpgradeBook(3)));
-        up4.addIngredient(Material.AMETHYST_SHARD, 4);
-        up4.addIngredient(Material.OBSIDIAN, 4);
+        up4.addIngredient(4, Material.AMETHYST_SHARD);
+        up4.addIngredient(4, Material.OBSIDIAN);
         add(new NamespacedKey(plugin, "up_book_4"), up4);
 
         ShapelessRecipe up5 = new ShapelessRecipe(new NamespacedKey(plugin, "up_book_5"), makeUpgradeBook(5));
         up5.addIngredient(new RecipeChoice.ExactChoice(makeUpgradeBook(4)));
-        up5.addIngredient(Material.AMETHYST_SHARD, 4);
-        up5.addIngredient(Material.DIAMOND_BLOCK, 4);
+        up5.addIngredient(4, Material.AMETHYST_SHARD);
+        up5.addIngredient(4, Material.DIAMOND_BLOCK);
         add(new NamespacedKey(plugin, "up_book_5"), up5);
 
         // невидимый свет (4 шт): 4 факела + 1 стекло
         ShapelessRecipe invisLight = new ShapelessRecipe(new NamespacedKey(plugin, "invisible_light"),
                 new ItemStack(Material.LIGHT, 4));
-        invisLight.addIngredient(Material.TORCH, 4);
+        invisLight.addIngredient(4, Material.TORCH);
         invisLight.addIngredient(Material.GLASS);
         add(new NamespacedKey(plugin, "invisible_light"), invisLight);
 
         // палочка отладки: 1 палка + 4 алмаза
         ShapelessRecipe debugStick = new ShapelessRecipe(new NamespacedKey(plugin, "debug_stick"),
                 new ItemStack(Material.DEBUG_STICK, 1));
-        debugStick.addIngredient(Material.STICK, 1);
-        debugStick.addIngredient(Material.DIAMOND, 4);
+        debugStick.addIngredient(1, Material.STICK);
+        debugStick.addIngredient(4, Material.DIAMOND);
         add(new NamespacedKey(plugin, "debug_stick"), debugStick);
 
         // сердце моря: 4 алмаза + 4 осколка призмарина + 1 золотой слиток
         ShapelessRecipe heartOfSea = new ShapelessRecipe(new NamespacedKey(plugin, "heart_of_the_sea"),
                 new ItemStack(Material.HEART_OF_THE_SEA, 1));
-        heartOfSea.addIngredient(Material.DIAMOND, 4);
-        heartOfSea.addIngredient(Material.PRISMARINE_SHARD, 4);
-        heartOfSea.addIngredient(Material.GOLD_INGOT, 1);
+        heartOfSea.addIngredient(4, Material.DIAMOND);
+        heartOfSea.addIngredient(4, Material.PRISMARINE_SHARD);
+        heartOfSea.addIngredient(1, Material.GOLD_INGOT);
         add(new NamespacedKey(plugin, "heart_of_the_sea"), heartOfSea);
     }
 
