@@ -49,7 +49,7 @@ public final class GaidFx implements Listener {
 
     public void open(Player player) {
         Inventory inv = Bukkit.createInventory(new Holder(), 54,
-                Msg.color("&5Эффекты (на месте админа) — 25 штук"));
+                Msg.color("&5Эффекты (на месте админа) — 28 штук"));
         // — ряд 1: классика —
         fx(inv, 11, Material.MAGMA_BLOCK, "&c&lАдские разломы",
                 "&7Магма-подложка, 4 трещины растут по 9 блоков с искрами,",
@@ -137,6 +137,16 @@ public final class GaidFx implements Listener {
                 "&5&lИнтервал демона: &f" + demonInt + " мин",
                 "&7Клик — цикл: 5 → 10 → 15 → 20 → 30 → 60 минут.",
                 "&7Новый интервал применяется сразу.");
+        // скалковые острова: выращиваются из-под земли на месте админа
+        fx(inv, 6, Material.SCULK, "&2&lОстров: &aМаленький",
+                "&7Радиус ~6, растёт из-под земли за пару секунд,",
+                "&71 скалк-дерево. Работает на уже загруженной земле.");
+        fx(inv, 7, Material.SCULK_SENSOR, "&2&lОстров: &aСредний",
+                "&7Радиус ~10, растёт дольше и мощнее трясёт,",
+                "&73 скалк-дерева.");
+        fx(inv, 8, Material.SCULK_SHRIEKER, "&2&lОстров: &aБольшой",
+                "&7Радиус ~16, самый долгий и зрелищный рост,",
+                "&75 скалк-деревьев, последний всплеск — крик шрайкера.");
         inv.setItem(4, btn(Material.ARROW, "&7&lНазад"));
         player.openInventory(inv);
     }
@@ -167,6 +177,9 @@ public final class GaidFx implements Listener {
                 plugin.getConfig().set("demon.interval-minutes", nxt);
                 plugin.saveConfig();
             }
+            case 6 -> sculkIslandSmall(player);
+            case 7 -> sculkIslandMedium(player);
+            case 8 -> sculkIslandLarge(player);
             case 11 -> hellRift(player);
             case 12 -> hellRift(player, 5.0, 4);
             case 13 -> openHell(player);
@@ -562,6 +575,141 @@ public final class GaidFx implements Listener {
                 }
             }, i * 10L);
         }
+    }
+
+    // ---------- скалковые острова ----------
+
+    private static final Material[] ISLAND_TOP_PLANT = {
+        Material.NETHER_SPROUTS, Material.NETHER_SPROUTS, Material.NETHER_SPROUTS, Material.SCULK_SENSOR
+    };
+
+    private void sculkIslandSmall(Player admin) { sculkIsland(admin, 6, 5, 1); }
+    private void sculkIslandMedium(Player admin) { sculkIsland(admin, 10, 7, 3); }
+    private void sculkIslandLarge(Player admin) { sculkIsland(admin, 16, 10, 5); }
+
+    /** Можно ставить блоки острова сюда (не трогаем бедрок/защищённые/контейнеры/жидкости). */
+    private static boolean canBuildOn(Block block) {
+        return switch (block.getType()) {
+            case BEDROCK, BARRIER, COMMAND_BLOCK, STRUCTURE_BLOCK, STRUCTURE_VOID,
+                    CHEST, TRAPPED_CHEST, ENDER_CHEST, SPAWNER, END_PORTAL_FRAME, END_PORTAL,
+                    NETHER_PORTAL, WATER, LAVA -> false;
+            default -> true;
+        };
+    }
+
+    /**
+     * Скалковый остров: неровная круглая насыпь скалк-блоков «выезжает» из-под земли
+     * на месте админа (от центра к краю, снизу вверх), плюс несколько скалк-деревьев.
+     * radius — радиус острова, height — высота купола над исходной землёй, trees — сколько деревьев.
+     */
+    private void sculkIsland(Player admin, int radius, int height, int trees) {
+        Location at = admin.getLocation();
+        World world = at.getWorld();
+        if (world == null) return;
+        int cx = at.getBlockX();
+        int cz = at.getBlockZ();
+        int groundY = world.getHighestBlockYAt(cx, cz);
+
+        // предрасчёт формы купола с шероховатым краем (не идеальный круг)
+        List<int[]> columns = new ArrayList<>();
+        for (int dx = -radius - 1; dx <= radius + 1; dx++) {
+            for (int dz = -radius - 1; dz <= radius + 1; dz++) {
+                double noise = ThreadLocalRandom.current().nextDouble(-1.2, 1.2);
+                double d = Math.sqrt(dx * dx + dz * dz) + noise * 0.4;
+                if (d > radius) continue;
+                double dome = Math.max(0, 1 - (d / radius) * (d / radius));
+                int h = (int) Math.round(height * dome) + ThreadLocalRandom.current().nextInt(2);
+                columns.add(new int[]{dx, dz, Math.max(1, h)});
+            }
+        }
+        // от центра наружу — остров будто выталкивается снизу
+        columns.sort((a, b) -> Integer.compare(a[0] * a[0] + a[1] * a[1], b[0] * b[0] + b[1] * b[1]));
+
+        // гул и тряска — земля вот-вот лопнет
+        shakeNearby(at, radius * 4.0, Math.max(2, radius / 4));
+        world.playSound(at, Sound.ENTITY_WARDEN_ROAR, SoundCategory.HOSTILE, 1.5f, 0.6f);
+        world.playSound(at, Sound.ENTITY_WARDEN_HEARTBEAT, SoundCategory.HOSTILE, 2f, 0.8f);
+
+        int batch = Math.max(1, columns.size() / 40); // сколько столбцов строим за один тик
+        for (int i = 0; i < columns.size(); i += batch) {
+            int from = i;
+            int to = Math.min(columns.size(), i + batch);
+            int ticks = 10 + i / batch;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                int[] edge = columns.get(to - 1);
+                for (int k = from; k < to; k++) {
+                    int[] col = columns.get(k);
+                    buildIslandColumn(world, cx + col[0], groundY, cz + col[1], col[2]);
+                }
+                Location tip = new Location(world, cx + edge[0] + 0.5, groundY + 1, cz + edge[1] + 0.5);
+                world.spawnParticle(Particle.SCULK_SOUL, tip, 4, 0.3, 0.4, 0.3, 0.01);
+                world.spawnParticle(Particle.ASH, tip, 3, 0.3, 0.3, 0.3, 0.01);
+                if (ThreadLocalRandom.current().nextInt(3) == 0) {
+                    world.playSound(tip, Sound.ENTITY_WARDEN_STEP, SoundCategory.BLOCKS, 1f, 0.7f);
+                }
+            }, ticks);
+        }
+
+        // деревья и финальный аккорд — когда остров уже вырос целиком
+        int finishTicks = 10 + columns.size() / batch + 10;
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            for (int t = 0; t < trees; t++) {
+                double a = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
+                double d = ThreadLocalRandom.current().nextDouble(0, radius * 0.55);
+                int tx = cx + (int) Math.round(Math.cos(a) * d);
+                int tz = cz + (int) Math.round(Math.sin(a) * d);
+                int ty = world.getHighestBlockYAt(tx, tz);
+                sculkTree(world, tx, ty, tz, 3 + ThreadLocalRandom.current().nextInt(Math.max(1, radius / 4)));
+            }
+            world.spawnParticle(Particle.SCULK_CHARGE_POP, at.clone().add(0, 1, 0),
+                    40, radius * 0.5, 2, radius * 0.5, 0.02);
+            world.playSound(at, Sound.BLOCK_SCULK_SHRIEKER_SHRIEK, SoundCategory.BLOCKS, 1.5f, 1.0f);
+        }, finishTicks);
+    }
+
+    /** Один столбец острова: тёмный камень внизу, скалк-масса сверху, редкие растения на поверхности. */
+    private void buildIslandColumn(World world, int x, int groundY, int z, int height) {
+        int baseDepth = 2;
+        int minY = world.getMinHeight();
+        for (int y = Math.max(minY, groundY - baseDepth); y <= groundY + height; y++) {
+            Block block = world.getBlockAt(x, y, z);
+            if (!canBuildOn(block)) continue;
+            if (y < groundY - baseDepth + 1) {
+                block.setType(ThreadLocalRandom.current().nextBoolean() ? Material.DEEPSLATE : Material.TUFF);
+            } else {
+                block.setType(Material.SCULK);
+            }
+        }
+        // поверхность: иногда скалк-катализатор, сверху — редкое растеньице
+        Block top = world.getBlockAt(x, groundY + height, z);
+        if (top.getType() == Material.SCULK && ThreadLocalRandom.current().nextInt(12) == 0) {
+            top.setType(Material.SCULK_CATALYST);
+        }
+        Block above = world.getBlockAt(x, groundY + height + 1, z);
+        if (above.getType().isAir() && ThreadLocalRandom.current().nextInt(3) == 0) {
+            above.setType(ISLAND_TOP_PLANT[ThreadLocalRandom.current().nextInt(ISLAND_TOP_PLANT.length)]);
+        }
+    }
+
+    /** Скалк-дерево: ствол из варп-древесины + крона из варп-наростов, светящаяся душой скалка. */
+    private void sculkTree(World world, int x, int groundY, int z, int trunkHeight) {
+        for (int i = 1; i <= trunkHeight; i++) {
+            Block b = world.getBlockAt(x, groundY + i, z);
+            if (canBuildOn(b)) b.setType(Material.WARPED_STEM);
+        }
+        int topY = groundY + trunkHeight;
+        int[][] offsets = {{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}};
+        for (int[] off : offsets) {
+            for (int dy = 0; dy <= 1; dy++) {
+                Block b = world.getBlockAt(x + off[0], topY + dy, z + off[1]);
+                boolean center = Math.abs(off[0]) + Math.abs(off[1]) <= 1;
+                if (b.getType().isAir() && (center || ThreadLocalRandom.current().nextBoolean())) {
+                    b.setType(Material.WARPED_WART_BLOCK);
+                }
+            }
+        }
+        world.spawnParticle(Particle.SCULK_SOUL, new Location(world, x + 0.5, topY + 1, z + 0.5),
+                20, 1, 1, 1, 0.02);
     }
 
     private ItemStack btn(Material mat, String name, String... lore) {
