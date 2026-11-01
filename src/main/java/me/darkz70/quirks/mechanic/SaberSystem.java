@@ -318,7 +318,10 @@ public final class SaberSystem implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onSaberAttack(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) return;
-        if (!isSaber(player.getInventory().getItemInMainHand())) return;
+        // мечом можно бить и держа его в офф-хенде (левая рука) — проверяем обе руки
+        boolean wielding = isSaber(player.getInventory().getItemInMainHand())
+                || isSaber(player.getInventory().getItemInOffHand());
+        if (!wielding) return;
         if (!(event.getEntity() instanceof org.bukkit.entity.LivingEntity target)) return;
 
         long now = System.currentTimeMillis();
@@ -333,6 +336,9 @@ public final class SaberSystem implements Listener {
         spit.setShooter(player);
         spit.setVelocity(dir.multiply(1.6));
         player.getWorld().playSound(eye, org.bukkit.Sound.ENTITY_LLAMA_SPIT, 1f, 1f);
+        player.getWorld().spawnParticle(org.bukkit.Particle.SPIT,
+                eye.clone().add(dir), 10, 0.1, 0.1, 0.1, 0.02);
+        player_note(player, "&aХарчок ламы!");
     }
 
     /** ПКМ мечом: светлая сторона слышит зов тьмы; тёмная молчит навечно. */
