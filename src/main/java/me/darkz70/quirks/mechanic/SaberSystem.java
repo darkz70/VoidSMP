@@ -316,6 +316,10 @@ public final class SaberSystem implements Listener {
 
     /** Метка наших «боевых» харчков — чтобы отличать от настоящих плевков лам и бить фиксированным уроном. */
     private static final String SPIT_META_KEY = "void_saber_spit";
+    /** Метка «этот харчок — каждый 5-й» — при попадании ударит молнией (визуальный эффект). */
+    private static final String SPIT_META_LIGHTNING_KEY = "void_saber_spit_lightning";
+    /** Счётчик выстрелов харчком на игрока, для «каждый 5-й выстрел — молния». */
+    private final java.util.Map<java.util.UUID, Integer> spitShotCount = new java.util.HashMap<>();
 
     /** Взмах мечом (даже по воздуху): раз в 5 секунд плюёт харчком ламы вперёд. */
     @EventHandler(ignoreCancelled = true)
@@ -330,6 +334,9 @@ public final class SaberSystem implements Listener {
         if (now - last < SPIT_COOLDOWN_MS) return;
         spitCooldown.put(player.getUniqueId(), now);
 
+        int shotNumber = spitShotCount.merge(player.getUniqueId(), 1, Integer::sum);
+        boolean lightningShot = shotNumber % 5 == 0;
+
         org.bukkit.Location eye = player.getEyeLocation();
         org.bukkit.util.Vector dir = eye.getDirection();
         org.bukkit.entity.LlamaSpit spit = player.getWorld().spawn(
@@ -337,21 +344,34 @@ public final class SaberSystem implements Listener {
         spit.setShooter(player);
         spit.setVelocity(dir.multiply(1.6));
         spit.setMetadata(SPIT_META_KEY, new org.bukkit.metadata.FixedMetadataValue(plugin, true));
+        if (lightningShot) {
+            spit.setMetadata(SPIT_META_LIGHTNING_KEY, new org.bukkit.metadata.FixedMetadataValue(plugin, true));
+        }
         player.getWorld().playSound(eye, org.bukkit.Sound.ENTITY_LLAMA_SPIT, 1f, 1f);
         player.getWorld().spawnParticle(org.bukkit.Particle.SPIT,
                 eye.clone().add(dir), 10, 0.1, 0.1, 0.1, 0.02);
     }
 
-    /** Харчок ламы наносит урон сам (как у 2 стрел ~= 4 урона), независимо от ванильного поведения плевка. */
+    /** Харчок ламы наносит урон сам (как у 2 стрел + немного ~= 7 урона), независимо от ванильного поведения плевка. */
     @EventHandler
     public void onSpitHit(org.bukkit.event.entity.ProjectileHitEvent event) {
         if (!(event.getEntity() instanceof org.bukkit.entity.LlamaSpit spit)) return;
         if (!spit.hasMetadata(SPIT_META_KEY)) return;
-        if (!(event.getHitEntity() instanceof org.bukkit.entity.LivingEntity target)) return;
-        if (spit.getShooter() instanceof Player shooter) {
-            target.damage(4.0, shooter);
-        } else {
-            target.damage(4.0);
+
+        if (event.getHitEntity() instanceof org.bukkit.entity.LivingEntity target) {
+            if (spit.getShooter() instanceof Player shooter) {
+                target.damage(7.0, shooter);
+            } else {
+                target.damage(7.0);
+            }
+        }
+
+        // каждый 5-й выстрел — молния (визуальный эффект, без поджога/урона от грозы)
+        if (spit.hasMetadata(SPIT_META_LIGHTNING_KEY)) {
+            org.bukkit.Location strikeAt = event.getHitEntity() != null
+                    ? event.getHitEntity().getLocation()
+                    : spit.getLocation();
+            spit.getWorld().strikeLightningEffect(strikeAt);
         }
     }
 
