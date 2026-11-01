@@ -60,6 +60,10 @@ public final class SaberSystem implements Listener {
 
     private final VoidQuirksPlugin plugin;
 
+    /** Атака световым мечом: раз в 5 секунд на игрока дополнительно плюёт харчком ламы. */
+    private final java.util.Map<java.util.UUID, Long> spitCooldown = new java.util.HashMap<>();
+    private static final long SPIT_COOLDOWN_MS = 5_000L;
+
     public SaberSystem(VoidQuirksPlugin plugin) {
         this.plugin = plugin;
         Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -308,6 +312,27 @@ public final class SaberSystem implements Listener {
                 || isSaber(event.getInventory().getSecondItem())) {
             event.setResult(null);
         }
+    }
+
+    /** Атака мечом: раз в 5 секунд дополнительно плюёт в цель харчком ламы. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onSaberAttack(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player player)) return;
+        if (!isSaber(player.getInventory().getItemInMainHand())) return;
+        if (!(event.getEntity() instanceof org.bukkit.entity.LivingEntity target)) return;
+
+        long now = System.currentTimeMillis();
+        long last = spitCooldown.getOrDefault(player.getUniqueId(), 0L);
+        if (now - last < SPIT_COOLDOWN_MS) return;
+        spitCooldown.put(player.getUniqueId(), now);
+
+        org.bukkit.Location eye = player.getEyeLocation();
+        org.bukkit.util.Vector dir = target.getEyeLocation().toVector().subtract(eye.toVector()).normalize();
+        org.bukkit.entity.LlamaSpit spit = player.getWorld().spawn(
+                eye.clone().add(dir), org.bukkit.entity.LlamaSpit.class);
+        spit.setShooter(player);
+        spit.setVelocity(dir.multiply(1.6));
+        player.getWorld().playSound(eye, org.bukkit.Sound.ENTITY_LLAMA_SPIT, 1f, 1f);
     }
 
     /** ПКМ мечом: светлая сторона слышит зов тьмы; тёмная молчит навечно. */
