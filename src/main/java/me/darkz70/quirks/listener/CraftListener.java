@@ -220,6 +220,17 @@ public final class CraftListener implements Listener {
         return item;
     }
 
+    /** Конфетка — редкий дроп с мобов (5% шанс), чисто для радости. */
+    public static ItemStack makeCandy() {
+        ItemStack item = new ItemStack(Material.SUGAR);
+        item.editMeta(meta -> {
+            meta.displayName(Msg.color("&dКонфетка"));
+            meta.lore(List.of(Msg.color("&7Сладкая награда за охоту.")));
+            meta.getPersistentDataContainer().set(Keys.brewMark, PersistentDataType.STRING, "candy");
+        });
+        return item;
+    }
+
     /** Книга изучения стихии. */
     public static ItemStack makeElementBook(Element element) {
         ItemStack item = new ItemStack(Material.BOOK);
@@ -365,5 +376,13 @@ public final class CraftListener implements Listener {
         item.setAmount(item.getAmount() - 1);
         player.swingMainHand();
         player.getWorld().playSound(clicked.getLocation(), Sound.ITEM_BONE_MEAL_USE, 1.0f, 1.2f);
+    }
+
+    /** 5% шанс конфетки с любого убитого игроком моба. */
+    @EventHandler(ignoreCancelled = true)
+    public void onMobDeath(org.bukkit.event.entity.EntityDeathEvent event) {
+        if (event.getEntity().getKiller() == null) return;
+        if (Math.random() >= 0.05) return;
+        event.getDrops().add(makeCandy());
     }
 }

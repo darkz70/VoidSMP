@@ -314,13 +314,16 @@ public final class SaberSystem implements Listener {
         }
     }
 
-    /** Атака мечом: раз в 5 секунд дополнительно плюёт в цель харчком ламы. */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onSaberAttack(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player player)) return;
+    /** Метка наших «боевых» харчков — чтобы отличать от настоящих плевков лам и бить фиксированным уроном. */
+    private static final String SPIT_META_KEY = "void_saber_spit";
+
+    /** Взмах мечом (даже по воздуху): раз в 5 секунд плюёт харчком ламы вперёд. */
+    @EventHandler(ignoreCancelled = true)
+    public void onSwing(org.bukkit.event.player.PlayerAnimationEvent event) {
+        if (event.getAnimationType() != org.bukkit.event.player.PlayerAnimationType.ARM_SWING) return;
+        Player player = event.getPlayer();
         // харчок ламы — только когда меч именно в офф-хенде (второй руке)
         if (!isSaber(player.getInventory().getItemInOffHand())) return;
-        if (!(event.getEntity() instanceof org.bukkit.entity.LivingEntity target)) return;
 
         long now = System.currentTimeMillis();
         long last = spitCooldown.getOrDefault(player.getUniqueId(), 0L);
@@ -328,15 +331,29 @@ public final class SaberSystem implements Listener {
         spitCooldown.put(player.getUniqueId(), now);
 
         org.bukkit.Location eye = player.getEyeLocation();
-        org.bukkit.util.Vector dir = target.getEyeLocation().toVector().subtract(eye.toVector()).normalize();
+        org.bukkit.util.Vector dir = eye.getDirection();
         org.bukkit.entity.LlamaSpit spit = player.getWorld().spawn(
                 eye.clone().add(dir), org.bukkit.entity.LlamaSpit.class);
         spit.setShooter(player);
         spit.setVelocity(dir.multiply(1.6));
+        spit.setMetadata(SPIT_META_KEY, new org.bukkit.metadata.FixedMetadataValue(plugin, true));
         player.getWorld().playSound(eye, org.bukkit.Sound.ENTITY_LLAMA_SPIT, 1f, 1f);
         player.getWorld().spawnParticle(org.bukkit.Particle.SPIT,
                 eye.clone().add(dir), 10, 0.1, 0.1, 0.1, 0.02);
         player_note(player, "&aХарчок ламы!");
+    }
+
+    /** Харчок ламы наносит урон сам (как у 2 стрел ~= 4 урона), независимо от ванильного поведения плевка. */
+    @EventHandler
+    public void onSpitHit(org.bukkit.event.entity.ProjectileHitEvent event) {
+        if (!(event.getEntity() instanceof org.bukkit.entity.LlamaSpit spit)) return;
+        if (!spit.hasMetadata(SPIT_META_KEY)) return;
+        if (!(event.getHitEntity() instanceof org.bukkit.entity.LivingEntity target)) return;
+        if (spit.getShooter() instanceof Player shooter) {
+            target.damage(4.0, shooter);
+        } else {
+            target.damage(4.0);
+        }
     }
 
     /** ПКМ мечом: светлая сторона слышит зов тьмы; тёмная молчит навечно. */

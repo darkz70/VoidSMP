@@ -106,6 +106,7 @@ public final class GaidMenus implements Listener {
         }
         // прочее
         items.add(CraftListener.makeFertilizer());
+        items.add(CraftListener.makeCandy());
         items.add(SoulShards.makeShard(Quirk.AXE, 1));
         return items;
     }
@@ -230,6 +231,7 @@ public final class GaidMenus implements Listener {
             case "nest" -> new String[]{"&8×: птенца + плавного падения"};
             case "focus-crystal" -> new String[]{"&7Верстак: 4 аметиста + 4 алмаза + стекло"};
             case "fertilizer" -> new String[]{"&7Верстак: 2 костной муки (только Фермер/Админ)"};
+            case "candy" -> new String[]{"&7Не крафтится — 5% шанс с любого убитого моба"};
             default -> new String[]{"&7×: ручное совпадение верстака (секрет)"};
         };
     }
