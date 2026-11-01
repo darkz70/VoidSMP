@@ -318,10 +318,8 @@ public final class SaberSystem implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onSaberAttack(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) return;
-        // мечом можно бить и держа его в офф-хенде (левая рука) — проверяем обе руки
-        boolean wielding = isSaber(player.getInventory().getItemInMainHand())
-                || isSaber(player.getInventory().getItemInOffHand());
-        if (!wielding) return;
+        // харчок ламы — только когда меч именно в офф-хенде (второй руке)
+        if (!isSaber(player.getInventory().getItemInOffHand())) return;
         if (!(event.getEntity() instanceof org.bukkit.entity.LivingEntity target)) return;
 
         long now = System.currentTimeMillis();
