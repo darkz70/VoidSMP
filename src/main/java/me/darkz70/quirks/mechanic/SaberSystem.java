@@ -116,6 +116,13 @@ public final class SaberSystem implements Listener {
                 .get(Keys.saberItem, PersistentDataType.BOOLEAN));
     }
 
+    /** true — тёмная сторона (красный клинок/луч), false — светлая (синий клинок/луч). */
+    public boolean isDarkSaber(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        var cmd = item.getItemMeta().getCustomModelDataComponent();
+        return cmd.getStrings().contains("void_saber_dark");
+    }
+
     /** Собирает меч выбранной стороны (таймер пересчитывается при каждой выдаче). */
     public ItemStack makeSaber(boolean dark) {
         ItemStack sword = new ItemStack(Material.DIAMOND_SWORD); // алмазный базис; 3D-модель/текстура — из ресурспака по custom_model_data
@@ -327,8 +334,10 @@ public final class SaberSystem implements Listener {
     public void onSwing(org.bukkit.event.player.PlayerAnimationEvent event) {
         if (event.getAnimationType() != org.bukkit.event.player.PlayerAnimationType.ARM_SWING) return;
         Player player = event.getPlayer();
+        ItemStack offHand = player.getInventory().getItemInOffHand();
         // луч — только когда меч именно в офф-хенде (второй руке)
-        if (!isSaber(player.getInventory().getItemInOffHand())) return;
+        if (!isSaber(offHand)) return;
+        boolean dark = isDarkSaber(offHand);
 
         long now = System.currentTimeMillis();
         long last = spitCooldown.getOrDefault(player.getUniqueId(), 0L);
@@ -351,14 +360,16 @@ public final class SaberSystem implements Listener {
                 ? hit.getHitPosition().toLocation(world)
                 : eye.clone().add(dir.clone().multiply(BEAM_RANGE));
 
-        // синий луч из частиц от игрока до точки попадания/максимальной дальности
-        org.bukkit.Particle.DustOptions blue =
-                new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(40, 110, 255), 1.3f);
+        // луч из частиц от игрока до точки попадания/максимальной дальности:
+        // тёмная сторона — красный, светлая — синий
+        org.bukkit.Particle.DustOptions beamColor = dark
+                ? new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(220, 20, 20), 1.3f)
+                : new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(40, 110, 255), 1.3f);
         double length = eye.distance(end);
         org.bukkit.util.Vector step = dir.clone().multiply(0.3);
         org.bukkit.Location cursor = eye.clone();
         for (double d = 0; d < length; d += 0.3) {
-            world.spawnParticle(org.bukkit.Particle.DUST, cursor, 1, 0, 0, 0, 0, blue);
+            world.spawnParticle(org.bukkit.Particle.DUST, cursor, 1, 0, 0, 0, 0, beamColor);
             cursor.add(step);
         }
 
