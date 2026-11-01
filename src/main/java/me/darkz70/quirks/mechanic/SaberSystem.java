@@ -340,7 +340,6 @@ public final class SaberSystem implements Listener {
         player.getWorld().playSound(eye, org.bukkit.Sound.ENTITY_LLAMA_SPIT, 1f, 1f);
         player.getWorld().spawnParticle(org.bukkit.Particle.SPIT,
                 eye.clone().add(dir), 10, 0.1, 0.1, 0.1, 0.02);
-        player_note(player, "&aХарчок ламы!");
     }
 
     /** Харчок ламы наносит урон сам (как у 2 стрел ~= 4 урона), независимо от ванильного поведения плевка. */

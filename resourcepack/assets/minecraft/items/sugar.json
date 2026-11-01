@@ -1,0 +1,16 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/sugar"
+    },
+    "cases": [
+      {
+        "when": "candy",
+        "model": { "type": "minecraft:model", "model": "minecraft:item/candy" }
+      }
+    ]
+  }
+}
