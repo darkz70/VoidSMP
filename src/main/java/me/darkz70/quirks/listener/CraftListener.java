@@ -135,6 +135,28 @@ public final class CraftListener implements Listener {
         up5.addIngredient(Material.AMETHYST_SHARD, 4);
         up5.addIngredient(Material.DIAMOND_BLOCK, 4);
         add(new NamespacedKey(plugin, "up_book_5"), up5);
+
+        // невидимый свет (4 шт): 4 факела + 1 стекло
+        ShapelessRecipe invisLight = new ShapelessRecipe(new NamespacedKey(plugin, "invisible_light"),
+                new ItemStack(Material.LIGHT, 4));
+        invisLight.addIngredient(Material.TORCH, 4);
+        invisLight.addIngredient(Material.GLASS);
+        add(new NamespacedKey(plugin, "invisible_light"), invisLight);
+
+        // палочка отладки: 1 палка + 4 алмаза
+        ShapelessRecipe debugStick = new ShapelessRecipe(new NamespacedKey(plugin, "debug_stick"),
+                new ItemStack(Material.DEBUG_STICK, 1));
+        debugStick.addIngredient(Material.STICK, 1);
+        debugStick.addIngredient(Material.DIAMOND, 4);
+        add(new NamespacedKey(plugin, "debug_stick"), debugStick);
+
+        // сердце моря: 4 алмаза + 4 осколка призмарина + 1 золотой слиток
+        ShapelessRecipe heartOfSea = new ShapelessRecipe(new NamespacedKey(plugin, "heart_of_the_sea"),
+                new ItemStack(Material.HEART_OF_THE_SEA, 1));
+        heartOfSea.addIngredient(Material.DIAMOND, 4);
+        heartOfSea.addIngredient(Material.PRISMARINE_SHARD, 4);
+        heartOfSea.addIngredient(Material.GOLD_INGOT, 1);
+        add(new NamespacedKey(plugin, "heart_of_the_sea"), heartOfSea);
     }
 
     private static void addCooking(VoidQuirksPlugin plugin, String id, org.bukkit.inventory.CookingRecipe<?> recipe) {
