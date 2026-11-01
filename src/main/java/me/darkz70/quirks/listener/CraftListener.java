@@ -297,14 +297,9 @@ public final class CraftListener implements Listener {
             return;
         }
 
-        // 2) дерево зелий — скрытый матчинг
+        // 2) дерево зелий — скрытый матчинг (нейтралка/основа доступны всем игрокам)
         ItemStack brew = BrewTree.match(stacks);
         if (brew != null) {
-            String tag = BrewTree.markOf(brew);
-            // нейтралка и основа — только магам 1+ и Админам
-            if (("neutral".equals(tag) || "basis".equals(tag)) && !seesSecretBasics(player)) {
-                return;
-            }
             inventory.setResult(brew);
             return;
         }
