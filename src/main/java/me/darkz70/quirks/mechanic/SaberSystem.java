@@ -373,6 +373,13 @@ public final class SaberSystem implements Listener {
         if (lightningShot) {
             world.strikeLightningEffect(end);
         }
+
+        // уведомление в actionbar, когда способность снова будет готова
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (player.isOnline()) {
+                player_note(player, "&bЛуч меча перезарядился!");
+            }
+        }, SPIT_COOLDOWN_MS / 50L); // мс -> тики
     }
 
     /** ПКМ мечом: светлая сторона слышит зов тьмы; тёмная молчит навечно. */
