@@ -41,6 +41,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        installSculkDatapack();
         Keys.init(this);
         MaterialLists.load(getConfig(), getLogger());
         Msg.init(this);
@@ -145,6 +146,52 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         if (storage != null) storage.save();
+    }
+
+    /**
+     * Ставит в каждый загруженный мир датапак со скалковым биомом (voidquirks:sculk_island),
+     * если его там ещё нет. Биомы — это worldgen-реестр: он грузится ТОЛЬКО при старте
+     * сервера, поэтому /reload тут не поможет — после первой установки нужен РЕСТАРТ.
+     */
+    private void installSculkDatapack() {
+        String[] files = {
+            "sculk_datapack/pack.mcmeta",
+            "sculk_datapack/data/voidquirks/worldgen/biome/sculk_island.json"
+        };
+        boolean installedNew = false;
+        for (org.bukkit.World world : Bukkit.getWorlds()) {
+            java.io.File dpRoot = new java.io.File(world.getWorldFolder(), "datapacks/voidquirks_sculk");
+            java.io.File marker = new java.io.File(dpRoot, "pack.mcmeta");
+            if (marker.exists()) continue;
+            for (String res : files) {
+                String relative = res.substring("sculk_datapack/".length());
+                java.io.File dest = new java.io.File(dpRoot, relative);
+                try {
+                    dest.getParentFile().mkdirs();
+                    try (var in = getResource(res)) {
+                        if (in == null) {
+                            getLogger().warning("Не нашёл ресурс датапака в jar: " + res);
+                            continue;
+                        }
+                        java.nio.file.Files.copy(in, dest.toPath(),
+                                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    }
+                } catch (java.io.IOException e) {
+                    getLogger().warning("Не смог установить датапак скалк-биома в " + world.getName() + ": "
+                            + e.getMessage());
+                }
+            }
+            installedNew = true;
+        }
+        if (installedNew) {
+            getLogger().warning("===========================================================");
+            getLogger().warning("Установлен датапак скалкового биома (voidquirks:sculk_island).");
+            getLogger().warning("Миры НЕ подхватят новый биом без перезапуска — это ограничение");
+            getLogger().warning("самого Minecraft (worldgen-реестры грузятся только при старте).");
+            getLogger().warning("СДЕЛАЙ ПОЛНЫЙ РЕСТАРТ СЕРВЕРА (не /reload), иначе остров");
+            getLogger().warning("будет строиться без спец-окраски травы/тумана.");
+            getLogger().warning("===========================================================");
+        }
     }
 
     /** Перечитать config.yml (команда /quirk reload). */

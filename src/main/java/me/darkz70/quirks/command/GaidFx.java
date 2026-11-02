@@ -140,13 +140,13 @@ public final class GaidFx implements Listener {
         // скалковые острова: выращиваются из-под земли на месте админа
         fx(inv, 6, Material.SCULK, "&2&lОстров: &aМаленький",
                 "&7Радиус ~6, растёт из-под земли за пару секунд,",
-                "&71 скалк-дерево. Работает на уже загруженной земле.");
+                "&71 дерево (варп- или костяное). Скалк-трава — если биом активен.");
         fx(inv, 7, Material.SCULK_SENSOR, "&2&lОстров: &aСредний",
                 "&7Радиус ~10, растёт дольше и мощнее трясёт,",
-                "&73 скалк-дерева.");
+                "&73 дерева (варп-/костяные вперемешку).");
         fx(inv, 8, Material.SCULK_SHRIEKER, "&2&lОстров: &aБольшой",
                 "&7Радиус ~16, самый долгий и зрелищный рост,",
-                "&75 скалк-деревьев, последний всплеск — крик шрайкера.");
+                "&75 деревьев, последний всплеск — крик шрайкера.");
         inv.setItem(4, btn(Material.ARROW, "&7&lНазад"));
         player.openInventory(inv);
     }
@@ -587,6 +587,21 @@ public final class GaidFx implements Listener {
     private void sculkIslandMedium(Player admin) { sculkIsland(admin, 10, 7, 3); }
     private void sculkIslandLarge(Player admin) { sculkIsland(admin, 16, 10, 5); }
 
+    /**
+     * Наш скалковый биом из датапака (voidquirks:sculk_island) — если сервер ещё не
+     * перезапускали после установки датапака, реестр биомов его не знает, вернёт null
+     * (тогда остров строится без спец-окраски травы/тумана, просто скалк-блоком).
+     */
+    private org.bukkit.block.Biome sculkBiome() {
+        try {
+            org.bukkit.NamespacedKey key = org.bukkit.NamespacedKey.fromString("voidquirks:sculk_island");
+            if (key == null) return null;
+            return org.bukkit.Registry.BIOME.get(key);
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
     /** Можно ставить блоки острова сюда (не трогаем бедрок/защищённые/контейнеры/жидкости). */
     private static boolean canBuildOn(Block block) {
         return switch (block.getType()) {
@@ -609,6 +624,11 @@ public final class GaidFx implements Listener {
         int cx = at.getBlockX();
         int cz = at.getBlockZ();
         int groundY = world.getHighestBlockYAt(cx, cz);
+        org.bukkit.block.Biome biome = sculkBiome();
+        if (biome == null) {
+            admin.sendMessage(Msg.color("&eСкалк-биом ещё не активен (нужен рестарт сервера после установки"
+                    + " датапака) — остров без спец-окраски травы."));
+        }
 
         // предрасчёт формы купола с шероховатым краем (не идеальный круг)
         List<int[]> columns = new ArrayList<>();
@@ -639,7 +659,7 @@ public final class GaidFx implements Listener {
                 int[] edge = columns.get(to - 1);
                 for (int k = from; k < to; k++) {
                     int[] col = columns.get(k);
-                    buildIslandColumn(world, cx + col[0], groundY, cz + col[1], col[2]);
+                    buildIslandColumn(world, cx + col[0], groundY, cz + col[1], col[2], biome);
                 }
                 Location tip = new Location(world, cx + edge[0] + 0.5, groundY + 1, cz + edge[1] + 0.5);
                 world.spawnParticle(Particle.SCULK_SOUL, tip, 4, 0.3, 0.4, 0.3, 0.01);
@@ -659,7 +679,12 @@ public final class GaidFx implements Listener {
                 int tx = cx + (int) Math.round(Math.cos(a) * d);
                 int tz = cz + (int) Math.round(Math.sin(a) * d);
                 int ty = world.getHighestBlockYAt(tx, tz);
-                sculkTree(world, tx, ty, tz, 3 + ThreadLocalRandom.current().nextInt(Math.max(1, radius / 4)));
+                int trunk = 3 + ThreadLocalRandom.current().nextInt(Math.max(1, radius / 4));
+                if (ThreadLocalRandom.current().nextBoolean()) {
+                    sculkTree(world, tx, ty, tz, trunk);
+                } else {
+                    boneTree(world, tx, ty, tz, trunk);
+                }
             }
             world.spawnParticle(Particle.SCULK_CHARGE_POP, at.clone().add(0, 1, 0),
                     40, radius * 0.5, 2, radius * 0.5, 0.02);
@@ -667,25 +692,40 @@ public final class GaidFx implements Listener {
         }, finishTicks);
     }
 
-    /** Один столбец острова: тёмный камень внизу, скалк-масса сверху, редкие растения на поверхности. */
-    private void buildIslandColumn(World world, int x, int groundY, int z, int height) {
+    /**
+     * Один столбец острова: тёмный камень внизу, скалк-масса сверху, редкие растения на
+     * поверхности. Если скалк-биом уже активен (датапак подхвачен рестартом сервера) —
+     * верхний блок это настоящий скалк-травяной блок (GRASS_BLOCK, тонированный нашим
+     * биомом в тёмно-бирюзовый цвет), и весь столбец красится в этот биом.
+     */
+    private void buildIslandColumn(World world, int x, int groundY, int z, int height,
+            org.bukkit.block.Biome biome) {
         int baseDepth = 2;
         int minY = world.getMinHeight();
-        for (int y = Math.max(minY, groundY - baseDepth); y <= groundY + height; y++) {
+        int fromY = Math.max(minY, groundY - baseDepth);
+        int toY = groundY + height;
+        for (int y = fromY; y <= toY; y++) {
             Block block = world.getBlockAt(x, y, z);
             if (!canBuildOn(block)) continue;
             if (y < groundY - baseDepth + 1) {
                 block.setType(ThreadLocalRandom.current().nextBoolean() ? Material.DEEPSLATE : Material.TUFF);
+            } else if (y == toY && biome != null) {
+                block.setType(Material.GRASS_BLOCK); // скалк-травяной блок: цвет даёт биом
             } else {
                 block.setType(Material.SCULK);
             }
         }
+        if (biome != null) {
+            for (int y = fromY; y <= toY + 2; y++) {
+                world.setBiome(x, y, z, biome);
+            }
+        }
         // поверхность: иногда скалк-катализатор, сверху — редкое растеньице
-        Block top = world.getBlockAt(x, groundY + height, z);
+        Block top = world.getBlockAt(x, toY, z);
         if (top.getType() == Material.SCULK && ThreadLocalRandom.current().nextInt(12) == 0) {
             top.setType(Material.SCULK_CATALYST);
         }
-        Block above = world.getBlockAt(x, groundY + height + 1, z);
+        Block above = world.getBlockAt(x, toY + 1, z);
         if (above.getType().isAir() && ThreadLocalRandom.current().nextInt(3) == 0) {
             above.setType(ISLAND_TOP_PLANT[ThreadLocalRandom.current().nextInt(ISLAND_TOP_PLANT.length)]);
         }
@@ -710,6 +750,56 @@ public final class GaidFx implements Listener {
         }
         world.spawnParticle(Particle.SCULK_SOUL, new Location(world, x + 0.5, topY + 1, z + 0.5),
                 20, 1, 1, 1, 0.02);
+    }
+
+    /** Костяное дерево: кривой ствол из костяных блоков с торчащими «ветвями»-антеннами. */
+    private void boneTree(World world, int x, int groundY, int z, int trunkHeight) {
+        for (int i = 1; i <= trunkHeight; i++) {
+            Block b = world.getBlockAt(x, groundY + i, z);
+            if (canBuildOn(b)) {
+                b.setType(Material.BONE_BLOCK);
+                orientBone(b, org.bukkit.Axis.Y);
+            }
+        }
+        int topY = groundY + trunkHeight;
+        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}};
+        int branches = 3 + ThreadLocalRandom.current().nextInt(3);
+        for (int i = 0; i < branches; i++) {
+            int[] dir = dirs[ThreadLocalRandom.current().nextInt(dirs.length)];
+            int by = topY - ThreadLocalRandom.current().nextInt(Math.max(1, trunkHeight / 2 + 1));
+            int len = 1 + ThreadLocalRandom.current().nextInt(2);
+            int bx = x;
+            int bz = z;
+            int lastY = by;
+            for (int s = 1; s <= len; s++) {
+                bx += dir[0];
+                bz += dir[1];
+                lastY = by + s;
+                Block b = world.getBlockAt(bx, lastY, bz);
+                if (canBuildOn(b)) {
+                    b.setType(Material.BONE_BLOCK);
+                    orientBone(b, dir[0] != 0 && dir[1] != 0 ? org.bukkit.Axis.Y
+                            : (dir[0] != 0 ? org.bukkit.Axis.X : org.bukkit.Axis.Z));
+                }
+            }
+            Block tip = world.getBlockAt(bx, lastY + 1, bz);
+            if (tip.getType().isAir() && ThreadLocalRandom.current().nextBoolean()) {
+                tip.setType(Material.SCULK_SENSOR);
+            }
+        }
+        world.spawnParticle(Particle.SCULK_SOUL, new Location(world, x + 0.5, topY + 1, z + 0.5),
+                16, 1, 1, 1, 0.02);
+        world.spawnParticle(Particle.CRIT, new Location(world, x + 0.5, topY + 0.5, z + 0.5),
+                10, 0.6, 0.6, 0.6, 0.01);
+    }
+
+    /** Ставит ось у костяного блока (ствол — вертикально, ветви — по направлению). */
+    private static void orientBone(Block block, org.bukkit.Axis axis) {
+        var data = block.getBlockData();
+        if (data instanceof org.bukkit.block.data.Orientable orientable) {
+            orientable.setAxis(axis);
+            block.setBlockData(orientable);
+        }
     }
 
     private ItemStack btn(Material mat, String name, String... lore) {
