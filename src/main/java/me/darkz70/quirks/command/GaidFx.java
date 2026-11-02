@@ -139,14 +139,14 @@ public final class GaidFx implements Listener {
                 "&7Новый интервал применяется сразу.");
         // скалковые острова: выращиваются из-под земли на месте админа
         fx(inv, 6, Material.SCULK, "&2&lОстров: &aМаленький",
-                "&7Радиус ~11, растёт из-под земли за пару секунд,",
-                "&72 дерева (варп- или костяные). Скалк-трава прорастает визер-розами.");
+                "&7Радиус ~16, растёт из-под земли за пару секунд,",
+                "&73 дерева (скалк- или костяные). Скалк-трава прорастает визер-розами.");
         fx(inv, 7, Material.SCULK_SENSOR, "&2&lОстров: &aСредний",
-                "&7Радиус ~18, растёт дольше и мощнее трясёт,",
-                "&74 дерева (варп-/костяные вперемешку).");
+                "&7Радиус ~32, растёт дольше и мощнее трясёт,",
+                "&77 деревьев (скалк-/костяные вперемешку).");
         fx(inv, 8, Material.SCULK_SHRIEKER, "&2&lОстров: &aБольшой",
-                "&7Радиус ~28, самый долгий и зрелищный рост,",
-                "&77 деревьев, последний всплеск — крик шрайкера.");
+                "&7Радиус ~70, самый долгий и зрелищный рост,",
+                "&716 деревьев, последний всплеск — крик шрайкера.");
         inv.setItem(4, btn(Material.ARROW, "&7&lНазад"));
         player.openInventory(inv);
     }
@@ -583,9 +583,9 @@ public final class GaidFx implements Listener {
         Material.NETHER_SPROUTS, Material.NETHER_SPROUTS, Material.NETHER_SPROUTS, Material.SCULK_SENSOR
     };
 
-    private void sculkIslandSmall(Player admin) { sculkIsland(admin, 11, 8, 2); }
-    private void sculkIslandMedium(Player admin) { sculkIsland(admin, 18, 12, 4); }
-    private void sculkIslandLarge(Player admin) { sculkIsland(admin, 28, 17, 7); }
+    private void sculkIslandSmall(Player admin) { sculkIsland(admin, 16, 11, 3); }
+    private void sculkIslandMedium(Player admin) { sculkIsland(admin, 32, 18, 7); }
+    private void sculkIslandLarge(Player admin) { sculkIsland(admin, 70, 30, 16); }
 
     /**
      * Наш скалковый биом из датапака (voidquirks:sculk_island) — если сервер ещё не
