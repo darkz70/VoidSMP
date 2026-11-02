@@ -18,8 +18,11 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -766,6 +769,35 @@ public final class GaidFx implements Listener {
             }
             scheduleWitherRoseGrowth(world, x, y, z);
         }, delayTicks);
+    }
+
+    /**
+     * Скалк-саженец — отдельный предмет (не настоящий дуб-саженец, ПОМЕЧЕН отдельно
+     * через PDC/custom model data, как и другие магические предметы плагина). ПКМ по
+     * блоку с ним в руке — мгновенно выращивает скалк-дерево на этом месте и тратит
+     * 1 саженец. Это не ванильный рост (нет смысла городить фейковый блок-саженец
+     * ради декоративной анимации) — дерево появляется сразу, с тем же эффектом,
+     * что и на скалк-острове.
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onSaplingUse(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        ItemStack hand = event.getItem();
+        if (!me.darkz70.quirks.mechanic.SculkWood.isSaplingItem(hand)) return;
+        Block clicked = event.getClickedBlock();
+        if (clicked == null) return;
+        Block above = clicked.getRelative(org.bukkit.block.BlockFace.UP);
+        if (!above.getType().isAir()) return;
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        World world = above.getWorld();
+        int trunk = 3 + ThreadLocalRandom.current().nextInt(4);
+        sculkTree(world, above.getX(), above.getY(), above.getZ(), trunk);
+        world.spawnParticle(Particle.SCULK_CHARGE_POP, above.getLocation().add(0.5, 1, 0.5), 25, 1, 1, 1, 0.02);
+        world.playSound(above.getLocation(), Sound.BLOCK_SCULK_SENSOR_CLICKING, SoundCategory.BLOCKS, 1f, 1f);
+        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+            hand.setAmount(hand.getAmount() - 1);
+        }
     }
 
     /**

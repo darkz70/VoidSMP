@@ -37,8 +37,13 @@ public final class SculkWoodListener implements Listener {
         Block block = event.getBlock();
         SculkWood.Type type = SculkWood.typeOf(block);
         if (type == null) return;
+        SculkWood.forget(block);
         event.setDropItems(false);
         block.getWorld().dropItemNaturally(block.getLocation().add(0.5, 0.5, 0.5), SculkWood.makeItem(type));
+        // листва иногда (как ваниль с обычными деревьями) роняет саженец скалк-дерева
+        if (type == SculkWood.Type.LEAVES && java.util.concurrent.ThreadLocalRandom.current().nextInt(20) == 0) {
+            block.getWorld().dropItemNaturally(block.getLocation().add(0.5, 0.5, 0.5), SculkWood.makeSaplingItem());
+        }
     }
 
     /** Блокируем ПКМ по нашим блокам — иначе ванильный нотный блок сменит ноту/вид. */

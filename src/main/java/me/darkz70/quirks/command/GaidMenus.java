@@ -111,6 +111,7 @@ public final class GaidMenus implements Listener {
         items.add(me.darkz70.quirks.mechanic.SculkWood.makeItem(me.darkz70.quirks.mechanic.SculkWood.Type.LOG));
         items.add(me.darkz70.quirks.mechanic.SculkWood.makeItem(me.darkz70.quirks.mechanic.SculkWood.Type.LEAVES));
         items.add(me.darkz70.quirks.mechanic.SculkWood.makeItem(me.darkz70.quirks.mechanic.SculkWood.Type.PLANKS));
+        items.add(me.darkz70.quirks.mechanic.SculkWood.makeSaplingItem());
         items.add(SoulShards.makeShard(Quirk.AXE, 1));
         return items;
     }

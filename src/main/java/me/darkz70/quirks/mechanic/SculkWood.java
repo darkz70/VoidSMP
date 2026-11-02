@@ -52,6 +52,10 @@ public final class SculkWood {
         }
     }
 
+    /** Узлы скалк-древесины в мире — для усиления радиуса скалк-сенсоров рядом. */
+    private static final java.util.Set<org.bukkit.Location> NODES =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     private SculkWood() {}
 
     /** Ставит блок скалк-древесины нужного типа в мире (используется генерацией острова/дерева). */
@@ -61,6 +65,23 @@ public final class SculkWood {
         data.setNote(new Note(0));
         data.setPowered(false);
         block.setBlockData(data, false); // без applyPhysics — не даём соседям пересчитать инструмент
+        NODES.add(block.getLocation());
+    }
+
+    /** Забыть узел (вызывается при ломании блока). */
+    public static void forget(Block block) {
+        NODES.remove(block.getLocation());
+    }
+
+    /** Есть ли узел скалк-древесины в радиусе от точки — усиливает скалк-сенсоры рядом. */
+    public static boolean hasNodeNear(org.bukkit.Location loc, double radius) {
+        if (NODES.isEmpty()) return false;
+        double r2 = radius * radius;
+        for (org.bukkit.Location n : NODES) {
+            if (n.getWorld() == null || !n.getWorld().equals(loc.getWorld())) continue;
+            if (n.distanceSquared(loc) <= r2) return true;
+        }
+        return false;
     }
 
     /** Проверяет, что блок — именно наш скалк-древесный вариант (и какой). */
@@ -95,5 +116,35 @@ public final class SculkWood {
         String id = item.getItemMeta().getPersistentDataContainer()
                 .get(Keys.sculkWoodType, PersistentDataType.STRING);
         return id == null ? null : Type.byId(id);
+    }
+
+    // ---------- скалк-саженец (отдельный предмет, НЕ настоящий дуб-саженец) ----------
+
+    /**
+     * Скалк-саженец — отдельный предмет на базе OAK_SAPLING (материал переиспользован
+     * только как носитель, по умолчанию без своей пометки он выглядит и остаётся
+     * обычным ванильным саженцем дуба; наш — отличается CustomModelData + PDC-меткой,
+     * как и остальные магические предметы плагина). ПКМ по земле — мгновенно выращивает
+     * скалк-дерево (см. GaidFx.onSaplingUse), а не растёт как ванильный саженец.
+     */
+    public static ItemStack makeSaplingItem() {
+        ItemStack item = new ItemStack(Material.OAK_SAPLING);
+        item.editMeta(meta -> {
+            meta.displayName(Msg.color("&2&lСкалк-саженец"));
+            meta.lore(List.of(Msg.color("&7ПКМ по земле — мгновенно вырастает скалк-дерево.")));
+            meta.getPersistentDataContainer().set(Keys.sculkWoodType, PersistentDataType.STRING, "sapling");
+            var cmd = meta.getCustomModelDataComponent();
+            cmd.setStrings(List.of("sculk_sapling"));
+            meta.setCustomModelDataComponent(cmd);
+        });
+        return item;
+    }
+
+    /** Это именно наш скалк-саженец (а не обычный дубовый)? */
+    public static boolean isSaplingItem(ItemStack item) {
+        if (item == null || item.getType() != Material.OAK_SAPLING || !item.hasItemMeta()) return false;
+        String id = item.getItemMeta().getPersistentDataContainer()
+                .get(Keys.sculkWoodType, PersistentDataType.STRING);
+        return "sapling".equals(id);
     }
 }
