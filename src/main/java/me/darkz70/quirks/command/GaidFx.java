@@ -140,7 +140,7 @@ public final class GaidFx implements Listener {
         // скалковые острова: выращиваются из-под земли на месте админа
         fx(inv, 6, Material.SCULK, "&2&lОстров: &aМаленький",
                 "&7Радиус ~6, растёт из-под земли за пару секунд,",
-                "&71 дерево (варп- или костяное). Скалк-трава — если биом активен.");
+                "&71 дерево (варп- или костяное). Скалк-трава прорастает визер-розами.");
         fx(inv, 7, Material.SCULK_SENSOR, "&2&lОстров: &aСредний",
                 "&7Радиус ~10, растёт дольше и мощнее трясёт,",
                 "&73 дерева (варп-/костяные вперемешку).");
@@ -627,7 +627,7 @@ public final class GaidFx implements Listener {
         org.bukkit.block.Biome biome = sculkBiome();
         if (biome == null) {
             admin.sendMessage(Msg.color("&eСкалк-биом ещё не активен (нужен рестарт сервера после установки"
-                    + " датапака) — остров без спец-окраски травы."));
+                    + " датапака) — туман/вода на острове будут обычными, но скалк-трава всё равно своя."));
         }
 
         // предрасчёт формы купола с шероховатым краем (не идеальный круг)
@@ -692,11 +692,14 @@ public final class GaidFx implements Listener {
         }, finishTicks);
     }
 
+    /** Настоящий блок «скалк-травы»: переодетый (ресурспак меняет текстуру) REINFORCED_DEEPSLATE. */
+    private static final Material SCULK_GRASS = Material.REINFORCED_DEEPSLATE;
+
     /**
-     * Один столбец острова: тёмный камень внизу, скалк-масса сверху, редкие растения на
-     * поверхности. Если скалк-биом уже активен (датапак подхвачен рестартом сервера) —
-     * верхний блок это настоящий скалк-травяной блок (GRASS_BLOCK, тонированный нашим
-     * биомом в тёмно-бирюзовый цвет), и весь столбец красится в этот биом.
+     * Один столбец острова: тёмный камень внизу, скалк-масса в толще, на самом верху —
+     * настоящий блок скалк-травы (новая текстура из ресурспака, не просто перекраска
+     * ванильного блока). Если скалк-биом уже активен (датапак подхвачен рестартом
+     * сервера) — ещё и вода/туман/небо вокруг острова тонируются в его цвета.
      */
     private void buildIslandColumn(World world, int x, int groundY, int z, int height,
             org.bukkit.block.Biome biome) {
@@ -709,8 +712,9 @@ public final class GaidFx implements Listener {
             if (!canBuildOn(block)) continue;
             if (y < groundY - baseDepth + 1) {
                 block.setType(ThreadLocalRandom.current().nextBoolean() ? Material.DEEPSLATE : Material.TUFF);
-            } else if (y == toY && biome != null) {
-                block.setType(Material.GRASS_BLOCK); // скалк-травяной блок: цвет даёт биом
+            } else if (y == toY) {
+                block.setType(SCULK_GRASS); // скалк-травяной блок — своя текстура
+                scheduleWitherRoseGrowth(world, x, y + 1, z);
             } else {
                 block.setType(Material.SCULK);
             }
@@ -720,15 +724,41 @@ public final class GaidFx implements Listener {
                 world.setBiome(x, y, z, biome);
             }
         }
-        // поверхность: иногда скалк-катализатор, сверху — редкое растеньице
-        Block top = world.getBlockAt(x, toY, z);
-        if (top.getType() == Material.SCULK && ThreadLocalRandom.current().nextInt(12) == 0) {
-            top.setType(Material.SCULK_CATALYST);
+        // чуть ниже поверхности — иногда скалк-катализатор, сверху — редкое растеньице сразу
+        if (toY - 1 >= fromY) {
+            Block sub = world.getBlockAt(x, toY - 1, z);
+            if (sub.getType() == Material.SCULK && ThreadLocalRandom.current().nextInt(12) == 0) {
+                sub.setType(Material.SCULK_CATALYST);
+            }
         }
         Block above = world.getBlockAt(x, toY + 1, z);
         if (above.getType().isAir() && ThreadLocalRandom.current().nextInt(3) == 0) {
             above.setType(ISLAND_TOP_PLANT[ThreadLocalRandom.current().nextInt(ISLAND_TOP_PLANT.length)]);
         }
+    }
+
+    /**
+     * Скалк-трава сама понемногу «прорастает» визер-розами: у каждого травяного блока
+     * острова свой независимый случайный цикл 10-30 минут. Если место занято или остров
+     * (чанк) не загружен — просто пробуем в следующий раз, растение не теряется навсегда.
+     */
+    private void scheduleWitherRoseGrowth(World world, int x, int y, int z) {
+        int delayTicks = ThreadLocalRandom.current().nextInt(10 * 60 * 20, 30 * 60 * 20 + 1);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (!world.isChunkLoaded(x >> 4, z >> 4)) {
+                scheduleWitherRoseGrowth(world, x, y, z);
+                return;
+            }
+            Block base = world.getBlockAt(x, y - 1, z);
+            if (base.getType() != SCULK_GRASS) return; // блок сломали/заменили — цикл прекращаем
+            Block spot = world.getBlockAt(x, y, z);
+            if (spot.getType().isAir() && ThreadLocalRandom.current().nextInt(10) < 7) {
+                spot.setType(Material.WITHER_ROSE);
+                world.spawnParticle(Particle.SCULK_SOUL, spot.getLocation().add(0.5, 0.3, 0.5),
+                        6, 0.2, 0.2, 0.2, 0.01);
+            }
+            scheduleWitherRoseGrowth(world, x, y, z);
+        }, delayTicks);
     }
 
     /** Скалк-дерево: ствол из варп-древесины + крона из варп-наростов, светящаяся душой скалка. */
