@@ -321,6 +321,70 @@ public final class SaberSystem implements Listener {
         }
     }
 
+    /** Контейнеры, в которые световой меч класть нельзя (сундуки, бочки, шалкеры, печи и т.д.). */
+    private static final java.util.Set<org.bukkit.event.inventory.InventoryType> SABER_FORBIDDEN_CONTAINERS =
+            java.util.EnumSet.of(
+                    org.bukkit.event.inventory.InventoryType.CHEST,
+                    org.bukkit.event.inventory.InventoryType.ENDER_CHEST,
+                    org.bukkit.event.inventory.InventoryType.SHULKER_BOX,
+                    org.bukkit.event.inventory.InventoryType.BARREL,
+                    org.bukkit.event.inventory.InventoryType.DISPENSER,
+                    org.bukkit.event.inventory.InventoryType.DROPPER,
+                    org.bukkit.event.inventory.InventoryType.HOPPER,
+                    org.bukkit.event.inventory.InventoryType.FURNACE,
+                    org.bukkit.event.inventory.InventoryType.BLAST_FURNACE,
+                    org.bukkit.event.inventory.InventoryType.SMOKER);
+
+    /** Запрет класть световой меч в сундук/бочку/шалкер/печь и т.п. (клик). */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onContainerClick(InventoryClickEvent event) {
+        Inventory top = event.getView().getTopInventory();
+        if (!SABER_FORBIDDEN_CONTAINERS.contains(top.getType())) return;
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+
+        ItemStack current = event.getCurrentItem();
+        ItemStack cursor = event.getCursor();
+        org.bukkit.event.inventory.InventoryAction action = event.getAction();
+        boolean movesIntoContainer =
+                // шифт-клик мечом из инвентаря игрока — улетит в контейнер
+                (event.isShiftClick() && event.getClickedInventory() != null
+                        && event.getClickedInventory().getType() == org.bukkit.event.inventory.InventoryType.PLAYER
+                        && isSaber(current))
+                // обычный клик по слоту контейнера, когда меч на курсоре — кладём
+                || (event.getClickedInventory() == top && isSaber(cursor)
+                        && (action == org.bukkit.event.inventory.InventoryAction.PLACE_ALL
+                                || action == org.bukkit.event.inventory.InventoryAction.PLACE_ONE
+                                || action == org.bukkit.event.inventory.InventoryAction.PLACE_SOME
+                                || action == org.bukkit.event.inventory.InventoryAction.SWAP_WITH_CURSOR))
+                // хоткей (1-9) переносит меч из хотбара прямо в слот контейнера
+                || (event.getClick() == org.bukkit.event.inventory.ClickType.NUMBER_KEY
+                        && event.getClickedInventory() == top
+                        && isSaber(player.getInventory().getItem(event.getHotbarButton())));
+
+        if (movesIntoContainer) {
+            event.setCancelled(true);
+            player_note(player, "&cСветовой меч нельзя положить в сундук или другой контейнер.");
+        }
+    }
+
+    /** То же самое, но для перетаскивания мечом по нескольким слотам (drag). */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onContainerDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        Inventory top = event.getView().getTopInventory();
+        if (!SABER_FORBIDDEN_CONTAINERS.contains(top.getType())) return;
+        if (!isSaber(event.getOldCursor())) return;
+        int topSize = top.getSize();
+        for (int slot : event.getRawSlots()) {
+            if (slot < topSize) {
+                event.setCancelled(true);
+                if (event.getWhoClicked() instanceof Player player) {
+                    player_note(player, "&cСветовой меч нельзя положить в сундук или другой контейнер.");
+                }
+                return;
+            }
+        }
+    }
+
     /** Счётчик выстрелов лучом на игрока, для «каждый 5-й выстрел — молния». */
     private final java.util.Map<java.util.UUID, Integer> spitShotCount = new java.util.HashMap<>();
     private static final double BEAM_RANGE = 50.0;
