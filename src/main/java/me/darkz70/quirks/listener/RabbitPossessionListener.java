@@ -226,7 +226,7 @@ public final class RabbitPossessionListener implements Listener {
     private void doBite(Player player) {
         if (!ScanUtil.tryUse(player.getUniqueId(), "rabbit_bite", 1000)) return;
         LivingEntity target = nearestTarget(player, 3.0);
-        if (target != null) {
+        if (target != null && !(target instanceof Rabbit)) {
             target.damage(6.0, player);
             target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 60, 1));
         }
@@ -241,7 +241,7 @@ public final class RabbitPossessionListener implements Listener {
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_RABBIT_JUMP, 1f, 0.7f);
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             for (Entity e : player.getNearbyEntities(2.5, 2.5, 2.5)) {
-                if (e instanceof LivingEntity target && e != player) {
+                if (e instanceof LivingEntity target && e != player && !(target instanceof Rabbit)) {
                     target.damage(8.0, player);
                     Vector push = target.getLocation().toVector().subtract(player.getLocation().toVector())
                             .normalize().setY(0.3);
@@ -254,7 +254,7 @@ public final class RabbitPossessionListener implements Listener {
     private void doClaw(Player player) {
         if (!ScanUtil.tryUse(player.getUniqueId(), "rabbit_claw", 2000)) return;
         for (Entity e : player.getNearbyEntities(4, 4, 4)) {
-            if (e instanceof LivingEntity target) {
+            if (e instanceof LivingEntity target && !(target instanceof Rabbit)) {
                 target.damage(5.0, player);
                 target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 0));
             }
@@ -275,7 +275,7 @@ public final class RabbitPossessionListener implements Listener {
         if (!ScanUtil.tryUse(player.getUniqueId(), "rabbit_boom_small", 4000)) return;
         Location point = impactPoint(player, 20);
         for (Entity e : point.getWorld().getNearbyEntities(point, 1.5, 1.5, 1.5)) {
-            if (e instanceof LivingEntity target && e != player) {
+            if (e instanceof LivingEntity target && e != player && !(target instanceof Rabbit)) {
                 target.damage(10.0, player);
             }
         }
@@ -287,7 +287,7 @@ public final class RabbitPossessionListener implements Listener {
         if (!ScanUtil.tryUse(player.getUniqueId(), "rabbit_boom_big", 8000)) return;
         Location point = impactPoint(player, 30);
         for (Entity e : point.getWorld().getNearbyEntities(point, 4.5, 4.5, 4.5)) {
-            if (e instanceof LivingEntity target && e != player) {
+            if (e instanceof LivingEntity target && e != player && !(target instanceof Rabbit)) {
                 target.damage(15.0, player);
             }
         }
@@ -350,7 +350,7 @@ public final class RabbitPossessionListener implements Listener {
         LivingEntity best = null;
         double bestDist = Double.MAX_VALUE;
         for (Entity e : player.getNearbyEntities(radius, radius, radius)) {
-            if (!(e instanceof LivingEntity target)) continue;
+            if (!(e instanceof LivingEntity target) || target instanceof Rabbit) continue;
             double dist = target.getLocation().distanceSquared(player.getLocation());
             if (dist < bestDist) {
                 bestDist = dist;

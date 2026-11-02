@@ -139,14 +139,14 @@ public final class GaidFx implements Listener {
                 "&7Новый интервал применяется сразу.");
         // скалковые острова: выращиваются из-под земли на месте админа
         fx(inv, 6, Material.SCULK, "&2&lОстров: &aМаленький",
-                "&7Радиус ~6, растёт из-под земли за пару секунд,",
-                "&71 дерево (варп- или костяное). Скалк-трава прорастает визер-розами.");
+                "&7Радиус ~11, растёт из-под земли за пару секунд,",
+                "&72 дерева (варп- или костяные). Скалк-трава прорастает визер-розами.");
         fx(inv, 7, Material.SCULK_SENSOR, "&2&lОстров: &aСредний",
-                "&7Радиус ~10, растёт дольше и мощнее трясёт,",
-                "&73 дерева (варп-/костяные вперемешку).");
+                "&7Радиус ~18, растёт дольше и мощнее трясёт,",
+                "&74 дерева (варп-/костяные вперемешку).");
         fx(inv, 8, Material.SCULK_SHRIEKER, "&2&lОстров: &aБольшой",
-                "&7Радиус ~16, самый долгий и зрелищный рост,",
-                "&75 деревьев, последний всплеск — крик шрайкера.");
+                "&7Радиус ~28, самый долгий и зрелищный рост,",
+                "&77 деревьев, последний всплеск — крик шрайкера.");
         inv.setItem(4, btn(Material.ARROW, "&7&lНазад"));
         player.openInventory(inv);
     }
@@ -583,9 +583,9 @@ public final class GaidFx implements Listener {
         Material.NETHER_SPROUTS, Material.NETHER_SPROUTS, Material.NETHER_SPROUTS, Material.SCULK_SENSOR
     };
 
-    private void sculkIslandSmall(Player admin) { sculkIsland(admin, 6, 5, 1); }
-    private void sculkIslandMedium(Player admin) { sculkIsland(admin, 10, 7, 3); }
-    private void sculkIslandLarge(Player admin) { sculkIsland(admin, 16, 10, 5); }
+    private void sculkIslandSmall(Player admin) { sculkIsland(admin, 11, 8, 2); }
+    private void sculkIslandMedium(Player admin) { sculkIsland(admin, 18, 12, 4); }
+    private void sculkIslandLarge(Player admin) { sculkIsland(admin, 28, 17, 7); }
 
     /**
      * Наш скалковый биом из датапака (voidquirks:sculk_island) — если сервер ещё не
@@ -662,9 +662,10 @@ public final class GaidFx implements Listener {
                 int[] edge = columns.get(to - 1);
                 for (int k = from; k < to; k++) {
                     int[] col = columns.get(k);
-                    buildIslandColumn(world, cx + col[0], groundY, cz + col[1], col[2], biome);
+                    buildIslandColumn(world, cx + col[0], cz + col[1], col[2], biome);
                 }
-                Location tip = new Location(world, cx + edge[0] + 0.5, groundY + 1, cz + edge[1] + 0.5);
+                int tipGround = world.getHighestBlockYAt(cx + edge[0], cz + edge[1]);
+                Location tip = new Location(world, cx + edge[0] + 0.5, tipGround + edge[2] + 1, cz + edge[1] + 0.5);
                 world.spawnParticle(Particle.SCULK_SOUL, tip, 4, 0.3, 0.4, 0.3, 0.01);
                 world.spawnParticle(Particle.ASH, tip, 3, 0.3, 0.3, 0.3, 0.01);
                 if (ThreadLocalRandom.current().nextInt(3) == 0) {
@@ -704,8 +705,11 @@ public final class GaidFx implements Listener {
      * ванильного блока). Если скалк-биом уже активен (датапак подхвачен рестартом
      * сервера) — ещё и вода/туман/небо вокруг острова тонируются в его цвета.
      */
-    private void buildIslandColumn(World world, int x, int groundY, int z, int height,
+    private void buildIslandColumn(World world, int x, int z, int height,
             org.bukkit.block.Biome biome) {
+        // высота земли СВОЯ для каждой колонки — иначе на неровном рельефе (у воды,
+        // на склоне) остров рвётся/зависает в воздухе на краях
+        int groundY = world.getHighestBlockYAt(x, z);
         int baseDepth = 2;
         int minY = world.getMinHeight();
         int fromY = Math.max(minY, groundY - baseDepth);
