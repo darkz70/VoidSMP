@@ -49,6 +49,12 @@ jobs:
           mkdir -p build
           cd resourcepack && zip -r ../build/VoidQuirks-Pack.zip .
 
+      - name: Zip sculk datapack
+        run: |
+          mkdir -p build/VoidQuirks-SculkDatapack
+          cp -r src/main/resources/sculk_datapack/. build/VoidQuirks-SculkDatapack/
+          cd build/VoidQuirks-SculkDatapack && zip -r ../VoidQuirks-SculkDatapack.zip .
+
       - name: Upload jar artifact
         uses: actions/upload-artifact@v4
         with:
@@ -62,8 +68,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release delete ci-build --cleanup-tag --yes 2>/dev/null || true
-          gh release create ci-build build/libs/*.jar build/VoidQuirks-Pack.zip \
+          gh release create ci-build build/libs/*.jar build/VoidQuirks-Pack.zip build/VoidQuirks-SculkDatapack.zip \
             --target "${{ github.sha }}" \
             --title "VoidQuirks — автосборка" \
-            --notes "Собрано из ветки ${{ github.ref_name }}, коммит ${{ github.sha }}. Скачай jar и положи в папку plugins сервера Paper 26.2; VoidQuirks-Pack.zip — ресурспак с текстурами (resource-pack=в server.properties)." \
+            --notes "Собрано из ветки ${{ github.ref_name }}, коммит ${{ github.sha }}. Скачай jar и положи в папку plugins сервера Paper 26.2; VoidQuirks-Pack.zip — ресурспак с текстурами (resource-pack=в server.properties); VoidQuirks-SculkDatapack.zip — датапак скалкового биома (плагин ставит его сам при старте в <мир>/datapacks/voidquirks_sculk/, этот zip — на случай если хочешь поставить руками/в другой мир; после установки нужен ПОЛНЫЙ РЕСТАРТ сервера, не /reload)." \
             --prerelease --latest=false
