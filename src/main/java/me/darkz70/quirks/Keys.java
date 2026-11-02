@@ -38,6 +38,7 @@ public final class Keys {
     public static NamespacedKey rabbitAbility;   // вселение в кролика: id хотбар-способности
     public static NamespacedKey rabbitPossessedBy; // кролик: UUID админа, который им управляет
     public static NamespacedKey superCarrot;     // супер-морковь: метка предмета
+    public static NamespacedKey sculkWoodType;   // скалк-древесина: "log"/"leaves"/"planks" на предмете и как маркер блока
 
     private Keys() {}
 
@@ -75,5 +76,6 @@ public final class Keys {
         rabbitAbility = new NamespacedKey(plugin, "rabbit_ability");
         rabbitPossessedBy = new NamespacedKey(plugin, "rabbit_possessed_by");
         superCarrot = new NamespacedKey(plugin, "super_carrot");
+        sculkWoodType = new NamespacedKey(plugin, "sculk_wood_type");
     }
 }

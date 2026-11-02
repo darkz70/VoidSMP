@@ -768,11 +768,18 @@ public final class GaidFx implements Listener {
         }, delayTicks);
     }
 
-    /** Скалк-дерево: ствол из варп-древесины + крона из варп-наростов, светящаяся душой скалка. */
+    /**
+     * Скалк-дерево: ствол из настоящего нового блока «скалк-бревно» + крона из
+     * «скалк-листвы» (см. {@link me.darkz70.quirks.mechanic.SculkWood}) — это НЕ
+     * перекрашенная ванильная древесина, а отдельные блоки на редких состояниях
+     * NOTE_BLOCK, ни с чем в игре не пересекаются.
+     */
     private void sculkTree(World world, int x, int groundY, int z, int trunkHeight) {
         for (int i = 1; i <= trunkHeight; i++) {
             Block b = world.getBlockAt(x, groundY + i, z);
-            if (canBuildOn(b)) b.setType(Material.WARPED_STEM);
+            if (canBuildOn(b)) {
+                me.darkz70.quirks.mechanic.SculkWood.place(b, me.darkz70.quirks.mechanic.SculkWood.Type.LOG);
+            }
         }
         int topY = groundY + trunkHeight;
         int[][] offsets = {{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}};
@@ -781,7 +788,7 @@ public final class GaidFx implements Listener {
                 Block b = world.getBlockAt(x + off[0], topY + dy, z + off[1]);
                 boolean center = Math.abs(off[0]) + Math.abs(off[1]) <= 1;
                 if (b.getType().isAir() && (center || ThreadLocalRandom.current().nextBoolean())) {
-                    b.setType(Material.WARPED_WART_BLOCK);
+                    me.darkz70.quirks.mechanic.SculkWood.place(b, me.darkz70.quirks.mechanic.SculkWood.Type.LEAVES);
                 }
             }
         }

@@ -91,6 +91,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         new me.darkz70.quirks.listener.RabbitPossessionListener(this); // ОП вселяется в кролика
         new me.darkz70.quirks.listener.MagicDeathListener(this); // смерть от ОПа = "магия"
         new me.darkz70.quirks.task.SuperCarrotTask().runTaskTimer(this, 20L, 20L); // супер-морковь
+        new me.darkz70.quirks.listener.SculkWoodListener(this); // скалк-древесина (настоящий новый блок)
         me.darkz70.quirks.command.DecoyCommand[] decoys = {
             new me.darkz70.quirks.command.DecoyCommand(0), new me.darkz70.quirks.command.DecoyCommand(1),
             new me.darkz70.quirks.command.DecoyCommand(2), new me.darkz70.quirks.command.DecoyCommand(3),

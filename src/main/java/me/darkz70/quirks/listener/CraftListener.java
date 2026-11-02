@@ -78,6 +78,16 @@ public final class CraftListener implements Listener {
                 new org.bukkit.inventory.CampfireRecipe(new NamespacedKey(plugin, "boiled_egg_campfire"),
                         me.darkz70.quirks.mechanic.BrewTree.makeBoiledEgg(), Material.EGG, 0.35f, 600));
 
+        // скалк-бревно -> 4 скалк-доски (настоящий новый блок, см. SculkWood)
+        NamespacedKey sculkPlanksKey = new NamespacedKey(plugin, "sculk_planks_from_log");
+        ItemStack sculkPlanksResult =
+                me.darkz70.quirks.mechanic.SculkWood.makeItem(me.darkz70.quirks.mechanic.SculkWood.Type.PLANKS);
+        sculkPlanksResult.setAmount(4);
+        ShapelessRecipe sculkPlanks = new ShapelessRecipe(sculkPlanksKey, sculkPlanksResult);
+        sculkPlanks.addIngredient(new RecipeChoice.ExactChoice(
+                me.darkz70.quirks.mechanic.SculkWood.makeItem(me.darkz70.quirks.mechanic.SculkWood.Type.LOG)));
+        add(sculkPlanksKey, sculkPlanks);
+
         // удобрение: 2 костной муки (только Фермер видит/крафтит)
         fertilizerKey = new NamespacedKey(plugin, "super_fertilizer");
         ShapelessRecipe fert = new ShapelessRecipe(fertilizerKey, makeFertilizer());
