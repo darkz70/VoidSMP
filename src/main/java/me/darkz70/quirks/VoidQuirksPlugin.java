@@ -88,6 +88,9 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         sabers = new me.darkz70.quirks.mechanic.SaberSystem(this); // световые мечи (регистрируется сам)
         sculkLeader = new me.darkz70.quirks.listener.SculkLeaderListener(this);
         Bukkit.getPluginManager().registerEvents(sculkLeader, this);
+        new me.darkz70.quirks.listener.RabbitPossessionListener(this); // ОП вселяется в кролика
+        new me.darkz70.quirks.listener.MagicDeathListener(this); // смерть от ОПа = "магия"
+        new me.darkz70.quirks.task.SuperCarrotTask().runTaskTimer(this, 20L, 20L); // супер-морковь
         me.darkz70.quirks.command.DecoyCommand[] decoys = {
             new me.darkz70.quirks.command.DecoyCommand(0), new me.darkz70.quirks.command.DecoyCommand(1),
             new me.darkz70.quirks.command.DecoyCommand(2), new me.darkz70.quirks.command.DecoyCommand(3),

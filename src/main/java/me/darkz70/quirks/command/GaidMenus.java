@@ -107,6 +107,7 @@ public final class GaidMenus implements Listener {
         // прочее
         items.add(CraftListener.makeFertilizer());
         items.add(CraftListener.makeCandy());
+        items.add(CraftListener.makeSuperCarrot());
         items.add(SoulShards.makeShard(Quirk.AXE, 1));
         return items;
     }

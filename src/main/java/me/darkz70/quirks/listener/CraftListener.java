@@ -220,6 +220,19 @@ public final class CraftListener implements Listener {
         return item;
     }
 
+    /** Супер-морковь — пока она у тебя в руке, все зайцы в радиусе 100 блоков идут к тебе. */
+    public static ItemStack makeSuperCarrot() {
+        ItemStack item = new ItemStack(Material.GOLDEN_CARROT);
+        item.editMeta(meta -> {
+            meta.displayName(Msg.color("&6Супер морковь"));
+            meta.lore(List.of(
+                    Msg.color("&7Держи её в руке — все зайцы в радиусе &f100 &7блоков"),
+                    Msg.color("&7бросят свои дела и пойдут к тебе.")));
+            meta.getPersistentDataContainer().set(Keys.superCarrot, PersistentDataType.BYTE, (byte) 1);
+        });
+        return item;
+    }
+
     /** Конфетка — редкий дроп с мобов (20% шанс), чисто для радости. */
     public static ItemStack makeCandy() {
         ItemStack item = new ItemStack(Material.SUGAR);

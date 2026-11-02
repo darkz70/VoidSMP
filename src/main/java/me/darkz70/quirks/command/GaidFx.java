@@ -628,6 +628,9 @@ public final class GaidFx implements Listener {
         if (biome == null) {
             admin.sendMessage(Msg.color("&eСкалк-биом ещё не активен (нужен рестарт сервера после установки"
                     + " датапака) — туман/вода на острове будут обычными, но скалк-трава всё равно своя."));
+        } else {
+            admin.sendMessage(Msg.color("&aСкалк-биом активен — остров в мире &f" + world.getName()
+                    + "&a красится в voidquirks:sculk_island (туман/вода/небо)."));
         }
 
         // предрасчёт формы купола с шероховатым краем (не идеальный круг)

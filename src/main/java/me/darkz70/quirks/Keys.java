@@ -35,6 +35,9 @@ public final class Keys {
     public static NamespacedKey saberDecline;    // световой меч: зов тьмы отклонён до (мс)
     public static NamespacedKey saberDamage;     // световой меч: модификатор урона
     public static NamespacedKey saberSpeed;      // световой меч: модификатор скорости атаки
+    public static NamespacedKey rabbitAbility;   // вселение в кролика: id хотбар-способности
+    public static NamespacedKey rabbitPossessedBy; // кролик: UUID админа, который им управляет
+    public static NamespacedKey superCarrot;     // супер-морковь: метка предмета
 
     private Keys() {}
 
@@ -69,5 +72,8 @@ public final class Keys {
         saberDecline = new NamespacedKey(plugin, "saber_decline");
         saberDamage = new NamespacedKey(plugin, "saber_damage");
         saberSpeed = new NamespacedKey(plugin, "saber_speed");
+        rabbitAbility = new NamespacedKey(plugin, "rabbit_ability");
+        rabbitPossessedBy = new NamespacedKey(plugin, "rabbit_possessed_by");
+        superCarrot = new NamespacedKey(plugin, "super_carrot");
     }
 }
