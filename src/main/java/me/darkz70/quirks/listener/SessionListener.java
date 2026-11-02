@@ -30,6 +30,12 @@ public final class SessionListener implements Listener {
                 other.unlistPlayer(player);
             }
         }
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (player.isOnline()) {
+                me.darkz70.quirks.mechanic.ResourcePackServer.sendTo(player, plugin);
+            }
+        }, 20L);
+
         PlayerData data = plugin.storage().get(player.getUniqueId());
         if (data == null) return;
         Bukkit.getScheduler().runTaskLater(plugin, () -> {

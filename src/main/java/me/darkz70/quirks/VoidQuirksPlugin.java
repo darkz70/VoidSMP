@@ -42,6 +42,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
         installSculkDatapack();
+        me.darkz70.quirks.mechanic.ResourcePackServer.init(this); // авто-раздача ресурспака игрокам (с правильным sha1)
         Keys.init(this);
         MaterialLists.load(getConfig(), getLogger());
         Msg.init(this);
