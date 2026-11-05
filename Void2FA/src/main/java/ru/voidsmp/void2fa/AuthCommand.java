@@ -16,7 +16,8 @@ import java.util.UUID;
 public final class AuthCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS =
-            List.of("link", "unlink", "on", "off", "code", "resend", "status", "help");
+            List.of("link", "unlink", "on", "off", "code", "resend", "status", "help",
+                    "lock", "unlock", "trust", "devices", "untrust");
 
     private final Void2FAPlugin plugin;
     private final AuthManager auth;
@@ -80,6 +81,25 @@ public final class AuthCommand implements CommandExecutor, TabCompleter {
             case "status":
                 sendStatus(player);
                 break;
+            case "lock":
+                auth.lockByPlayer(player);
+                break;
+            case "unlock":
+                auth.unlockByPlayer(player);
+                break;
+            case "trust":
+                auth.trustCurrentDevice(player);
+                break;
+            case "devices":
+                auth.listDevices(player);
+                break;
+            case "untrust":
+                if (args.length < 2) {
+                    player.sendMessage(config.msg("usage-untrust"));
+                } else {
+                    auth.untrustDevice(player, args[1]);
+                }
+                break;
             case "help":
                 player.sendMessage(config.msg("help-player"));
                 break;
@@ -97,7 +117,9 @@ public final class AuthCommand implements CommandExecutor, TabCompleter {
         boolean enabled = data.isEnabled(id);
         String state = !linked ? "не настроена" : (enabled ? "включена" : "выключена");
         String link = linked ? "привязан" : "не привязан";
-        player.sendMessage(config.msg("status-self", "state", state, "link", link));
+        String lock = data.isLocked(id) ? "заблокирован" : "открыт";
+        String devices = String.valueOf(data.getTrustedDevices(id).size());
+        player.sendMessage(config.msg("status-self", "state", state, "link", link, "lock", lock, "devices", devices));
     }
 
     @Override
@@ -108,6 +130,17 @@ public final class AuthCommand implements CommandExecutor, TabCompleter {
             for (String sub : SUBCOMMANDS) {
                 if (sub.startsWith(prefix)) {
                     result.add(sub);
+                }
+            }
+        } else if (command.getName().equalsIgnoreCase("2fa") && args.length == 2
+                && args[0].equalsIgnoreCase("untrust") && sender instanceof Player player) {
+            String prefix = args[1].toLowerCase();
+            if ("all".startsWith(prefix)) {
+                result.add("all");
+            }
+            for (PlayerDataManager.TrustedDevice device : plugin.getDataManager().getTrustedDevices(player.getUniqueId())) {
+                if (device.id.toLowerCase().startsWith(prefix)) {
+                    result.add(device.id);
                 }
             }
         }

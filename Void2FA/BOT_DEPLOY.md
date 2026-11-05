@@ -1,4 +1,4 @@
-# Отдельный Python Telegram-бот VoidSMP 1.1.0
+# Отдельный Python Telegram-бот VoidSMP
 
 **Статус:** исходники и локальные тесты подготовлены. Telegram-аккаунт не создан,
 токен не запрашивался, к рабочему Minecraft-серверу никто не подключался.
@@ -12,7 +12,7 @@ Telegram Bot API <--единственный getUpdates--> Python-бот на bo
                          HTTPS-домен Bothost, 0.0.0.0:$PORT
                          POST /v1/sync, HMAC-SHA256 в обе стороны
                                                |
-                         Void2FA 1.1.0 bridge (исходящий клиент Paper)
+                         Void2FA 1.2.0 bridge (исходящий клиент Paper)
                                                |
                          AuthManager на main thread Paper
                          коды, UUID, привязки, срок, одноразовость
@@ -44,7 +44,7 @@ Java 25 и Gradle с поддержкой Java 25 (в CI используетс�
 ```bash
 cd Void2FA
 gradle build --no-daemon
-# build/libs/Void2FA-1.1.0.jar
+# build/libs/Void2FA-1.2.0.jar
 ```
 
 Для Paper API нужен доступ к `repo.papermc.io`. GitHub Actions `.github/workflows/void2fa.yml`
@@ -96,7 +96,7 @@ python3 -c 'import secrets; print(secrets.token_hex(32))'
 
 ## 5. Установка плагина на тестовую копию Paper
 
-Сначала останови тестовый сервер. Замени старый JAR на собранный `Void2FA-1.1.0.jar`.
+Сначала останови тестовый сервер. Замени старый JAR на собранный `Void2FA-1.2.0.jar`.
 Сохрани резервную копию `plugins/Void2FA/config.yml` и `data.yml`.
 Новые поля не добавляются автоматически в уже существующий YAML: добавь их вручную.
 
@@ -168,9 +168,12 @@ python3 -c 'import secrets; print(secrets.token_hex(32))'
    аварийный доступ администратора. Уже ожидающие попытки не разрешаются автоматически.
 8. Перезапусти бота: SQLite в `DATA_DIR` сохраняет Telegram offset и очереди. Перезапусти Paper:
    меняется instance ID, старые callback/link/auth ID больше не действуют.
+9. После подтверждения входа зайди с того же IP: код не требуется. С другого IP — требуется.
+10. `/lock` в Telegram кикает онлайн-игрока и не пускает никого до `/unlock`; `/devices` и `/untrust` управляют доверенными IP.
 
 Административное восстановление: `/2faadmin reset НИК` с `void2fa.admin`.
-Не выдавай `void2fa.bypass` обычным игрокам: оно полностью пропускает 2FA.
+Блокировка: `/2faadmin lock НИК`, разблокировка: `/2faadmin unlock НИК`.
+Не выдавай `void2fa.bypass` обычным игрокам: оно полностью пропускает 2FA, но не обходит блокировку аккаунта.
 
 ## Протокол и ограничения
 

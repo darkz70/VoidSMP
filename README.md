@@ -6,8 +6,9 @@
 
 - **[Void2FA](Void2FA/)** — двухфакторная аутентификация (2FA) через Telegram-бота.
   Подтверждение входа кодом или кнопками, заморозка до подтверждения, привязка
-  аккаунта, режимы `opt-in`/`required`. Готовый `.jar`: [`Void2FA/release/`](Void2FA/release/).
-  Тексты и инструкция для подключения своего бота позже: [`Void2FA/BOT_SETUP.md`](Void2FA/BOT_SETUP.md).
+  аккаунта, режимы `opt-in`/`required`, доверенные устройства (IP) и блокировка аккаунта.
+  Актуальный JAR 1.2.0 собирается CI (артефакт `Void2FA-plugin`); в [`Void2FA/release/`](Void2FA/release/)
+  лежит старый 1.0.0. Тексты BotFather: [`Void2FA/BOT_SETUP.md`](Void2FA/BOT_SETUP.md).
 
 ## Сборка
 

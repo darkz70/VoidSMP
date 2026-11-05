@@ -25,6 +25,11 @@ public final class ConfigManager {
     private boolean freeze;
     private boolean blindness;
     private boolean lockdownIfUnavailable;
+    private boolean trustedDevicesEnabled;
+    private boolean rememberDeviceOnApprove;
+    private int trustedDeviceMax;
+    private int trustedDeviceTtlDays;
+    private boolean accountLockEnabled;
 
     public ConfigManager(Void2FAPlugin plugin) {
         this.plugin = plugin;
@@ -53,6 +58,11 @@ public final class ConfigManager {
         freeze = c.getBoolean("settings.freeze", true);
         blindness = c.getBoolean("settings.blindness", true);
         lockdownIfUnavailable = c.getBoolean("settings.lockdown-if-unavailable", false);
+        trustedDevicesEnabled = c.getBoolean("settings.trusted-devices.enabled", true);
+        rememberDeviceOnApprove = c.getBoolean("settings.trusted-devices.remember-on-approve", true);
+        trustedDeviceMax = clamp(c.getInt("settings.trusted-devices.max-devices", 5), 1, 50);
+        trustedDeviceTtlDays = clamp(c.getInt("settings.trusted-devices.ttl-days", 0), 0, 3650);
+        accountLockEnabled = c.getBoolean("settings.account-lock.enabled", true);
     }
 
     private static int clamp(int value, int min, int max) {
@@ -115,6 +125,31 @@ public final class ConfigManager {
         return lockdownIfUnavailable;
     }
 
+    public boolean isTrustedDevicesEnabled() {
+        return trustedDevicesEnabled;
+    }
+
+    public boolean isRememberDeviceOnApprove() {
+        return rememberDeviceOnApprove;
+    }
+
+    public int getTrustedDeviceMax() {
+        return trustedDeviceMax;
+    }
+
+    /** 0 = trusted devices never expire. */
+    public int getTrustedDeviceTtlDays() {
+        return trustedDeviceTtlDays;
+    }
+
+    public long getTrustedDeviceTtlMillis() {
+        return trustedDeviceTtlDays <= 0 ? 0L : trustedDeviceTtlDays * 86_400_000L;
+    }
+
+    public boolean isAccountLockEnabled() {
+        return accountLockEnabled;
+    }
+
     // ------------------------------------------------------------------
     //  Messages
     // ------------------------------------------------------------------
@@ -136,7 +171,16 @@ public final class ConfigManager {
     }
 
     private String apply(String key, String... placeholders) {
-        String raw = plugin.getConfig().getString("messages." + key, "");
+        String path = "messages." + key;
+        String raw = plugin.getConfig().getString(path, null);
+        if (raw == null && plugin.getConfig().getDefaults() != null) {
+            // Let an older local config.yml keep working after a plugin update:
+            // newly added messages fall back to the defaults bundled in the JAR.
+            raw = plugin.getConfig().getDefaults().getString(path, "");
+        }
+        if (raw == null) {
+            raw = "";
+        }
         for (int i = 0; i + 1 < placeholders.length; i += 2) {
             raw = raw.replace("{" + placeholders[i] + "}", placeholders[i + 1]);
         }

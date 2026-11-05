@@ -16,7 +16,8 @@ import java.util.UUID;
  */
 public final class AdminCommand implements CommandExecutor, TabCompleter {
 
-    private static final List<String> SUBCOMMANDS = List.of("reload", "status", "reset", "enable", "disable");
+    private static final List<String> SUBCOMMANDS =
+            List.of("reload", "status", "reset", "enable", "disable", "lock", "unlock", "devices", "untrust");
 
     private final Void2FAPlugin plugin;
     private final AuthManager auth;
@@ -66,7 +67,10 @@ public final class AdminCommand implements CommandExecutor, TabCompleter {
                 boolean enabled = data.isEnabled(id);
                 String state = linked ? (enabled ? "вкл" : "выкл") : "не привязано";
                 String link = linked ? "привязан" : "не привязан";
-                sender.sendMessage(config.msg("admin-status", "player", name, "state", state, "link", link));
+                String lock = data.isLocked(id) ? "заблокирован" : "открыт";
+                String devices = String.valueOf(data.getTrustedDevices(id).size());
+                sender.sendMessage(config.msg("admin-status", "player", name, "state", state,
+                        "link", link, "lock", lock, "devices", devices));
                 break;
             }
             case "reset":
@@ -84,6 +88,46 @@ public final class AdminCommand implements CommandExecutor, TabCompleter {
             case "disable":
                 data.setEnabled(id, false);
                 sender.sendMessage(config.msg("admin-disabled", "player", name));
+                break;
+            case "lock":
+                if (!config.isAccountLockEnabled()) {
+                    sender.sendMessage(config.msg("account-lock-disabled"));
+                } else {
+                    auth.adminSetLocked(id, true);
+                    sender.sendMessage(config.msg("admin-locked", "player", name));
+                }
+                break;
+            case "unlock":
+                if (!config.isAccountLockEnabled()) {
+                    sender.sendMessage(config.msg("account-lock-disabled"));
+                } else {
+                    auth.adminSetLocked(id, false);
+                    sender.sendMessage(config.msg("admin-unlocked", "player", name));
+                }
+                break;
+            case "devices": {
+                List<PlayerDataManager.TrustedDevice> devices = data.getTrustedDevices(id);
+                if (devices.isEmpty()) {
+                    sender.sendMessage(config.msg("admin-devices-empty", "player", name));
+                } else {
+                    sender.sendMessage(config.msg("admin-devices-header", "player", name,
+                            "count", String.valueOf(devices.size())));
+                    for (PlayerDataManager.TrustedDevice device : devices) {
+                        sender.sendMessage(config.msg("device-line", "id", device.id, "ip", device.ip,
+                                "date", java.time.Instant.ofEpochMilli(device.createdAt)
+                                        .atZone(java.time.ZoneId.systemDefault()).toLocalDate().toString()));
+                    }
+                }
+                break;
+            }
+            case "untrust":
+                if (args.length < 3) {
+                    sender.sendMessage(config.msg("usage-admin-untrust"));
+                } else {
+                    int removed = data.removeTrustedDevice(id, args[2]);
+                    sender.sendMessage(config.msg(removed > 0 ? "admin-device-untrusted" : "device-not-found",
+                            "player", name, "count", String.valueOf(removed), "key", args[2]));
+                }
                 break;
             default:
                 sender.sendMessage(config.msg("help-admin"));
@@ -119,6 +163,19 @@ public final class AdminCommand implements CommandExecutor, TabCompleter {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 if (p.getName().toLowerCase().startsWith(prefix)) {
                     result.add(p.getName());
+                }
+            }
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("untrust")) {
+            UUID id = resolve(args[1]);
+            if (id != null) {
+                String prefix = args[2].toLowerCase();
+                if ("all".startsWith(prefix)) {
+                    result.add("all");
+                }
+                for (PlayerDataManager.TrustedDevice device : plugin.getDataManager().getTrustedDevices(id)) {
+                    if (device.id.toLowerCase().startsWith(prefix)) {
+                        result.add(device.id);
+                    }
                 }
             }
         }

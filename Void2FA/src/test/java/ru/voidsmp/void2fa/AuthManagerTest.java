@@ -9,6 +9,7 @@ import org.junit.jupiter.api.*;
 import org.mockito.MockedStatic;
 import ru.voidsmp.void2fa.telegram.TelegramTransport;
 import java.util.UUID;
+import java.net.InetSocketAddress;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -37,6 +38,12 @@ class AuthManagerTest {
         when(config.getCodeLength()).thenReturn(6); when(config.getCodeTtlSeconds()).thenReturn(120);
         when(config.getAuthTimeoutSeconds()).thenReturn(90); when(config.getMaxAttempts()).thenReturn(2);
         when(config.getSessionMinutes()).thenReturn(0); when(config.isBlindness()).thenReturn(false);
+        when(config.isAccountLockEnabled()).thenReturn(true);
+        when(config.isTrustedDevicesEnabled()).thenReturn(true);
+        when(config.isRememberDeviceOnApprove()).thenReturn(true);
+        when(config.getTrustedDeviceMax()).thenReturn(5);
+        when(config.getTrustedDeviceTtlMillis()).thenReturn(0L);
+        when(data.getTrustedDevices(id)).thenReturn(java.util.List.of());
         when(config.tg(anyString(), any(String[].class))).thenReturn("message");
         when(config.msg(anyString(), any(String[].class))).thenReturn("message");
         when(config.kick(anyString(), any(String[].class))).thenReturn("kick");
@@ -93,6 +100,51 @@ class AuthManagerTest {
         auth.submitCode(player,"wrong");
         verify(player).kickPlayer("kick");
         assertFalse(auth.isPending(id));
+    }
+
+    @Test void lockedAccountKicksEvenWithBypass() {
+        when(data.isLocked(id)).thenReturn(true);
+        when(player.hasPermission("void2fa.bypass")).thenReturn(true);
+        auth.onJoin(player);
+        verify(player).kickPlayer("kick");
+        verify(bot, never()).sendAuthRequest(anyString(), anyLong(), anyString(), any(), any());
+        assertFalse(auth.isPending(id));
+    }
+
+    @Test void trustedDeviceSkipsTelegramButUnknownDeviceStillNeedsAuth() {
+        when(player.getAddress()).thenReturn(new InetSocketAddress("192.0.2.10", 25565));
+        when(data.isTrustedDevice(id, "192.0.2.10", 0L)).thenReturn(true);
+        auth.onJoin(player);
+        assertFalse(auth.isPending(id));
+        verify(data).touchTrustedDevice(id, "192.0.2.10");
+        verify(bot, never()).sendAuthRequest(anyString(), anyLong(), anyString(), any(), any());
+
+        when(player.getAddress()).thenReturn(new InetSocketAddress("192.0.2.99", 25565));
+        String authId=joinAndCaptureAuthId();
+        assertTrue(auth.isPending(id));
+        assertTrue(auth.approveByAuthId(authId,42L));
+    }
+
+    @Test void approveRemembersDeviceWhenEnabled() {
+        when(player.getAddress()).thenReturn(new InetSocketAddress("192.0.2.10", 25565));
+        String authId=joinAndCaptureAuthId();
+        assertTrue(auth.approveByAuthId(authId,42L));
+        verify(data).addTrustedDevice(id, "192.0.2.10", 5);
+    }
+
+    @Test void telegramLockKicksOnlinePlayerAndUnlockRestoresJoin() {
+        when(data.findByTelegramId(42L)).thenReturn(id);
+        when(data.getName(id)).thenReturn("Tester");
+        auth.lockByTelegram(42L);
+        verify(data).setLocked(id, true);
+        verify(player).kickPlayer("kick");
+
+        when(data.isLocked(id)).thenReturn(true);
+        auth.onJoin(player);
+        verify(player, times(2)).kickPlayer("kick");
+
+        auth.unlockByTelegram(42L);
+        verify(data).setLocked(id, false);
     }
 
     @Test void adminResetDoesNotSilentlyAuthorizePendingLogin() {

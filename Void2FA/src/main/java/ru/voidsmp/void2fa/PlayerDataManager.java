@@ -5,6 +5,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -91,6 +94,150 @@ public final class PlayerDataManager {
 
     public String getLastIp(UUID id) {
         return data.getString(base(id) + ".last-ip", "");
+    }
+
+    // ------------------------------------------------------------------
+    //  Account lock and trusted devices
+    // ------------------------------------------------------------------
+
+    /** A locked account cannot join until the owner (or an admin) unlocks it. */
+    public boolean isLocked(UUID id) {
+        return data.getBoolean(base(id) + ".locked", false);
+    }
+
+    public void setLocked(UUID id, boolean locked) {
+        data.set(base(id) + ".locked", locked);
+        save();
+    }
+
+    /** One remembered device. The server can only see the client IP, not hardware IDs. */
+    public static final class TrustedDevice {
+        public final String id;
+        public final String ip;
+        public final long createdAt;
+        public final long lastUsedAt;
+
+        TrustedDevice(String id, String ip, long createdAt, long lastUsedAt) {
+            this.id = id;
+            this.ip = ip;
+            this.createdAt = createdAt;
+            this.lastUsedAt = lastUsedAt;
+        }
+    }
+
+    public List<TrustedDevice> getTrustedDevices(UUID id) {
+        List<TrustedDevice> result = new ArrayList<>();
+        ConfigurationSection devices = data.getConfigurationSection(base(id) + ".devices");
+        if (devices == null) {
+            return result;
+        }
+        for (String key : devices.getKeys(false)) {
+            String ip = devices.getString(key + ".ip", "");
+            if (ip.isEmpty()) {
+                continue;
+            }
+            result.add(new TrustedDevice(key, ip,
+                    devices.getLong(key + ".created-at", 0L),
+                    devices.getLong(key + ".last-used-at", 0L)));
+        }
+        result.sort(Comparator.comparingLong((TrustedDevice d) -> d.lastUsedAt).reversed());
+        return result;
+    }
+
+    /**
+     * Remembers an IP as a trusted device. If the same IP is already trusted,
+     * only refreshes it. When the limit is reached, the least recently used
+     * device is evicted.
+     */
+    public TrustedDevice addTrustedDevice(UUID id, String ip, int maxDevices) {
+        if (ip == null || ip.isEmpty() || "?".equals(ip)) {
+            return null;
+        }
+        String b = base(id) + ".devices";
+        ConfigurationSection devices = data.getConfigurationSection(b);
+        long now = System.currentTimeMillis();
+        if (devices != null) {
+            for (String key : devices.getKeys(false)) {
+                if (ip.equals(devices.getString(key + ".ip", ""))) {
+                    data.set(b + "." + key + ".last-used-at", now);
+                    save();
+                    return new TrustedDevice(key, ip, devices.getLong(key + ".created-at", now), now);
+                }
+            }
+        }
+        int max = Math.max(1, maxDevices);
+        List<TrustedDevice> existing = getTrustedDevices(id);
+        while (existing.size() >= max) {
+            TrustedDevice oldest = existing.get(existing.size() - 1);
+            data.set(b + "." + oldest.id, null);
+            existing.remove(existing.size() - 1);
+        }
+        String deviceId;
+        do {
+            deviceId = UUID.randomUUID().toString().replace("-", "")
+                    .substring(0, 8).toUpperCase(java.util.Locale.ROOT);
+        } while (devices != null && devices.contains(deviceId));
+        data.set(b + "." + deviceId + ".ip", ip);
+        data.set(b + "." + deviceId + ".created-at", now);
+        data.set(b + "." + deviceId + ".last-used-at", now);
+        save();
+        return new TrustedDevice(deviceId, ip, now, now);
+    }
+
+    /** Removes by device id, exact IP, or {@code all}. Returns number removed. */
+    public int removeTrustedDevice(UUID id, String key) {
+        if (key == null || key.isEmpty()) {
+            return 0;
+        }
+        ConfigurationSection devices = data.getConfigurationSection(base(id) + ".devices");
+        if (devices == null) {
+            return 0;
+        }
+        int removed = 0;
+        boolean all = "all".equalsIgnoreCase(key) || "*".equals(key);
+        for (String deviceKey : new ArrayList<>(devices.getKeys(false))) {
+            String ip = devices.getString(deviceKey + ".ip", "");
+            if (all || deviceKey.equalsIgnoreCase(key) || ip.equals(key)) {
+                data.set(base(id) + ".devices." + deviceKey, null);
+                removed++;
+            }
+        }
+        if (removed > 0) {
+            save();
+        }
+        return removed;
+    }
+
+    /** True when this IP is trusted and not older than {@code ttlMillis} (0 = forever). */
+    public boolean isTrustedDevice(UUID id, String ip, long ttlMillis) {
+        if (ip == null || ip.isEmpty()) {
+            return false;
+        }
+        long now = System.currentTimeMillis();
+        for (TrustedDevice device : getTrustedDevices(id)) {
+            if (!device.ip.equals(ip)) {
+                continue;
+            }
+            long used = device.lastUsedAt > 0 ? device.lastUsedAt : device.createdAt;
+            if (ttlMillis <= 0 || now - used <= ttlMillis) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void touchTrustedDevice(UUID id, String ip) {
+        ConfigurationSection devices = data.getConfigurationSection(base(id) + ".devices");
+        if (devices == null || ip == null) {
+            return;
+        }
+        for (String key : devices.getKeys(false)) {
+            if (ip.equals(devices.getString(key + ".ip", ""))) {
+                data.set(base(id) + ".devices." + key + ".last-used-at", System.currentTimeMillis());
+                save();
+                return;
+            }
+        }
     }
 
     /** Finds a stored player UUID by (case-insensitive) name, or {@code null}. */

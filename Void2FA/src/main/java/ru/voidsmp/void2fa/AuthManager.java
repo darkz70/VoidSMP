@@ -79,9 +79,25 @@ public final class AuthManager {
 
     public void onJoin(Player player) {
         UUID id = player.getUniqueId();
+        // An account lock is stronger than bypass: nobody joins a locked account
+        // until the owner unlocks it from Telegram (or an admin uses the console).
+        if (config.isAccountLockEnabled() && data.isLocked(id)) {
+            player.kickPlayer(config.kick("locked-kick"));
+            return;
+        }
         if (player.hasPermission("void2fa.bypass")) {
             return;
         }
+
+        boolean required = config.isRequiredMode() || (data.isLinked(id) && data.isEnabled(id));
+        String ip = ipOf(player);
+        if (required && config.isTrustedDevicesEnabled() && data.isLinked(id) && ip != null
+                && data.isTrustedDevice(id, ip, config.getTrustedDeviceTtlMillis())) {
+            data.touchTrustedDevice(id, ip);
+            player.sendMessage(config.msg("trusted-device-welcome"));
+            return;
+        }
+
         TelegramTransport bot = plugin.getBot();
         boolean botReady = bot != null && bot.isReady();
         if (!botReady) {
@@ -92,13 +108,10 @@ public final class AuthManager {
             }
             return;
         }
-
-        boolean required = config.isRequiredMode() || (data.isLinked(id) && data.isEnabled(id));
         if (!required) {
             return;
         }
 
-        String ip = ipOf(player);
         int session = config.getSessionMinutes();
         if (session > 0 && data.isLinked(id)) {
             long last = data.getLastAuth(id);
@@ -175,6 +188,11 @@ public final class AuthManager {
             player.sendMessage(config.msg("link-required"));
             return;
         }
+        if (config.isAccountLockEnabled() && data.isLocked(st.playerId)) {
+            kick(st.playerId, config.kick("locked-kick"));
+            cleanup(st);
+            return;
+        }
         if (System.currentTimeMillis() >= st.codeExpiresAt) {
             player.sendMessage(config.msg("code-expired"));
             return;
@@ -238,7 +256,8 @@ public final class AuthManager {
     private boolean validButton(AuthState st, long telegramUserId) {
         return st != null && st.linked && st.chatId == telegramUserId
                 && data.getTelegramId(st.playerId) == telegramUserId
-                && pending.get(st.playerId) == st && Bukkit.getPlayer(st.playerId) != null;
+                && pending.get(st.playerId) == st && Bukkit.getPlayer(st.playerId) != null
+                && !(config.isAccountLockEnabled() && data.isLocked(st.playerId));
     }
 
     private void approve(AuthState st) {
@@ -250,6 +269,232 @@ public final class AuthManager {
             p.sendMessage(config.msg("approved"));
         }
         data.updateLastAuth(st.playerId, st.ip);
+        if (config.isTrustedDevicesEnabled() && config.isRememberDeviceOnApprove() && st.linked) {
+            PlayerDataManager.TrustedDevice device =
+                    data.addTrustedDevice(st.playerId, st.ip, config.getTrustedDeviceMax());
+            if (device != null && p != null) {
+                p.sendMessage(config.msg("device-trusted", "ip", device.ip, "id", device.id));
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------
+    //  Account lock / trusted devices
+    // ------------------------------------------------------------------
+
+    public void lockByPlayer(Player player) {
+        UUID id = player.getUniqueId();
+        if (!config.isAccountLockEnabled()) {
+            player.sendMessage(config.msg("account-lock-disabled"));
+            return;
+        }
+        if (!data.isLinked(id)) {
+            player.sendMessage(config.msg("not-linked"));
+            return;
+        }
+        if (isPending(id)) {
+            player.sendMessage(config.msg("must-be-authenticated"));
+            return;
+        }
+        data.setLocked(id, true);
+        player.sendMessage(config.msg("account-locked"));
+        notifyTelegram(id, "tg-account-locked");
+        kick(id, config.kick("locked-kick"));
+    }
+
+    public void unlockByPlayer(Player player) {
+        UUID id = player.getUniqueId();
+        if (!config.isAccountLockEnabled()) {
+            player.sendMessage(config.msg("account-lock-disabled"));
+            return;
+        }
+        if (!data.isLocked(id)) {
+            player.sendMessage(config.msg("account-not-locked"));
+            return;
+        }
+        if (isPending(id)) {
+            player.sendMessage(config.msg("must-be-authenticated"));
+            return;
+        }
+        data.setLocked(id, false);
+        player.sendMessage(config.msg("account-unlocked"));
+        notifyTelegram(id, "tg-account-unlocked");
+    }
+
+    public void lockByTelegram(long telegramId) {
+        TelegramTransport bot = plugin.getBot();
+        if (bot == null) {
+            return;
+        }
+        if (!config.isAccountLockEnabled()) {
+            bot.sendMessage(telegramId, config.tg("tg-account-lock-disabled"));
+            return;
+        }
+        UUID id = data.findByTelegramId(telegramId);
+        if (id == null) {
+            bot.sendMessage(telegramId, config.tg("tg-lock-not-linked"));
+            return;
+        }
+        data.setLocked(id, true);
+        AuthState st = pending.get(id);
+        if (st != null) {
+            editTelegram(st, config.tg("tg-denied", "player", st.playerName));
+            cleanup(st);
+        }
+        kick(id, config.kick("locked-kick"));
+        bot.sendMessage(telegramId, config.tg("tg-account-locked", "player", data.getName(id)));
+    }
+
+    public void unlockByTelegram(long telegramId) {
+        TelegramTransport bot = plugin.getBot();
+        if (bot == null) {
+            return;
+        }
+        if (!config.isAccountLockEnabled()) {
+            bot.sendMessage(telegramId, config.tg("tg-account-lock-disabled"));
+            return;
+        }
+        UUID id = data.findByTelegramId(telegramId);
+        if (id == null) {
+            bot.sendMessage(telegramId, config.tg("tg-lock-not-linked"));
+            return;
+        }
+        if (!data.isLocked(id)) {
+            bot.sendMessage(telegramId, config.tg("tg-account-not-locked"));
+            return;
+        }
+        data.setLocked(id, false);
+        bot.sendMessage(telegramId, config.tg("tg-account-unlocked", "player", data.getName(id)));
+    }
+
+    public void adminSetLocked(UUID id, boolean locked) {
+        data.setLocked(id, locked);
+        if (locked) {
+            AuthState st = pending.get(id);
+            if (st != null) {
+                editTelegram(st, config.tg("tg-denied", "player", st.playerName));
+                cleanup(st);
+            }
+            kick(id, config.kick("locked-kick"));
+            notifyTelegram(id, "tg-account-locked");
+        } else {
+            notifyTelegram(id, "tg-account-unlocked");
+        }
+    }
+
+    public void trustCurrentDevice(Player player) {
+        UUID id = player.getUniqueId();
+        if (!data.isLinked(id)) {
+            player.sendMessage(config.msg("not-linked"));
+            return;
+        }
+        if (isPending(id)) {
+            player.sendMessage(config.msg("must-be-authenticated"));
+            return;
+        }
+        if (!config.isTrustedDevicesEnabled()) {
+            player.sendMessage(config.msg("trusted-devices-disabled"));
+            return;
+        }
+        String ip = ipOf(player);
+        PlayerDataManager.TrustedDevice device = data.addTrustedDevice(id, ip, config.getTrustedDeviceMax());
+        if (device == null) {
+            player.sendMessage(config.msg("device-trust-failed"));
+            return;
+        }
+        player.sendMessage(config.msg("device-trusted", "ip", device.ip, "id", device.id));
+    }
+
+    public void listDevices(Player player) {
+        UUID id = player.getUniqueId();
+        if (!data.isLinked(id)) {
+            player.sendMessage(config.msg("not-linked"));
+            return;
+        }
+        if (isPending(id)) {
+            player.sendMessage(config.msg("must-be-authenticated"));
+            return;
+        }
+        List<PlayerDataManager.TrustedDevice> devices = data.getTrustedDevices(id);
+        if (devices.isEmpty()) {
+            player.sendMessage(config.msg("devices-empty"));
+            return;
+        }
+        player.sendMessage(config.msg("devices-header", "count", String.valueOf(devices.size())));
+        for (PlayerDataManager.TrustedDevice device : devices) {
+            player.sendMessage(config.msg("device-line", "id", device.id, "ip", device.ip,
+                    "date", formatDate(device.createdAt)));
+        }
+    }
+
+    public void untrustDevice(Player player, String key) {
+        UUID id = player.getUniqueId();
+        if (!data.isLinked(id)) {
+            player.sendMessage(config.msg("not-linked"));
+            return;
+        }
+        if (isPending(id)) {
+            player.sendMessage(config.msg("must-be-authenticated"));
+            return;
+        }
+        int removed = data.removeTrustedDevice(id, key);
+        player.sendMessage(config.msg(removed > 0 ? "device-untrusted" : "device-not-found",
+                "count", String.valueOf(removed), "key", key == null ? "" : key));
+    }
+
+    public void listDevicesByTelegram(long telegramId) {
+        TelegramTransport bot = plugin.getBot();
+        if (bot == null) {
+            return;
+        }
+        UUID id = data.findByTelegramId(telegramId);
+        if (id == null) {
+            bot.sendMessage(telegramId, config.tg("tg-lock-not-linked"));
+            return;
+        }
+        List<PlayerDataManager.TrustedDevice> devices = data.getTrustedDevices(id);
+        if (devices.isEmpty()) {
+            bot.sendMessage(telegramId, config.tg("tg-devices-empty"));
+            return;
+        }
+        StringBuilder sb = new StringBuilder(config.tg("tg-devices-header", "count", String.valueOf(devices.size())));
+        for (PlayerDataManager.TrustedDevice device : devices) {
+            sb.append('\n').append(config.tg("tg-device-line", "id", device.id, "ip", device.ip,
+                    "date", formatDate(device.createdAt)));
+        }
+        bot.sendMessage(telegramId, sb.toString());
+    }
+
+    public void untrustDeviceByTelegram(long telegramId, String key) {
+        TelegramTransport bot = plugin.getBot();
+        if (bot == null) {
+            return;
+        }
+        UUID id = data.findByTelegramId(telegramId);
+        if (id == null) {
+            bot.sendMessage(telegramId, config.tg("tg-lock-not-linked"));
+            return;
+        }
+        int removed = data.removeTrustedDevice(id, key);
+        bot.sendMessage(telegramId, config.tg(removed > 0 ? "tg-device-untrusted" : "tg-device-not-found",
+                "count", String.valueOf(removed), "key", key == null ? "" : key));
+    }
+
+    private void notifyTelegram(UUID id, String key) {
+        TelegramTransport bot = plugin.getBot();
+        long chatId = data.getTelegramId(id);
+        if (bot != null && chatId != 0L) {
+            bot.sendMessage(chatId, config.tg(key, "player", data.getName(id)));
+        }
+    }
+
+    private static String formatDate(long millis) {
+        if (millis <= 0) {
+            return "?";
+        }
+        return java.time.Instant.ofEpochMilli(millis)
+                .atZone(java.time.ZoneId.systemDefault())
+                .toLocalDate().toString();
     }
 
     // ------------------------------------------------------------------
@@ -345,6 +590,10 @@ public final class AuthManager {
             player.sendMessage(config.msg("not-linked"));
             return;
         }
+        if (config.isAccountLockEnabled() && data.isLocked(id)) {
+            player.sendMessage(config.msg("unlink-locked"));
+            return;
+        }
         if (isPending(id)) {
             player.sendMessage(config.msg("must-be-authenticated"));
             return;
@@ -361,6 +610,10 @@ public final class AuthManager {
         UUID id = data.findByTelegramId(telegramId);
         if (id == null) {
             bot.sendMessage(telegramId, config.tg("tg-unlink-none"));
+            return;
+        }
+        if (config.isAccountLockEnabled() && data.isLocked(id)) {
+            bot.sendMessage(telegramId, config.tg("tg-unlink-locked"));
             return;
         }
         if (isPending(id)) {
@@ -399,8 +652,10 @@ public final class AuthManager {
             bot.sendMessage(telegramId, config.tg("tg-status-unlinked"));
         } else {
             String state = data.isEnabled(id) ? "включена" : "выключена";
+            String lock = data.isLocked(id) ? "заблокирован" : "открыт";
+            String devices = String.valueOf(data.getTrustedDevices(id).size());
             bot.sendMessage(telegramId, config.tg("tg-status-linked",
-                    "player", data.getName(id), "state", state));
+                    "player", data.getName(id), "state", state, "lock", lock, "devices", devices));
         }
     }
 

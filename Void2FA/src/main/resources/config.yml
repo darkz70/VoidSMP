@@ -58,9 +58,28 @@ settings:
   #   true  — не пускать никого без права void2fa.bypass.
   lockdown-if-unavailable: false
 
+  # Доверенные устройства. Minecraft-сервер видит только IP клиента, поэтому
+  # "устройство" = доверенный IP. После успешного подтверждения входа этот IP
+  # запоминается, и следующие входы с него проходят без кода. Другие IP требуют 2FA.
+  trusted-devices:
+    enabled: true
+    # Запоминать устройство автоматически при нажатии "Подтвердить" / вводе кода.
+    remember-on-approve: true
+    # Сколько устройств хранить на игрока. Старое неиспользуемое вытесняется.
+    max-devices: 5
+    # Срок действия доверенного устройства в днях. 0 = бессрочно.
+    ttl-days: 0
+
+  # Блокировка аккаунта: /2fa lock или /lock в Telegram.
+  # Пока аккаунт заблокирован, войти нельзя никому (даже с доверенного устройства
+  # и с правом void2fa.bypass). Разблокировка: /unlock в Telegram или /2faadmin unlock.
+  account-lock:
+    enabled: true
+
 # ------------------------------------------------------------
 #  Сообщения. Цвета через '&'. Плейсхолдеры: {player} {code} {ip}
 #  {attempts} {token} {bot} {url} {minutes} {state} {seconds}
+#  {lock} {devices} {id} {date} {count} {key}
 # ------------------------------------------------------------
 messages:
   prefix: "&8[&bVoid2FA&8]&r "
@@ -80,6 +99,7 @@ messages:
   link-start: "&7🔗 Привязка Telegram:\n&71. Открой бота &b{bot}\n&72. Отправь ему: &b/link {token}\n&7Или перейди по ссылке: &b{url}\n&7Код действует {minutes} мин."
   link-success: "&a✅ Telegram привязан! 2FA включена."
   unlink-success: "&aTelegram отвязан. 2FA выключена."
+  unlink-locked: "&cСначала разблокируй аккаунт: &b/unlock&c в Telegram."
   enabled: "&a2FA включена."
   disabled: "&e2FA выключена."
   must-be-authenticated: "&cСначала подтверди вход."
@@ -88,14 +108,37 @@ messages:
   player-only: "&cЭта команда только для игроков."
   usage-login: "&7Использование: &b/login <код>"
   unknown-subcommand: "&cНеизвестная подкоманда. &7/2fa help"
-  status-self: "&7Статус 2FA: {state}\n&7Telegram: {link}"
-  help-player: "&bVoid2FA &7— команды:\n&b/2fa link &7— привязать Telegram\n&b/2fa unlink &7— отвязать Telegram\n&b/2fa on &7/ &boff &7— вкл/выкл 2FA\n&b/2fa code <код> &7— подтвердить вход\n&b/2fa resend &7— выслать код повторно\n&b/login <код> &7— быстрый ввод кода"
+  status-self: "&7Статус 2FA: {state}\n&7Telegram: {link}\n&7Аккаунт: {lock}\n&7Доверенных устройств: &b{devices}"
+  help-player: "&bVoid2FA &7— команды:\n&b/2fa link &7— привязать Telegram\n&b/2fa unlink &7— отвязать Telegram\n&b/2fa on &7/ &boff &7— вкл/выкл 2FA\n&b/2fa code <код> &7— подтвердить вход\n&b/2fa resend &7— выслать код повторно\n&b/login <код> &7— быстрый ввод кода\n&b/2fa lock &7— заблокировать аккаунт\n&b/2fa unlock &7— разблокировать аккаунт\n&b/2fa trust &7— запомнить это устройство\n&b/2fa devices &7— список доверенных устройств\n&b/2fa untrust <id|all> &7— убрать устройство"
+
+  # --- Доверенные устройства / блокировка ---
+  trusted-device-welcome: "&a✅ Вход с доверенного устройства. Подтверждение не требуется."
+  device-trusted: "&a✅ Устройство запомнено: &b{id}&a (IP &7{ip}&a). Вход с него будет без кода."
+  device-trust-failed: "&cНе удалось определить IP этого устройства."
+  trusted-devices-disabled: "&eДоверенные устройства отключены в конфиге."
+  devices-empty: "&7Доверенных устройств пока нет. Подтверди вход или используй &b/2fa trust&7."
+  devices-header: "&bДоверенные устройства (&f{count}&b):"
+  device-line: "&8- &b{id} &7| IP: &f{ip} &7| добавлено: &f{date}"
+  device-untrusted: "&aУдалено устройств: &b{count}&a."
+  device-not-found: "&cУстройство не найдено: &f{key}&c. Список: &b/2fa devices"
+  usage-untrust: "&7Использование: &b/2fa untrust <id|all>"
+  account-locked: "&a🔒 Аккаунт заблокирован. Никто не сможет войти. Разблокировка: &b/unlock&a в Telegram."
+  account-unlocked: "&a🔓 Аккаунт разблокирован."
+  account-not-locked: "&7Аккаунт не заблокирован."
+  account-lock-disabled: "&eБлокировка аккаунта отключена в конфиге."
+  admin-locked: "&a🔒 Аккаунт игрока &b{player}&a заблокирован."
+  admin-unlocked: "&a🔓 Аккаунт игрока &b{player}&a разблокирован."
+  admin-devices-empty: "&7У игрока &b{player}&7 нет доверенных устройств."
+  admin-devices-header: "&bДоверенные устройства игрока &f{player}&b (&f{count}&b):"
+  admin-device-untrusted: "&aУ игрока &b{player}&a удалено устройств: &b{count}&a."
+  usage-admin-untrust: "&7Использование: &b/2faadmin untrust <игрок> <id|all>"
 
   # --- Кик ---
   timeout-kick: "&cВремя подтверждения входа истекло.\n&7Зайди снова и подтверди вход в Telegram."
   denied-kick: "&cВход отклонён через Telegram."
   attempts-kick: "&cСлишком много неверных попыток."
   lockdown-kick: "&c2FA временно недоступна. Попробуй позже."
+  locked-kick: "&c🔒 Аккаунт заблокирован владельцем.\n&7Разблокируй его командой /unlock в Telegram."
 
   # --- Админ ---
   admin-reloaded: "&aКонфигурация Void2FA перезагружена."
@@ -103,9 +146,9 @@ messages:
   admin-enabled: "&a2FA включена для &b{player}&a."
   admin-disabled: "&e2FA выключена для &b{player}&e."
   admin-not-linked: "&cУ игрока &b{player}&c не привязан Telegram."
-  admin-status: "&7Игрок &b{player}&7: 2FA={state}, Telegram={link}"
+  admin-status: "&7Игрок &b{player}&7: 2FA={state}, Telegram={link}, аккаунт={lock}, устройств={devices}"
   admin-player-not-found: "&cИгрок не найден."
-  help-admin: "&bVoid2FA Admin &7— команды:\n&b/2faadmin reload &7— перезагрузить конфиг\n&b/2faadmin status <игрок> &7— статус\n&b/2faadmin reset <игрок> &7— сбросить привязку\n&b/2faadmin enable <игрок> &7— включить 2FA\n&b/2faadmin disable <игрок> &7— выключить 2FA"
+  help-admin: "&bVoid2FA Admin &7— команды:\n&b/2faadmin reload &7— перезагрузить конфиг\n&b/2faadmin status <игрок> &7— статус\n&b/2faadmin reset <игрок> &7— сбросить привязку\n&b/2faadmin enable <игрок> &7— включить 2FA\n&b/2faadmin disable <игрок> &7— выключить 2FA\n&b/2faadmin lock <игрок> &7— заблокировать аккаунт\n&b/2faadmin unlock <игрок> &7— разблокировать аккаунт\n&b/2faadmin devices <игрок> &7— доверенные устройства\n&b/2faadmin untrust <игрок> <id|all> &7— убрать устройство"
 
   tg-server-unavailable: "Сервер временно недоступен. Попробуй позже; не отправляй код повторно."
   tg-link-ratelimit: "Слишком много попыток привязки. Подожди минуту."
@@ -119,13 +162,25 @@ messages:
   tg-link-success: "✅ Telegram привязан к игроку {player}."
   tg-link-already: "⚠️ Этот Telegram уже привязан к игроку {player}."
   tg-link-invalid: "❌ Неверный или просроченный код привязки. В игре: /2fa link"
-  tg-start: "Привет! Я бот двухфакторной аутентификации VoidSMP.\n\nПривяжи аккаунт в игре командой /2fa link и отправь мне полученный код.\n\nКоманды:\n/link <код> — привязать аккаунт\n/status — статус привязки\n/unlink — отвязать аккаунт\n/help — помощь"
-  tg-help: "Команды:\n/link <код> — привязать аккаунт (код из игры: /2fa link)\n/status — статус привязки\n/unlink — отвязать аккаунт"
-  tg-status-linked: "🔗 Привязан к игроку: {player}\n2FA: {state}"
+  tg-start: "Привет! Я бот двухфакторной аутентификации VoidSMP.\n\nПривяжи аккаунт в игре командой /2fa link и отправь мне полученный код.\n\nКоманды:\n/link <код> — привязать аккаунт\n/status — статус привязки\n/unlink — отвязать аккаунт\n/lock — заблокировать аккаунт\n/unlock — разблокировать аккаунт\n/devices — доверенные устройства\n/untrust <id|all> — убрать устройство\n/help — помощь"
+  tg-help: "Команды:\n/link <код> — привязать аккаунт (код из игры: /2fa link)\n/status — статус привязки\n/unlink — отвязать аккаунт\n/lock — заблокировать аккаунт (никто не войдёт)\n/unlock — разблокировать аккаунт\n/devices — список доверенных устройств\n/untrust <id|all> — убрать доверенное устройство"
+  tg-status-linked: "🔗 Привязан к игроку: {player}\n2FA: {state}\nАккаунт: {lock}\nДоверенных устройств: {devices}"
   tg-status-unlinked: "Аккаунт не привязан. В игре выполни /2fa link"
   tg-unlink-success: "✅ Telegram отвязан."
   tg-unlink-none: "Нечего отвязывать — аккаунт не привязан."
   tg-unlink-pending: "⚠️ Нельзя отвязать аккаунт во время входа. Сначала подтверди или отклони вход."
+  tg-unlink-locked: "🔒 Аккаунт заблокирован. Сначала отправь /unlock, потом /unlink."
+  tg-account-locked: "🔒 Аккаунт {player} заблокирован. Никто не сможет войти на сервер. Разблокировка: /unlock"
+  tg-account-unlocked: "🔓 Аккаунт {player} разблокирован. Вход снова возможен."
+  tg-account-not-locked: "Аккаунт не заблокирован."
+  tg-account-lock-disabled: "Блокировка аккаунта отключена в конфиге сервера."
+  tg-lock-not-linked: "Аккаунт не привязан. В игре выполни /2fa link"
+  tg-devices-empty: "Доверенных устройств пока нет. Подтверди вход или используй /2fa trust в игре."
+  tg-devices-header: "Доверенные устройства ({count}):"
+  tg-device-line: "• {id} | IP: {ip} | добавлено: {date}"
+  tg-device-untrusted: "✅ Удалено устройств: {count}."
+  tg-device-not-found: "Устройство не найдено: {key}. Список: /devices"
+  tg-usage-untrust: "Использование: /untrust <id|all>"
   tg-unknown: "Не понимаю 🤔 Используй /help"
 
   # --- Кнопки ---

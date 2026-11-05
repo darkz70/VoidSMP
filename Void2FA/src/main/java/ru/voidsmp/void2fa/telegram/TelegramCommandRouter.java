@@ -29,6 +29,16 @@ public final class TelegramCommandRouter {
             case "/link" -> link(userId, arg);
             case "/status" -> plugin.getAuthManager().sendTelegramStatus(userId);
             case "/unlink" -> plugin.getAuthManager().unlinkByTelegram(userId);
+            case "/lock" -> plugin.getAuthManager().lockByTelegram(userId);
+            case "/unlock" -> plugin.getAuthManager().unlockByTelegram(userId);
+            case "/devices" -> plugin.getAuthManager().listDevicesByTelegram(userId);
+            case "/untrust" -> {
+                if (arg.isEmpty()) {
+                    bot.sendMessage(chatId, plugin.getConfigManager().tg("tg-usage-untrust"));
+                } else {
+                    plugin.getAuthManager().untrustDeviceByTelegram(userId, arg);
+                }
+            }
             case "/help" -> bot.sendMessage(chatId, plugin.getConfigManager().tg("tg-help"));
             default -> bot.sendMessage(chatId, plugin.getConfigManager().tg("tg-unknown"));
         }
