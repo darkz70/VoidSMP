@@ -26,7 +26,7 @@ telegram:
   bridge:
     # HTTPS-домен бота из панели Bothost, например https://bot-123-user.bothost.tech
     # Без пути, query и логина/пароля. Для локальных тестов допустим http://127.0.0.1:8080.
-    url: ""
+    url: "https://bot-1793902194-2443-verte82.bothost.tech"
     # Секрет: переменная VOID2FA_BRIDGE_SECRET (приоритет) или этот локальный файл.
     # Формат: 64 hex-символа либо base64 от 32 случайных байт. Не храните в Git.
     secret-file: "bridge-secret.txt"
