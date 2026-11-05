@@ -40,10 +40,7 @@ public final class ResourcePackServer {
 
     /** Запускает фоновую загрузку текущего пака и подсчёт его sha1 (не блокирует старт сервера). */
     public static void init(JavaPlugin plugin) {
-        // ВЫКЛЮЧЕНО по умолчанию: Player#setResourcePack ЗАМЕНЯЕТ ресурспак игрока
-        // целиком (не добавляет поверх личного пака игрока) — включать только
-        // осознанно через config.yml (resourcepack.enabled: true).
-        if (!plugin.getConfig().getBoolean("resourcepack.enabled", false)) return;
+        if (!plugin.getConfig().getBoolean("resourcepack.enabled", true)) return;
         url = plugin.getConfig().getString("resourcepack.url",
                 "https://github.com/darkz70/VoidSMP/releases/download/ci-build/VoidQuirks-Pack.zip");
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> refresh(plugin));
