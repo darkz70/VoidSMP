@@ -34,7 +34,19 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
         with:
           gradle-version: '9.8.2'
-      - run: gradle build --no-daemon
+      - name: Build and test plugin
+        run: |
+          set -o pipefail
+          gradle build --no-daemon --console=plain 2>&1 | tee build.log
+      - name: Publish build diagnostics
+        if: failure()
+        run: |
+          while IFS= read -r file; do
+            echo "::group::$file"
+            cat "$file"
+            echo "::endgroup::"
+          done < <(find build/test-results -name '*.xml' -type f 2>/dev/null)
+          tail -100 build.log
       - name: Publish test reports
         if: always()
         uses: actions/upload-artifact@v5
