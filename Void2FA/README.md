@@ -31,7 +31,7 @@
 ## Требования
 
 - **Paper 26.2** (Minecraft 26.2)
-- **Java 25** (требуется для Paper 26.x); для external-бота Python 3.11+
+- **Java 25** (требуется для Paper 26.x); для external-бота Python 3.10+
 - Telegram-бот (создаётся бесплатно у [@BotFather](https://t.me/BotFather))
 
 ---

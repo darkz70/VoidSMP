@@ -89,7 +89,7 @@ public final class Void2FAPlugin extends JavaPlugin {
                 bot = bridge;
             } catch (Exception e) {
                 // Do not print paths, configuration values or credential-bearing exceptions.
-                getLogger().severe("Не удалось запустить bridge (" + e.getClass().getSimpleName() + "). Проверь host/port и секрет. См. BOT_DEPLOY.md.");
+                getLogger().severe("Не удалось запустить bridge (" + e.getClass().getSimpleName() + "). Проверь telegram.bridge.url и секрет. См. BOT_DEPLOY.md.");
             }
             return;
         }

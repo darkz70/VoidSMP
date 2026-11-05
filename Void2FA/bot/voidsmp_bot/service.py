@@ -3,7 +3,6 @@ import asyncio
 import logging
 import time
 import aiohttp
-from .bridge import Bridge
 from .config import Config
 from .state import State
 from .telegram import Telegram, TelegramError
@@ -48,13 +47,16 @@ def normalize(update: dict, bot_id: int, now: int) -> dict | None:
 
 
 class Service:
+    """Telegram transport hosted on Bothost.
+
+    The Minecraft plugin is the HTTP client: it pulls queued Telegram commands and
+    pushes outbox events to /v1/sync. This service never decides whether a login is allowed.
+    """
+
     def __init__(self, config: Config, session: aiohttp.ClientSession, state: State):
         self.config, self.state = config, state
         self.telegram = Telegram(session, config.telegram_api, config.bot_token)
-        self.bridge = Bridge(session, config.plugin_url, config.bridge_secret)
         self.stop_event = asyncio.Event()
-        self.instance = state.get("instance")
-        self.cursor = int(state.get("cursor", "0"))
         self.offset = int(state.get("offset", "0"))
         self._identity_lock = asyncio.Lock()
 
@@ -63,7 +65,7 @@ class Service:
             if not self.telegram.ready:
                 await self.telegram.connect()
                 if self.state.get("bot_id") not in {"", str(self.telegram.bot_id)}:
-                    raise RuntimeError("State belongs to another bot. Use a fresh BOT_STATE_PATH after explicitly changing bots.")
+                    raise RuntimeError("State belongs to another bot. Use a fresh BOT_STATE_PATH/DATA_DIR after explicitly changing bots.")
                 self.state.set("bot_id", str(self.telegram.bot_id))
 
     async def polling(self):
@@ -82,9 +84,8 @@ class Service:
                         continue
                     event = normalize(update, self.telegram.bot_id, int(time.time()))
                     if event is not None:
-                        await self.ensure_instance()
-                        # Do not advance offset until the plugin durably accepted the command.
-                        await self.bridge.command(self.telegram.bot_id, self.instance, self.cursor, event)
+                        # Advance the Telegram offset only after the command is durable locally.
+                        self.state.enqueue_command(event)
                     self.offset = uid + 1
                     self.state.set("offset", str(self.offset))
                 delay = 1.0
@@ -98,59 +99,39 @@ class Service:
                     # Another consumer owns this token. Stop rather than race it indefinitely.
                     self.stop_event.set()
                     return
-            except ConnectionError:
-                self.bridge.connected = False
-                log.warning("Plugin bridge unavailable; Telegram offset retained")
-                delay = min(delay * 2, 15)
             except RuntimeError as exc:
                 log.error("Startup identity/webhook conflict: %s", exc)
                 self.stop_event.set()
                 return
+            except Exception as exc:
+                log.error("Telegram polling failed (%s); retaining offset", type(exc).__name__)
+                delay = min(delay * 2, 30)
             await self.sleep(delay)
-
-    async def ensure_instance(self):
-        value = await self.bridge.poll(self.telegram.bot_id, self.telegram.username,
-                                       self.instance, self.cursor, self.telegram.ready)
-        self.apply_poll(value)
-
-    def apply_poll(self, value: dict):
-        instance = value.get("instance_id")
-        if not isinstance(instance, str) or not isinstance(value.get("events"), list):
-            raise ConnectionError("Invalid bridge event envelope")
-        if instance != self.instance or value.get("reset") is True:
-            self.state.reset_instance(instance)
-            self.instance, self.cursor = instance, 0
-            # reset=True can also mean an outbox gap within this instance.
 
     async def outbox(self):
         delay = 1.0
         while not self.stop_event.is_set():
             try:
                 await self.identify()
-                value = await self.bridge.poll(self.telegram.bot_id, self.telegram.username,
-                                               self.instance, self.cursor, self.telegram.ready)
-                self.apply_poll(value)
-                for event in value["events"]:
+                events = self.state.pending_outbox(20)
+                if not events:
+                    delay = 1.0
+                    await self.sleep(0.5)
+                    continue
+                for event in events:
                     if self.stop_event.is_set():
                         return
                     await self.deliver(event)
-                    seq = event.get("seq")
-                    # Plugin currently identifies events by event_id; cursor is server sequence.
-                    # Sequence is supplied inside each payload by the plugin.
-                    if isinstance(seq, int):
-                        self.cursor = seq
-                        self.state.set("cursor", str(self.cursor))
+                    self.state.mark_outbox_delivered(event["event_id"])
                 delay = 1.0
-                await self.sleep(1.0)
             except asyncio.CancelledError:
                 raise
             except TelegramError as exc:
                 delay = exc.retry_after or min(delay * 2, 30)
-                log.warning("Telegram delivery failed (HTTP %s); cursor retained", exc.status)
-            except (ConnectionError, RuntimeError, ValueError, KeyError, TypeError) as exc:
-                self.bridge.connected = False
+                log.warning("Telegram delivery failed (HTTP %s); outbox retained", exc.status)
+            except Exception as exc:
                 delay = min(delay * 2, 15)
-                log.warning("Bridge/outbox unavailable (%s); cursor retained", type(exc).__name__)
+                log.warning("Outbox delivery failed (%s); outbox retained", type(exc).__name__)
             await self.sleep(delay)
 
     async def deliver(self, event: dict):
@@ -159,7 +140,7 @@ class Service:
         event_id, kind = event.get("event_id"), event.get("type")
         if not isinstance(event_id, str) or not isinstance(kind, str):
             raise ValueError("Invalid event identity")
-        if self.state.processed(event_id):
+        if self.state.outbox_delivered(event_id):
             return
         if kind == "auth_request":
             auth_id = event["auth_id"]
@@ -179,7 +160,6 @@ class Service:
             await self.telegram.answer(event["callback_id"], event["text"])
         else:
             raise ValueError("Unknown outbox event type")
-        self.state.mark_processed(event_id, int(time.time()))
 
     async def sleep(self, seconds: float):
         try:
@@ -189,12 +169,22 @@ class Service:
 
     @property
     def healthy(self) -> bool:
-        return (self.telegram.ready and self.bridge.connected
-                and time.monotonic() - self.telegram.last_poll < 60)
+        return self.telegram.ready and time.monotonic() - self.telegram.last_poll < 60
 
     async def run(self):
-        async with asyncio.TaskGroup() as tg:
-            tg.create_task(self.polling(), name="telegram-updates")
-            tg.create_task(self.outbox(), name="plugin-outbox")
-            tg.create_task(self.stop_event.wait(), name="shutdown")
-            # A fatal consumer conflict stops the whole service, including health checks.
+        tasks = [
+            asyncio.create_task(self.polling(), name="telegram-updates"),
+            asyncio.create_task(self.outbox(), name="plugin-outbox"),
+            asyncio.create_task(self.stop_event.wait(), name="shutdown"),
+        ]
+        try:
+            done, _pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            for task in done:
+                exc = task.exception()
+                if exc is not None:
+                    raise exc
+        finally:
+            self.stop_event.set()
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)

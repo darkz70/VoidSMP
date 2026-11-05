@@ -1,19 +1,17 @@
-# Linux: host networking lets the bot reach the plugin's 127.0.0.1:8765.
-# The health port is explicitly bound to loopback; the bridge is NOT published.
+# Self-hosted alternative to Bothost. Publish the sync API only behind HTTPS/reverse proxy.
 services:
   bot:
     build: .
     restart: unless-stopped
-    network_mode: host
     environment:
       BOT_TOKEN_FILE: /run/secrets/bot_token
       BRIDGE_SHARED_SECRET_FILE: /run/secrets/bridge_secret
-      PLUGIN_BRIDGE_URL: http://127.0.0.1:8765
-      BOT_STATE_PATH: /state/bot.sqlite3
-      HEALTH_HOST: 127.0.0.1
-      HEALTH_PORT: 8089
+      DATA_DIR: /data
+      HOST: 0.0.0.0
+      PORT: 8080
     secrets: [bot_token, bridge_secret]
-    volumes: [bot-state:/state]
+    volumes: [bot-state:/data]
+    ports: ["127.0.0.1:8080:8080"]
     read_only: true
     tmpfs: [/tmp]
     security_opt: [no-new-privileges:true]

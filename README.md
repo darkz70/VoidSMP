@@ -28,7 +28,7 @@ To view a copy of this license, visit https://creativecommons.org/licenses/by-nd
 ## Void2FA / Telegram
 
 - [Плагин и сценарии](Void2FA/README.md)
-- [Отдельный бот: сборка и развёртывание](Void2FA/BOT_DEPLOY.md)
+- [Отдельный Python-бот: Bothost и развёртывание](Void2FA/BOT_DEPLOY.md)
 - [Тексты BotFather](Void2FA/BOT_SETUP.md)
 - [Протокол защищённого моста](Void2FA/BRIDGE_PROTOCOL.md)
 

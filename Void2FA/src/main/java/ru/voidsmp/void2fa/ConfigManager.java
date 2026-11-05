@@ -14,8 +14,7 @@ public final class ConfigManager {
     private String botToken;
     private String botUsernameOverride;
     private String transport;
-    private String bridgeHost;
-    private int bridgePort;
+    private String bridgeUrl;
     private String bridgeSecretFile;
     private String mode;
     private int codeLength;
@@ -40,8 +39,7 @@ public final class ConfigManager {
         botUsernameOverride = c.getString("telegram.bot-username", "").trim();
         transport = c.getString("telegram.transport", "embedded").trim().toLowerCase(java.util.Locale.ROOT);
         if (!transport.equals("external")) transport = "embedded";
-        bridgeHost = c.getString("telegram.bridge.host", "127.0.0.1").trim();
-        bridgePort = clamp(c.getInt("telegram.bridge.port", 8765), 1024, 65535);
+        bridgeUrl = c.getString("telegram.bridge.url", "").trim();
         bridgeSecretFile = c.getString("telegram.bridge.secret-file", "bridge-secret.txt").trim();
         mode = c.getString("settings.mode", "opt-in").trim().toLowerCase();
         if (!mode.equals("required")) {
@@ -66,8 +64,7 @@ public final class ConfigManager {
     // ------------------------------------------------------------------
 
     public String getTransport() { return transport; }
-    public String getBridgeHost() { return bridgeHost; }
-    public int getBridgePort() { return bridgePort; }
+    public String getBridgeUrl() { return bridgeUrl; }
     public String getBridgeSecretFile() { return bridgeSecretFile; }
 
     public String getBotToken() {

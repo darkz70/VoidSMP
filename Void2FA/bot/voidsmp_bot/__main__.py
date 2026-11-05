@@ -3,10 +3,10 @@ import asyncio
 import logging
 import os
 import signal
-from pathlib import Path
 import aiohttp
 from aiohttp import web
 from .config import Config
+from .server import SyncServer
 from .service import Service
 from .state import State
 
@@ -28,16 +28,14 @@ async def run(config: Config):
                 loop = asyncio.get_running_loop()
                 for sig in (signal.SIGINT, signal.SIGTERM):
                     loop.add_signal_handler(sig, service.stop_event.set)
-                async def health(_):
-                    return web.json_response({"status": "ready" if service.healthy else "not_ready"},
-                                             status=200 if service.healthy else 503)
-                app = web.Application()
-                app.router.add_get("/healthz", health)
-                runner = web.AppRunner(app, access_log=None)
+                runner = web.AppRunner(SyncServer(config, service, state).app(), access_log=None)
                 await runner.setup()
-                site = web.TCPSite(runner, config.health_host, config.health_port)
+                site = web.TCPSite(runner, config.listen_host, config.listen_port)
                 await site.start()
-                logging.getLogger("voidsmp.bot").info("External bot started; health on configured local port")
+                logging.getLogger("voidsmp.bot").info(
+                    "External bot started; sync API on %s:%s, state=%s",
+                    config.listen_host, config.listen_port, config.state_path.parent,
+                )
                 try:
                     await service.run()
                 finally:

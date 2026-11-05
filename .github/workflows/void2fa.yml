@@ -41,12 +41,23 @@ jobs:
       - name: Publish build diagnostics
         if: failure()
         run: |
-          while IFS= read -r file; do
-            echo "::group::$file"
-            cat "$file"
-            echo "::endgroup::"
-          done < <(find build/test-results -name '*.xml' -type f 2>/dev/null)
-          tail -100 build.log
+          python3 - <<'PY'
+          import pathlib, re, xml.etree.ElementTree as ET
+          log = pathlib.Path('build.log')
+          if log.exists():
+              for line in log.read_text(errors='replace').splitlines():
+                  if re.search(r'(?i)(error:|failed|exception|could not|what went wrong)', line):
+                      print('::error::' + line.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')[:900])
+          for path in pathlib.Path('build/test-results').glob('**/*.xml'):
+              try:
+                  root = ET.parse(path).getroot()
+              except ET.ParseError:
+                  continue
+              for case in root.iter('testcase'):
+                  for fail in list(case.findall('failure')) + list(case.findall('error')):
+                      msg = (fail.get('message') or fail.text or 'test failed')[:900]
+                      print(f"::error file={path}::{case.get('classname')}.{case.get('name')}: " + msg.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
+          PY
       - name: Publish test reports
         if: always()
         uses: actions/upload-artifact@v5
