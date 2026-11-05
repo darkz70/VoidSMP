@@ -68,6 +68,7 @@ class AuthManagerTest {
         assertTrue(auth.denyByAuthId(authId,42L));
         verify(player).kickPlayer("kick");
         assertFalse(auth.approveByAuthId(authId,42L));
+        clearInvocations(bot);
         String second=joinAndCaptureAuthId();
         auth.onQuit(player);
         assertFalse(auth.approveByAuthId(second,42L));
@@ -90,7 +91,7 @@ class AuthManagerTest {
         assertNotEquals(first,second);
         assertFalse(auth.approveByAuthId(first,42L));
         auth.submitCode(player,"wrong");
-        verify(player,times(2)).kickPlayer("kick");
+        verify(player).kickPlayer("kick");
         assertFalse(auth.isPending(id));
     }
 

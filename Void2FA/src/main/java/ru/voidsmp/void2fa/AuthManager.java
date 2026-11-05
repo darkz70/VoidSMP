@@ -458,7 +458,9 @@ public final class AuthManager {
     }
 
     private void removeBlindness(Player p) {
-        p.removePotionEffect(PotionEffectType.BLINDNESS);
+        if (config.isBlindness()) {
+            p.removePotionEffect(PotionEffectType.BLINDNESS);
+        }
     }
 
     private void editTelegram(AuthState st, String text) {

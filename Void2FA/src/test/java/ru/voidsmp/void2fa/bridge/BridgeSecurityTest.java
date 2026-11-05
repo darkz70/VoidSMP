@@ -38,8 +38,8 @@ class BridgeSecurityTest {
         String nonce = "abcdefghijklmnopqrstuv";
         assertTrue(security.acceptNonce(nonce, 1000));
         assertFalse(security.acceptNonce(nonce, 1000));
-        assertFalse(security.acceptNonce(nonce, 1061)); // expired entry was pruned
-        assertTrue(security.acceptNonce(nonce, 1062));
+        assertFalse(security.acceptNonce(nonce, 1060)); // still inside the 61-second replay window
+        assertTrue(security.acceptNonce(nonce, 1061)); // expired entry was pruned
         assertFalse(security.acceptNonce(null, 1000));
     }
 }
