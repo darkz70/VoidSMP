@@ -14,8 +14,8 @@ jobs:
       run:
         working-directory: Void2FA/bot
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - run: pip install -r requirements-dev.txt
@@ -26,16 +26,24 @@ jobs:
       run:
         working-directory: Void2FA
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '25'
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
         with:
           gradle-version: '9.8.2'
       - run: gradle build --no-daemon
-      - uses: actions/upload-artifact@v4
+      - name: Publish test reports
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: plugin-test-reports
+          path: |
+            Void2FA/build/reports/tests/test/
+            Void2FA/build/test-results/test/
+      - uses: actions/upload-artifact@v5
         with:
           name: Void2FA-plugin
           path: Void2FA/build/libs/Void2FA-1.1.0.jar
