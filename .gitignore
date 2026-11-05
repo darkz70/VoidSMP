@@ -1,0 +1,12 @@
+.cache/
+.venv/
+__pycache__/
+.pytest_cache/
+node_modules/
+build/
+dist/
+out/
+target/
+.env
+*.sqlite3
+*.sqlite3-*

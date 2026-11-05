@@ -1,0 +1,27 @@
+# Linux: host networking lets the bot reach the plugin's 127.0.0.1:8765.
+# The health port is explicitly bound to loopback; the bridge is NOT published.
+services:
+  bot:
+    build: .
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      BOT_TOKEN_FILE: /run/secrets/bot_token
+      BRIDGE_SHARED_SECRET_FILE: /run/secrets/bridge_secret
+      PLUGIN_BRIDGE_URL: http://127.0.0.1:8765
+      BOT_STATE_PATH: /state/bot.sqlite3
+      HEALTH_HOST: 127.0.0.1
+      HEALTH_PORT: 8089
+    secrets: [bot_token, bridge_secret]
+    volumes: [bot-state:/state]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+secrets:
+  bot_token:
+    file: ./secrets/bot_token
+  bridge_secret:
+    file: ./secrets/bridge_secret
+volumes:
+  bot-state:

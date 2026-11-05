@@ -1,0 +1,41 @@
+name: Void2FA checks
+on:
+  push:
+    paths: ['Void2FA/**', '.github/workflows/void2fa.yml']
+  pull_request:
+    paths: ['Void2FA/**', '.github/workflows/void2fa.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Void2FA/bot
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest -q
+  plugin:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Void2FA
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.8.2'
+      - run: gradle build --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Void2FA-plugin
+          path: Void2FA/build/libs/Void2FA-1.1.0.jar

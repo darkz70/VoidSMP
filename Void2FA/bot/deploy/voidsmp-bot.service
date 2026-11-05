@@ -1,0 +1,30 @@
+[Unit]
+Description=VoidSMP Telegram account-linking bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=voidsmp-bot
+Group=voidsmp-bot
+WorkingDirectory=/opt/voidsmp-bot
+EnvironmentFile=/etc/voidsmp-bot/env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/voidsmp-bot/.venv/bin/python -m voidsmp_bot
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=45
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/voidsmp-bot
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
