@@ -46,7 +46,19 @@ class Config:
     @classmethod
     def from_env(cls) -> "Config":
         token = _bot_token()
-        secret = decode_secret(_secret("BRIDGE_SHARED_SECRET"))
+        raw_secret = _secret("BRIDGE_SHARED_SECRET")
+        if not raw_secret:
+            raise ValueError(
+                "BRIDGE_SHARED_SECRET is required: add it in Bothost environment variables "
+                "(64 hex characters or base64 of 32 random bytes; not the BotFather token)"
+            )
+        try:
+            secret = decode_secret(raw_secret)
+        except ValueError:
+            raise ValueError(
+                "BRIDGE_SHARED_SECRET has invalid format/length: expected 64 hex characters "
+                "or base64 of exactly 32 random bytes, without quotes or extra spaces"
+            ) from None
         port = int(os.environ.get("PORT", "8080"))
         if not (1 <= port <= 65535):
             raise ValueError("PORT must be between 1 and 65535")

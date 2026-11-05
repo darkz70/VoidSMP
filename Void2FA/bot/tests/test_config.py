@@ -37,6 +37,22 @@ def test_invalid_port(monkeypatch):
         Config.from_env()
 
 
+def test_missing_bridge_secret_has_actionable_error(monkeypatch):
+    setup_env(monkeypatch)
+    monkeypatch.delenv("BRIDGE_SHARED_SECRET")
+    with pytest.raises(ValueError, match="BRIDGE_SHARED_SECRET is required"):
+        Config.from_env()
+
+
+def test_invalid_bridge_secret_does_not_leak_value(monkeypatch):
+    setup_env(monkeypatch)
+    monkeypatch.setenv("BRIDGE_SHARED_SECRET", "not-a-secret")
+    with pytest.raises(ValueError) as exc:
+        Config.from_env()
+    assert "invalid format/length" in str(exc.value)
+    assert "not-a-secret" not in str(exc.value)
+
+
 def test_secret_files_and_repr(monkeypatch, tmp_path):
     setup_env(monkeypatch)
     monkeypatch.delenv("BOT_TOKEN"); monkeypatch.delenv("BRIDGE_SHARED_SECRET")

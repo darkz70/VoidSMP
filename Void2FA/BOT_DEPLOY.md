@@ -127,6 +127,33 @@ Systemd-юнит: `Void2FA/bot/deploy/voidsmp-bot.service`, пример env: `d
 Docker Compose: `Void2FA/bot/compose.yaml` публикует API только на `127.0.0.1:8080`;
 перед ним нужен HTTPS reverse proxy. Не открывай plain HTTP в интернет.
 
+## Частая ошибка запуска на Bothost
+
+Если в логах:
+
+```text
+Startup failed: Bridge secret must contain exactly 32 bytes
+```
+
+или более новая версия сообщения про `BRIDGE_SHARED_SECRET`, бот нашёл главный файл,
+ но не получил корректный **секрет моста**. Это не токен BotFather.
+
+1. Открой настройки бота на Bothost → «Переменные окружения».
+2. Добавь переменную с точным именем `BRIDGE_SHARED_SECRET`.
+3. Значение: 64 hex-символа, например результат команды ниже, без кавычек и пробелов:
+
+```bash
+python3 -c 'import secrets; print(secrets.token_hex(32))'
+```
+
+4. Сохрани переменную и сделай перезапуск/новый деплой бота.
+5. Тот же самый секрет запиши в Paper: `plugins/Void2FA/bridge-secret.txt`
+   или в `VOID2FA_BRIDGE_SECRET` окружения процесса Paper.
+
+Не используй `BOT_TOKEN` как `BRIDGE_SHARED_SECRET` и не публикуй секрет в чате/Git.
+Если секции переменных окружения нет на текущем тарифе Bothost, нужен тариф с этой возможностью
+или отдельный секрет-файл, доступный процессу бота; не хардкодь секрет в репозитории.
+
 ## 7. Проверка сценариев
 
 1. В игре `/2fa link`; отправь боту `/link КОД` или открой ссылку `/start LINK_КОД`.
