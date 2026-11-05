@@ -400,7 +400,7 @@ public final class AuthManager {
         } else {
             String state = data.isEnabled(id) ? "включена" : "выключена";
             bot.sendMessage(telegramId, config.tg("tg-status-linked",
-                    "player", data.getName(id), "state", state);
+                    "player", data.getName(id), "state", state));
         }
     }
 
