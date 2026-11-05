@@ -53,8 +53,9 @@ jobs:
         with:
           name: plugin-test-reports
           path: |
-            Void2FA/build/reports/tests/test/
-            Void2FA/build/test-results/test/
+            Void2FA/build.log
+            Void2FA/build/reports/
+            Void2FA/build/test-results/
       - uses: actions/upload-artifact@v5
         with:
           name: Void2FA-plugin
