@@ -1,0 +1,37 @@
+plugins {
+    id 'java'
+}
+
+group = 'ru.voidsmp'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+}
+
+dependencies {
+    // Paper API for Minecraft 26.2 (provided by the server at runtime).
+    compileOnly 'io.papermc.paper:paper-api:26.2.build.+'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+processResources {
+    filesMatching('plugin.yml') {
+        expand version: project.version
+    }
+}
+
+jar {
+    archiveBaseName = 'Void2FA'
+}

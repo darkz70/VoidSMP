@@ -1,0 +1,33 @@
+name: Void2FA
+version: '${version}'
+main: ru.voidsmp.void2fa.Void2FAPlugin
+api-version: '26.2'
+description: Two-factor authentication (2FA) via a Telegram bot for VoidSMP.
+author: darkz70
+website: https://github.com/darkz70/VoidSMP
+prefix: Void2FA
+
+commands:
+  2fa:
+    description: Manage Telegram two-factor authentication.
+    aliases: [tfa, twofa]
+    usage: /2fa help
+  login:
+    description: Confirm your login with the code from Telegram.
+    usage: /login <code>
+  2faadmin:
+    description: Admin commands for Void2FA.
+    aliases: [tfaadmin]
+    usage: /2faadmin help
+    permission: void2fa.admin
+
+permissions:
+  void2fa.use:
+    description: Allows using /2fa and /login.
+    default: true
+  void2fa.admin:
+    description: Allows managing Void2FA and other players.
+    default: op
+  void2fa.bypass:
+    description: Skip two-factor authentication entirely.
+    default: false

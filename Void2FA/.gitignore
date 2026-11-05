@@ -1,0 +1,18 @@
+# Gradle / build artifacts
+.gradle/
+build/
+out/
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS
+.DS_Store
+
+# Keep the prebuilt jar in release/ (not ignored)

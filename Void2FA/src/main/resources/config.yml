@@ -1,0 +1,116 @@
+# ============================================================
+#  Void2FA — двухфакторная аутентификация (2FA) через Telegram
+#  Плагин для Paper 26.2 · автор: darkz70
+# ============================================================
+#  КАК ЗАПУСТИТЬ:
+#   1. Создай бота у @BotFather в Telegram (команда /newbot).
+#   2. Скопируй токен бота в поле bot-token ниже.
+#   3. Выполни /2faadmin reload в игре (или перезапусти сервер).
+#   4. Привяжи аккаунт: /2fa link  ->  отправь боту /link <код>.
+#   5. Готово! При следующем входе бот пришлёт код и кнопки.
+#  Пока bot-token пустой, плагин НИКОГО не блокирует.
+# ============================================================
+
+telegram:
+  # Токен бота от @BotFather. Пример: 123456789:AAEx...
+  bot-token: ""
+  # Имя бота без @ (необязательно). Если пусто — плагин получит его сам.
+  bot-username: ""
+
+settings:
+  # opt-in   — 2FA только у тех, кто привязал Telegram и включил её.
+  # required — 2FA обязательна для всех (кроме права void2fa.bypass).
+  mode: opt-in
+
+  # Длина одноразового кода подтверждения.
+  code-length: 6
+  # Сколько секунд действует код подтверждения.
+  code-ttl-seconds: 120
+  # Сколько секунд даётся на подтверждение входа (потом кик).
+  auth-timeout-seconds: 90
+  # Максимум неверных попыток ввода кода (потом кик).
+  max-attempts: 5
+  # Не спрашивать 2FA повторно при входе с того же IP в течение N минут.
+  # 0 = спрашивать при каждом входе.
+  session-minutes: 0
+
+  # Замораживать игрока до подтверждения (движение, чат, команды, урон и т.д.).
+  freeze: true
+  # Накладывать слепоту, пока вход не подтверждён.
+  blindness: true
+
+  # Если бот не настроен или недоступен:
+  #   false — пускать всех (безопасно на этапе настройки, рекомендуется);
+  #   true  — не пускать никого без права void2fa.bypass.
+  lockdown-if-unavailable: false
+
+# ------------------------------------------------------------
+#  Сообщения. Цвета через '&'. Плейсхолдеры: {player} {code} {ip}
+#  {attempts} {token} {bot} {url} {minutes} {state} {seconds}
+# ------------------------------------------------------------
+messages:
+  prefix: "&8[&bVoid2FA&8]&r "
+
+  # --- Игроку в игре ---
+  auth-required: "&7Требуется подтверждение входа. Код отправлен в Telegram. Введи &b/login <код>&7 или нажми кнопку в боте."
+  link-required: "&7Для входа привяжи Telegram: &b/2fa link"
+  code-sent: "&7Код отправлен в твой Telegram. Введи &b/login <код>&7 или нажми &a✅&7 в боте."
+  reminder: "&7⏳ Подтверди вход в Telegram или введи &b/login <код>&7."
+  approved: "&a✅ Вход подтверждён. Добро пожаловать!"
+  wrong-code: "&cНеверный код. Осталось попыток: &e{attempts}&c."
+  no-pending: "&7Сейчас нет активного запроса на вход."
+  code-expired: "&cКод истёк. Запроси новый: &b/2fa resend"
+  too-many-attempts: "&cСлишком много неверных попыток."
+  not-linked: "&cТы ещё не привязал Telegram. Используй &b/2fa link"
+  already-linked: "&cTelegram уже привязан. Сначала &b/2fa unlink"
+  link-start: "&7🔗 Привязка Telegram:\n&71. Открой бота &b{bot}\n&72. Отправь ему: &b/link {token}\n&7Или перейди по ссылке: &b{url}\n&7Код действует {minutes} мин."
+  link-success: "&a✅ Telegram привязан! 2FA включена."
+  unlink-success: "&aTelegram отвязан. 2FA выключена."
+  enabled: "&a2FA включена."
+  disabled: "&e2FA выключена."
+  must-be-authenticated: "&cСначала подтверди вход."
+  bot-not-configured: "&eБот ещё не настроен. 2FA пока не работает."
+  no-permission: "&cУ тебя нет прав."
+  player-only: "&cЭта команда только для игроков."
+  usage-login: "&7Использование: &b/login <код>"
+  unknown-subcommand: "&cНеизвестная подкоманда. &7/2fa help"
+  status-self: "&7Статус 2FA: {state}\n&7Telegram: {link}"
+  help-player: "&bVoid2FA &7— команды:\n&b/2fa link &7— привязать Telegram\n&b/2fa unlink &7— отвязать Telegram\n&b/2fa on &7/ &boff &7— вкл/выкл 2FA\n&b/2fa code <код> &7— подтвердить вход\n&b/2fa resend &7— выслать код повторно\n&b/login <код> &7— быстрый ввод кода"
+
+  # --- Кик ---
+  timeout-kick: "&cВремя подтверждения входа истекло.\n&7Зайди снова и подтверди вход в Telegram."
+  denied-kick: "&cВход отклонён через Telegram."
+  attempts-kick: "&cСлишком много неверных попыток."
+  lockdown-kick: "&c2FA временно недоступна. Попробуй позже."
+
+  # --- Админ ---
+  admin-reloaded: "&aКонфигурация Void2FA перезагружена."
+  admin-reset: "&a2FA сброшена для игрока &b{player}&a."
+  admin-enabled: "&a2FA включена для &b{player}&a."
+  admin-disabled: "&e2FA выключена для &b{player}&e."
+  admin-not-linked: "&cУ игрока &b{player}&c не привязан Telegram."
+  admin-status: "&7Игрок &b{player}&7: 2FA={state}, Telegram={link}"
+  admin-player-not-found: "&cИгрок не найден."
+  help-admin: "&bVoid2FA Admin &7— команды:\n&b/2faadmin reload &7— перезагрузить конфиг\n&b/2faadmin status <игрок> &7— статус\n&b/2faadmin reset <игрок> &7— сбросить привязку\n&b/2faadmin enable <игрок> &7— включить 2FA\n&b/2faadmin disable <игрок> &7— выключить 2FA"
+
+  # --- Сообщения бота в Telegram ---
+  tg-auth-request: "🔐 Вход в VoidSMP\nИгрок: {player}\nIP: {ip}\nКод: {code}\n\nВведи в игре: /login {code}\nИли нажми кнопку ниже."
+  tg-approved: "✅ Вход подтверждён для {player}."
+  tg-denied: "❌ Вход отклонён для {player}."
+  tg-expired: "⌛ Время вышло. Вход отменён ({player})."
+  tg-quit: "🚪 Игрок {player} вышел. Вход отменён."
+  tg-link-success: "✅ Telegram привязан к игроку {player}."
+  tg-link-already: "⚠️ Этот Telegram уже привязан к игроку {player}."
+  tg-link-invalid: "❌ Неверный или просроченный код привязки. В игре: /2fa link"
+  tg-start: "Привет! Я бот двухфакторной аутентификации VoidSMP.\n\nПривяжи аккаунт в игре командой /2fa link и отправь мне полученный код.\n\nКоманды:\n/link <код> — привязать аккаунт\n/status — статус привязки\n/unlink — отвязать аккаунт\n/help — помощь"
+  tg-help: "Команды:\n/link <код> — привязать аккаунт (код из игры: /2fa link)\n/status — статус привязки\n/unlink — отвязать аккаунт"
+  tg-status-linked: "🔗 Привязан к игроку: {player}\n2FA: {state}"
+  tg-status-unlinked: "Аккаунт не привязан. В игре выполни /2fa link"
+  tg-unlink-success: "✅ Telegram отвязан."
+  tg-unlink-none: "Нечего отвязывать — аккаунт не привязан."
+  tg-unlink-pending: "⚠️ Нельзя отвязать аккаунт во время входа. Сначала подтверди или отклони вход."
+  tg-unknown: "Не понимаю 🤔 Используй /help"
+
+  # --- Кнопки ---
+  button-approve: "✅ Подтвердить"
+  button-deny: "❌ Отклонить"
