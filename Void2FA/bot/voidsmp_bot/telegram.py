@@ -11,6 +11,22 @@ class TelegramError(Exception):
         self.retry_after = retry_after
 
 
+# Bot menu shown in the Telegram chat. Command handling itself stays in the Paper plugin.
+BOT_COMMANDS = [
+    {"command": "start", "description": "Приветствие и список команд"},
+    {"command": "help", "description": "Все команды бота"},
+    {"command": "link", "description": "Привязать аккаунт по коду из игры"},
+    {"command": "status", "description": "Статус привязки и 2FA"},
+    {"command": "lock", "description": "Заблокировать аккаунт"},
+    {"command": "unlock", "description": "Разблокировать аккаунт"},
+    {"command": "kick", "description": "Завершить текущий вход"},
+    {"command": "revoke", "description": "Убрать все устройства и кикнуть"},
+    {"command": "devices", "description": "Список доверенных устройств"},
+    {"command": "untrust", "description": "Убрать устройство: id или all"},
+    {"command": "unlink", "description": "Отвязать аккаунт"},
+]
+
+
 class Telegram:
     """The sole getUpdates consumer in external mode. Never delete a webhook implicitly."""
     def __init__(self, session: aiohttp.ClientSession, api: str, token: str):
@@ -52,6 +68,14 @@ class Telegram:
             self.ready = False
             raise RuntimeError("Telegram webhook is configured; external bot requires one long-polling owner. Resolve it explicitly before startup.")
         self.ready = True
+
+    async def set_commands(self):
+        """Publish the command menu. Best-effort: a failure must not stop the transport."""
+        try:
+            await self.call("setMyCommands", {"commands": BOT_COMMANDS}, 20)
+            return True
+        except TelegramError:
+            return False
 
     async def updates(self, offset: int):
         result = await self.call("getUpdates", {"offset": offset, "timeout": 25,

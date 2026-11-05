@@ -23,7 +23,11 @@ async def test_telegram_methods_and_no_implicit_webhook_delete(tmp_path):
         assert await tg.updates(10)==[{"update_id":10}]
         assert await tg.send(123,"hello",[[{"text":"OK","callback_data":"v2fa:ok:A"}]])==12
         await tg.edit(123,12,"done"); await tg.answer("cb","ok")
-        assert [m for m,_ in calls]==["getMe","getWebhookInfo","getUpdates","sendMessage","editMessageText","answerCallbackQuery"]
+        assert await tg.set_commands() is True
+        assert [m for m,_ in calls]==["getMe","getWebhookInfo","getUpdates","sendMessage","editMessageText","answerCallbackQuery","setMyCommands"]
+        menu={c["command"] for c in calls[6][1]["commands"]}
+        assert {"help","start","kick","revoke","devices","untrust","lock","unlock","link","status","unlink"} <= menu
+        assert all(c["description"] and len(c["description"])<=256 for c in calls[6][1]["commands"])
         assert calls[2][1]["allowed_updates"]==["message","callback_query"]
         assert calls[4][1]["reply_markup"]=={"inline_keyboard":[]}
 
@@ -51,3 +55,15 @@ async def test_errors_do_not_expose_token_or_description(caplog):
         with pytest.raises(TelegramError) as exc: await tg.call("getMe",{})
         assert "sensitive-token" not in str(exc.value)
         assert "secret-code" not in str(exc.value)
+
+
+async def test_command_menu_failure_is_not_fatal():
+    async def api(request):
+        method=request.match_info["method"]
+        if method=="setMyCommands":
+            return web.json_response({"ok":False,"description":"nope"},status=400)
+        return web.json_response({"ok":True,"result":True})
+    app=web.Application(); app.router.add_post("/bot{token}/{method}",api)
+    async with test_utils.TestServer(app) as server, aiohttp.ClientSession() as session:
+        tg=Telegram(session,str(server.make_url("/")).rstrip("/"),"test-token")
+        assert await tg.set_commands() is False

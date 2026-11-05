@@ -11,7 +11,11 @@ class FakeTelegram:
     def __init__(self):
         self.ready = True; self.bot_id = 999; self.username = "voidsmp_test_bot"; self.last_poll = time.monotonic()
         self.sent = []; self.edits = []; self.answers = []; self.batches = []; self.failures = 0
+        self.menu_calls = 0; self.menu_ok = True
     async def connect(self): self.ready = True
+    async def set_commands(self):
+        self.menu_calls += 1
+        return self.menu_ok
     async def updates(self, offset):
         if self.batches: return self.batches.pop(0)
         await asyncio.sleep(3600); return []
@@ -93,3 +97,18 @@ async def test_instance_reset_invalidates_message_references(service):
     assert service.state.get("plugin_instance") == "new"
     assert service.state.message("old") is None
     assert service.state.pending_outbox() == []
+
+
+async def test_identify_publishes_command_menu_once(service):
+    service.telegram.ready = False
+    await service.identify()
+    await service.identify()
+    assert service.telegram.menu_calls == 1
+
+
+async def test_menu_failure_does_not_break_identify(service):
+    service.telegram.ready = False
+    service.telegram.menu_ok = False
+    await service.identify()
+    assert service.telegram.ready
+    assert service.state.get("bot_id") == "999"

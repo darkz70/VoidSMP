@@ -1,6 +1,6 @@
 # Void2FA external bridge, protocol V2FA1 / version 1
 
-Это документация реализованного моста в исходниках 1.3.0, не описание старого JAR 1.0.0.
+Это документация реализованного моста в исходниках 1.3.1, не описание старого JAR 1.0.0.
 Транспорт: HTTPS, JSON, POST. Бот — сервер (`0.0.0.0:$PORT` на Bothost), плагин Paper — клиент.
 Плагин инициирует единственный запрос `POST /v1/sync`; входящий порт Minecraft-сервера не нужен.
 Один секрет — один сервер и один бот.
@@ -117,8 +117,9 @@ Callback должен относиться к сообщению текущег�
 
 ## Telegram API
 
-Сервис использует `getMe`, `getWebhookInfo`, `getUpdates`, `sendMessage`, `editMessageText`,
-`answerCallbackQuery`. Он не вызывает `deleteWebhook`: наличие webhook — ошибка запуска,
+Сервис использует `getMe`, `getWebhookInfo`, `setMyCommands`, `getUpdates`, `sendMessage`,
+`editMessageText`, `answerCallbackQuery`. `setMyCommands` публикует меню команд при подключении;
+его ошибка не останавливает транспорт. Он не вызывает `deleteWebhook`: наличие webhook — ошибка запуска,
 чтобы не сломать чужую интеграцию молча. `getUpdates` — единственный consumer, offset сохраняется в SQLite.
 409 останавливает сервис; 429 учитывает retry_after; сетевые ошибки повторяются с backoff.
 Токен только из `BOT_TOKEN`/`BOT_TOKEN_FILE` (совместимые алиасы Bothost: `API_TOKEN`, `TELEGRAM_BOT_TOKEN`);

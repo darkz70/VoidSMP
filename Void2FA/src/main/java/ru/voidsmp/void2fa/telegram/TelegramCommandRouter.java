@@ -24,7 +24,7 @@ public final class TelegramCommandRouter {
         switch (cmd) {
             case "/start" -> {
                 if (arg.startsWith("LINK_")) link(userId, arg.substring(5));
-                else bot.sendMessage(chatId, plugin.getConfigManager().tg("tg-start"));
+                else bot.sendMessage(chatId, TelegramHelp.withRequiredCommands(plugin.getConfigManager().tg("tg-start")));
             }
             case "/link" -> link(userId, arg);
             case "/status" -> plugin.getAuthManager().sendTelegramStatus(userId);
@@ -47,7 +47,7 @@ public final class TelegramCommandRouter {
                     plugin.getAuthManager().untrustDeviceByTelegram(userId, arg);
                 }
             }
-            case "/help" -> bot.sendMessage(chatId, plugin.getConfigManager().tg("tg-help"));
+            case "/help" -> bot.sendMessage(chatId, TelegramHelp.withRequiredCommands(plugin.getConfigManager().tg("tg-help")));
             default -> bot.sendMessage(chatId, plugin.getConfigManager().tg("tg-unknown"));
         }
     }

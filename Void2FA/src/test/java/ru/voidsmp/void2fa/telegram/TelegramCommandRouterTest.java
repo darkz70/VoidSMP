@@ -5,6 +5,7 @@ import ru.voidsmp.void2fa.AuthManager;
 import ru.voidsmp.void2fa.ConfigManager;
 import ru.voidsmp.void2fa.Void2FAPlugin;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 /** Telegram command routing stays private-chat only and delegates ownership checks to AuthManager. */
@@ -55,6 +56,38 @@ class TelegramCommandRouterTest {
         router.text(42L,43L,"/revoke");
         router.text(0L,0L,"/revoke");
         verifyNoInteractions(auth,bot);
+    }
+
+    @Test void helpListsEveryCommandEvenWithOldConfigText() {
+        when(config.tg("tg-help")).thenReturn("Команды:\n/link <код> — привязать\n/status — статус");
+        router.text(42L,42L,"/help");
+        var captor=org.mockito.ArgumentCaptor.forClass(String.class);
+        verify(bot).sendMessage(eq(42L),captor.capture());
+        String help=captor.getValue();
+        for (String command : new String[]{"/link","/status","/unlink","/lock","/unlock","/devices","/untrust","/kick","/revoke","/help"}) {
+            assertTrue(help.contains(command), command);
+        }
+        verifyNoInteractions(auth);
+    }
+
+    @Test void startWithoutLinkTokenAlsoListsCommands() {
+        when(config.tg("tg-start")).thenReturn("Привет! Привяжи аккаунт: /2fa link");
+        router.text(42L,42L,"/start");
+        var captor=org.mockito.ArgumentCaptor.forClass(String.class);
+        verify(bot).sendMessage(eq(42L),captor.capture());
+        assertTrue(captor.getValue().contains("/kick"));
+        assertTrue(captor.getValue().contains("/revoke"));
+        assertTrue(captor.getValue().contains("/help"));
+        verifyNoInteractions(auth);
+    }
+
+    @Test void menuCoversEveryRoutedCommand() {
+        var names=new java.util.HashSet<String>();
+        for (Object entry : TelegramHelp.menuCommands()) {
+            names.add(String.valueOf(((java.util.Map<?,?>)entry).get("command")));
+        }
+        assertTrue(names.containsAll(java.util.List.of("start","help","link","status","unlink",
+                "lock","unlock","kick","revoke","devices","untrust")));
     }
 
     @Test void wrongBotAddressIsIgnored() {

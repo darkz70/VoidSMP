@@ -67,6 +67,8 @@ class Service:
                 if self.state.get("bot_id") not in {"", str(self.telegram.bot_id)}:
                     raise RuntimeError("State belongs to another bot. Use a fresh BOT_STATE_PATH/DATA_DIR after explicitly changing bots.")
                 self.state.set("bot_id", str(self.telegram.bot_id))
+                if not await self.telegram.set_commands():
+                    log.warning("Could not publish the Telegram command menu; commands still work via /help")
 
     async def polling(self):
         delay = 1.0

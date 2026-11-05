@@ -117,6 +117,9 @@ public final class TelegramBot implements TelegramTransport {
         plugin.getLogger().info("Telegram-бот подключён" + (botUsername != null ? ": @" + botUsername : "") + ".");
         plugin.onBotReady();
 
+        // Best-effort: show the commands in the Telegram menu so players can discover them.
+        request("setMyCommands", Json.obj("commands", TelegramHelp.menuCommands()), 20);
+
         // Make sure long polling works even if a webhook was configured before.
         request("deleteWebhook", Json.obj("drop_pending_updates", false), 20);
 

@@ -12,7 +12,7 @@ Telegram Bot API <--единственный getUpdates--> Python-бот на bo
                          HTTPS-домен Bothost, 0.0.0.0:$PORT
                          POST /v1/sync, HMAC-SHA256 в обе стороны
                                                |
-                         Void2FA 1.3.0 bridge (исходящий клиент Paper)
+                         Void2FA 1.3.1 bridge (исходящий клиент Paper)
                                                |
                          AuthManager на main thread Paper
                          коды, UUID, привязки, срок, одноразовость
@@ -23,6 +23,8 @@ Telegram Bot API <--единственный getUpdates--> Python-бот на bo
 Он передаёт Telegram user/chat ID, текст личного сообщения или callback текущего сообщения.
 Плагин проверяет владельца, срок и состояние попытки. `/login` проверяется только плагином.
 Тексты остаются в `config.yml` плагина: бот получает уже подготовленный текст.
+Исключение — меню команд Telegram: бот публикует его сам (`setMyCommands`) при подключении,
+чтобы игроки видели `/help`, `/kick`, `/revoke` и остальные команды в интерфейсе Telegram.
 
 В режиме `external` плагин не вызывает Telegram API, не удаляет webhook и не запускает `getUpdates`.
 Если в external оставить непустой `telegram.bot-token`, транспорт не запустится.
@@ -44,7 +46,7 @@ Java 25 и Gradle с поддержкой Java 25 (в CI используетс�
 ```bash
 cd Void2FA
 gradle build --no-daemon
-# build/libs/Void2FA-1.3.0.jar
+# build/libs/Void2FA-1.3.1.jar
 ```
 
 Для Paper API нужен доступ к `repo.papermc.io`. GitHub Actions `.github/workflows/void2fa.yml`
@@ -96,7 +98,7 @@ python3 -c 'import secrets; print(secrets.token_hex(32))'
 
 ## 5. Установка плагина на тестовую копию Paper
 
-Сначала останови тестовый сервер. Замени старый JAR на собранный `Void2FA-1.3.0.jar`.
+Сначала останови тестовый сервер. Замени старый JAR на собранный `Void2FA-1.3.1.jar`.
 Сохрани резервную копию `plugins/Void2FA/config.yml` и `data.yml`.
 Новые поля не добавляются автоматически в уже существующий YAML: добавь их вручную.
 
@@ -172,6 +174,7 @@ python3 -c 'import secrets; print(secrets.token_hex(32))'
 10. `/lock` в Telegram кикает онлайн-игрока и не пускает никого до `/unlock`; `/devices` и `/untrust` управляют доверенными IP.
 11. `/kick` завершает текущий вход и сбрасывает короткую сессию, но сохраняет доверенные устройства.
 12. `/revoke` (или `/untrust all`) удаляет все доверенные устройства, сбрасывает сессию и кикает онлайн-игрока.
+13. `/help` и `/start` показывают все команды, а в меню Telegram рядом с полем ввода видны команды бота.
     Команды работают только в личном чате привязанного владельца. Python-бот только передаёт текст; обработка остаётся в плагине.
 
 Административное восстановление: `/2faadmin reset НИК` с `void2fa.admin`.
