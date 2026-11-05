@@ -61,6 +61,22 @@ class PlayerDataManagerTest {
         assertNull(data.addTrustedDevice(id, null, 2));
     }
 
+    @Test void invalidateSessionSurvivesReloadAndKeepsDevicesAndLock() {
+        data.link(id, "Tester", 42L);
+        data.updateLastAuth(id, "192.0.2.10");
+        data.addTrustedDevice(id, "192.0.2.10", 5);
+        data.setLocked(id, true);
+
+        data.invalidateSession(id);
+        data.load();
+
+        assertEquals(0L, data.getLastAuth(id));
+        assertEquals("", data.getLastIp(id));
+        assertEquals(1, data.getTrustedDevices(id).size());
+        assertTrue(data.isLocked(id));
+        assertTrue(data.isLinked(id));
+    }
+
     @Test void trustedDeviceTtlAndRemoval() {
         PlayerDataManager.TrustedDevice device = data.addTrustedDevice(id, "192.0.2.10", 5);
         assertNotNull(device);

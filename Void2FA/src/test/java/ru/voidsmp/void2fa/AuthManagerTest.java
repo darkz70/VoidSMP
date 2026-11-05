@@ -147,6 +147,116 @@ class AuthManagerTest {
         verify(data).setLocked(id, false);
     }
 
+    @Test void trustedJoinDoesNotPrintToGameChat() {
+        when(player.getAddress()).thenReturn(new InetSocketAddress("192.0.2.10", 25565));
+        when(data.isTrustedDevice(id, "192.0.2.10", 0L)).thenReturn(true);
+        auth.onJoin(player);
+        verify(player, never()).sendMessage(anyString());
+        verify(bot).sendMessage(eq(42L), anyString());
+        verify(bot, never()).sendAuthRequest(anyString(), anyLong(), anyString(), any(), any());
+    }
+
+    @Test void approvalDoesNotPrintDeviceOrIpToGameChat() {
+        when(player.getAddress()).thenReturn(new InetSocketAddress("192.0.2.10", 25565));
+        String authId=joinAndCaptureAuthId();
+        clearInvocations(player);
+        assertTrue(auth.approveByAuthId(authId,42L));
+        verify(player, never()).sendMessage(anyString());
+        verify(bot).editAuthRequest(eq(authId), eq(42L), anyString());
+    }
+
+    @Test void playerDeviceCommandsRespondOnlyInTelegram() {
+        when(data.findByTelegramId(42L)).thenReturn(id);
+        when(player.getAddress()).thenReturn(new InetSocketAddress("192.0.2.10", 25565));
+        when(data.addTrustedDevice(id, "192.0.2.10", 5))
+                .thenReturn(new PlayerDataManager.TrustedDevice("ABCD1234", "192.0.2.10", 1L, 1L));
+        when(data.removeTrustedDevice(id, "ABCD1234")).thenReturn(1);
+
+        auth.trustCurrentDevice(player);
+        auth.listDevices(player);
+        auth.untrustDevice(player, "ABCD1234");
+
+        verify(player, never()).sendMessage(anyString());
+        verify(bot, times(3)).sendMessage(eq(42L), anyString());
+    }
+
+    @Test void telegramKickEndsCurrentLoginButKeepsTrustedDevices() {
+        when(data.findByTelegramId(42L)).thenReturn(id);
+        when(data.getName(id)).thenReturn("Tester");
+        String authId=joinAndCaptureAuthId();
+        clearInvocations(player, bot);
+
+        auth.kickByTelegram(42L);
+
+        verify(data).invalidateSession(id);
+        verify(data, never()).removeTrustedDevice(any(), anyString());
+        verify(player).kickPlayer("kick");
+        verify(bot).sendMessage(eq(42L), anyString());
+        verify(player, never()).sendMessage(anyString());
+        assertFalse(auth.isPending(id));
+        assertFalse(auth.approveByAuthId(authId, 42L));
+    }
+
+    @Test void telegramKickWorksOfflineAndRequiresLinkedOwner() {
+        when(data.findByTelegramId(42L)).thenReturn(id);
+        when(data.getName(id)).thenReturn("Tester");
+        bukkit.when(() -> Bukkit.getPlayer(id)).thenReturn(null);
+
+        auth.kickByTelegram(42L);
+
+        verify(data).invalidateSession(id);
+        verify(player, never()).kickPlayer(anyString());
+        verify(bot).sendMessage(eq(42L), anyString());
+
+        clearInvocations(data, bot);
+        auth.kickByTelegram(99L);
+        verify(data, never()).invalidateSession(any());
+        verify(bot).sendMessage(eq(99L), anyString());
+    }
+
+    @Test void telegramRevokeRemovesAllDevicesInvalidatesSessionAndPendingAuth() {
+        when(data.findByTelegramId(42L)).thenReturn(id);
+        when(data.getName(id)).thenReturn("Tester");
+        when(data.removeTrustedDevice(id, "all")).thenReturn(3);
+        String authId=joinAndCaptureAuthId();
+        clearInvocations(player, bot);
+
+        auth.revokeByTelegram(42L);
+
+        verify(data).removeTrustedDevice(id, "all");
+        verify(data).invalidateSession(id);
+        verify(player).kickPlayer("kick");
+        verify(bot).sendMessage(eq(42L), anyString());
+        verify(player, never()).sendMessage(anyString());
+        assertFalse(auth.isPending(id));
+        assertFalse(auth.approveByAuthId(authId, 42L));
+    }
+
+    @Test void untrustAllFromTelegramUsesFullRevoke() {
+        when(data.findByTelegramId(42L)).thenReturn(id);
+        when(data.getName(id)).thenReturn("Tester");
+        when(data.removeTrustedDevice(id, "all")).thenReturn(2);
+
+        auth.untrustDeviceByTelegram(42L, "ALL");
+
+        verify(data).removeTrustedDevice(id, "all");
+        verify(data).invalidateSession(id);
+        verify(player).kickPlayer("kick");
+        verify(bot).sendMessage(eq(42L), anyString());
+    }
+
+    @Test void playerUntrustAllRespondsOnlyInTelegramAndRevokesAccess() {
+        when(data.removeTrustedDevice(id, "all")).thenReturn(2);
+
+        auth.untrustDevice(player, "all");
+
+        verify(data).removeTrustedDevice(id, "all");
+        verify(data).invalidateSession(id);
+        verify(player).kickPlayer("kick");
+        verify(player, never()).sendMessage(anyString());
+        verify(bot).sendMessage(eq(42L), anyString());
+    }
+
     @Test void adminResetDoesNotSilentlyAuthorizePendingLogin() {
         String authId=joinAndCaptureAuthId();
         auth.adminReset(id);

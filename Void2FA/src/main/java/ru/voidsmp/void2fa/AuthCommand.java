@@ -134,14 +134,10 @@ public final class AuthCommand implements CommandExecutor, TabCompleter {
             }
         } else if (command.getName().equalsIgnoreCase("2fa") && args.length == 2
                 && args[0].equalsIgnoreCase("untrust") && sender instanceof Player player) {
+            // Device ids are listed in Telegram only; do not expose them in game tab-complete.
             String prefix = args[1].toLowerCase();
             if ("all".startsWith(prefix)) {
                 result.add("all");
-            }
-            for (PlayerDataManager.TrustedDevice device : plugin.getDataManager().getTrustedDevices(player.getUniqueId())) {
-                if (device.id.toLowerCase().startsWith(prefix)) {
-                    result.add(device.id);
-                }
             }
         }
         return result;

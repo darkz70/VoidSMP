@@ -124,9 +124,12 @@ public final class AdminCommand implements CommandExecutor, TabCompleter {
                 if (args.length < 3) {
                     sender.sendMessage(config.msg("usage-admin-untrust"));
                 } else {
-                    int removed = data.removeTrustedDevice(id, args[2]);
+                    String key = args[2];
+                    int removed = ("all".equalsIgnoreCase(key) || "*".equals(key))
+                            ? auth.adminRevokeAllDevices(id)
+                            : data.removeTrustedDevice(id, key);
                     sender.sendMessage(config.msg(removed > 0 ? "admin-device-untrusted" : "device-not-found",
-                            "player", name, "count", String.valueOf(removed), "key", args[2]));
+                            "player", name, "count", String.valueOf(removed), "key", key));
                 }
                 break;
             default:

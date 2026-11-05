@@ -41,7 +41,13 @@ class ConfigManagerTest {
         ConfigManager manager = new ConfigManager(plugin);
         assertFalse(manager.msg("locked-kick").isEmpty());
         assertFalse(manager.tg("tg-account-locked", "player", "Tester").isEmpty());
-        assertFalse(manager.msg("device-trusted", "id", "ABCD1234", "ip", "192.0.2.1").isEmpty());
+        assertFalse(manager.tg("tg-device-trusted").isEmpty());
+        assertFalse(manager.tg("tg-trusted-device-login").isEmpty());
+        assertFalse(manager.tg("tg-approved-trusted").isEmpty());
+        assertFalse(manager.tg("tg-kicked", "player", "Tester").isEmpty());
+        assertFalse(manager.tg("tg-revoked", "player", "Tester", "count", "2").isEmpty());
+        assertFalse(manager.kick("owner-kick").isEmpty());
+        assertFalse(manager.kick("revoke-kick").isEmpty());
     }
 
     @Test void localOverridesStillWin() {

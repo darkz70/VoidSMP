@@ -96,6 +96,13 @@ public final class PlayerDataManager {
         return data.getString(base(id) + ".last-ip", "");
     }
 
+    /** Invalidates the short same-IP session cache; trusted devices are kept separately. */
+    public void invalidateSession(UUID id) {
+        data.set(base(id) + ".last-auth", null);
+        data.set(base(id) + ".last-ip", null);
+        save();
+    }
+
     // ------------------------------------------------------------------
     //  Account lock and trusted devices
     // ------------------------------------------------------------------

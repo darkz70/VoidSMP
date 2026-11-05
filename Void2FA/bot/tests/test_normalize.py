@@ -40,3 +40,12 @@ def test_non_text_edits_channels_and_bots_ignored():
     assert normalize(u,999,NOW) is None
     u=message(); del u["message"]["text"]
     assert normalize(u,999,NOW) is None
+
+
+@pytest.mark.parametrize("text", ["/kick", "/revoke", "/untrust all"])
+def test_owner_security_commands_are_transported_unchanged(text):
+    event = normalize(message(text=text), 999, NOW)
+    assert event is not None
+    assert event["type"] == "message"
+    assert event["text"] == text
+    assert event["user_id"] == event["chat_id"] == 123

@@ -31,6 +31,14 @@ public final class TelegramCommandRouter {
             case "/unlink" -> plugin.getAuthManager().unlinkByTelegram(userId);
             case "/lock" -> plugin.getAuthManager().lockByTelegram(userId);
             case "/unlock" -> plugin.getAuthManager().unlockByTelegram(userId);
+            case "/kick" -> {
+                if (arg.isEmpty()) plugin.getAuthManager().kickByTelegram(userId);
+                else bot.sendMessage(chatId, plugin.getConfigManager().tg("tg-usage-kick"));
+            }
+            case "/revoke" -> {
+                if (arg.isEmpty()) plugin.getAuthManager().revokeByTelegram(userId);
+                else bot.sendMessage(chatId, plugin.getConfigManager().tg("tg-usage-revoke"));
+            }
             case "/devices" -> plugin.getAuthManager().listDevicesByTelegram(userId);
             case "/untrust" -> {
                 if (arg.isEmpty()) {

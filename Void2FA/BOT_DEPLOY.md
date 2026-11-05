@@ -12,7 +12,7 @@ Telegram Bot API <--единственный getUpdates--> Python-бот на bo
                          HTTPS-домен Bothost, 0.0.0.0:$PORT
                          POST /v1/sync, HMAC-SHA256 в обе стороны
                                                |
-                         Void2FA 1.2.0 bridge (исходящий клиент Paper)
+                         Void2FA 1.3.0 bridge (исходящий клиент Paper)
                                                |
                          AuthManager на main thread Paper
                          коды, UUID, привязки, срок, одноразовость
@@ -44,7 +44,7 @@ Java 25 и Gradle с поддержкой Java 25 (в CI используетс�
 ```bash
 cd Void2FA
 gradle build --no-daemon
-# build/libs/Void2FA-1.2.0.jar
+# build/libs/Void2FA-1.3.0.jar
 ```
 
 Для Paper API нужен доступ к `repo.papermc.io`. GitHub Actions `.github/workflows/void2fa.yml`
@@ -96,7 +96,7 @@ python3 -c 'import secrets; print(secrets.token_hex(32))'
 
 ## 5. Установка плагина на тестовую копию Paper
 
-Сначала останови тестовый сервер. Замени старый JAR на собранный `Void2FA-1.2.0.jar`.
+Сначала останови тестовый сервер. Замени старый JAR на собранный `Void2FA-1.3.0.jar`.
 Сохрани резервную копию `plugins/Void2FA/config.yml` и `data.yml`.
 Новые поля не добавляются автоматически в уже существующий YAML: добавь их вручную.
 
@@ -170,6 +170,9 @@ python3 -c 'import secrets; print(secrets.token_hex(32))'
    меняется instance ID, старые callback/link/auth ID больше не действуют.
 9. После подтверждения входа зайди с того же IP: код не требуется. С другого IP — требуется.
 10. `/lock` в Telegram кикает онлайн-игрока и не пускает никого до `/unlock`; `/devices` и `/untrust` управляют доверенными IP.
+11. `/kick` завершает текущий вход и сбрасывает короткую сессию, но сохраняет доверенные устройства.
+12. `/revoke` (или `/untrust all`) удаляет все доверенные устройства, сбрасывает сессию и кикает онлайн-игрока.
+    Команды работают только в личном чате привязанного владельца. Python-бот только передаёт текст; обработка остаётся в плагине.
 
 Административное восстановление: `/2faadmin reset НИК` с `void2fa.admin`.
 Блокировка: `/2faadmin lock НИК`, разблокировка: `/2faadmin unlock НИК`.

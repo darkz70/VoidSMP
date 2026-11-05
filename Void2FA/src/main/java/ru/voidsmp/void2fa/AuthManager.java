@@ -94,7 +94,9 @@ public final class AuthManager {
         if (required && config.isTrustedDevicesEnabled() && data.isLinked(id) && ip != null
                 && data.isTrustedDevice(id, ip, config.getTrustedDeviceTtlMillis())) {
             data.touchTrustedDevice(id, ip);
-            player.sendMessage(config.msg("trusted-device-welcome"));
+            // Privacy: device/IP details are never printed to the Minecraft chat.
+            // The owner gets a short confirmation in Telegram only.
+            notifyTelegram(id, "tg-trusted-device-login");
             return;
         }
 
@@ -261,21 +263,18 @@ public final class AuthManager {
     }
 
     private void approve(AuthState st) {
-        editTelegram(st, config.tg("tg-approved", "player", st.playerName));
         cleanup(st);
         Player p = Bukkit.getPlayer(st.playerId);
         if (p != null) {
             removeBlindness(p);
-            p.sendMessage(config.msg("approved"));
         }
         data.updateLastAuth(st.playerId, st.ip);
+        boolean remembered = false;
         if (config.isTrustedDevicesEnabled() && config.isRememberDeviceOnApprove() && st.linked) {
-            PlayerDataManager.TrustedDevice device =
-                    data.addTrustedDevice(st.playerId, st.ip, config.getTrustedDeviceMax());
-            if (device != null && p != null) {
-                p.sendMessage(config.msg("device-trusted", "ip", device.ip, "id", device.id));
-            }
+            remembered = data.addTrustedDevice(st.playerId, st.ip, config.getTrustedDeviceMax()) != null;
         }
+        // Confirmation goes to Telegram only; never print the device id or IP to Minecraft chat.
+        editTelegram(st, config.tg(remembered ? "tg-approved-trusted" : "tg-approved", "player", st.playerName));
     }
 
     // ------------------------------------------------------------------
@@ -367,6 +366,74 @@ public final class AuthManager {
         bot.sendMessage(telegramId, config.tg("tg-account-unlocked", "player", data.getName(id)));
     }
 
+    /** Owner-only Telegram command: disconnect the current login, keep trusted devices. */
+    public void kickByTelegram(long telegramId) {
+        TelegramTransport bot = plugin.getBot();
+        if (bot == null) {
+            return;
+        }
+        UUID id = data.findByTelegramId(telegramId);
+        if (id == null) {
+            bot.sendMessage(telegramId, config.tg("tg-lock-not-linked"));
+            return;
+        }
+        data.invalidateSession(id);
+        cancelPending(id);
+        boolean online = kick(id, config.kick("owner-kick"));
+        bot.sendMessage(telegramId, config.tg(online ? "tg-kicked" : "tg-kick-offline",
+                "player", data.getName(id)));
+    }
+
+    /** Owner-only Telegram command: remove every trusted device and end the current login. */
+    public void revokeByTelegram(long telegramId) {
+        TelegramTransport bot = plugin.getBot();
+        if (bot == null) {
+            return;
+        }
+        UUID id = data.findByTelegramId(telegramId);
+        if (id == null) {
+            bot.sendMessage(telegramId, config.tg("tg-lock-not-linked"));
+            return;
+        }
+        Revocation result = revokeAllAccess(id);
+        bot.sendMessage(telegramId, config.tg(result.online ? "tg-revoked" : "tg-revoked-offline",
+                "player", data.getName(id), "count", String.valueOf(result.removed)));
+    }
+
+    private record Revocation(int removed, boolean online) {}
+
+    private Revocation revokeAllAccess(UUID id) {
+        int removed = data.removeTrustedDevice(id, "all");
+        data.invalidateSession(id);
+        cancelPending(id);
+        boolean online = kick(id, config.kick("revoke-kick"));
+        return new Revocation(removed, online);
+    }
+
+    private void cancelPending(UUID id) {
+        AuthState st = pending.get(id);
+        if (st != null) {
+            editTelegram(st, config.tg("tg-denied", "player", st.playerName));
+            cleanup(st);
+        }
+    }
+
+    private void sendRevokedToTelegram(UUID id, Revocation result) {
+        TelegramTransport bot = plugin.getBot();
+        long chatId = data.getTelegramId(id);
+        if (bot != null && chatId != 0L) {
+            bot.sendMessage(chatId, config.tg(result.online ? "tg-revoked" : "tg-revoked-offline",
+                    "player", data.getName(id), "count", String.valueOf(result.removed)));
+        }
+    }
+
+    /** Admin/console helper: revoke all devices and disconnect the target if online. */
+    public int adminRevokeAllDevices(UUID id) {
+        Revocation result = revokeAllAccess(id);
+        sendRevokedToTelegram(id, result);
+        return result.removed;
+    }
+
     public void adminSetLocked(UUID id, boolean locked) {
         data.setLocked(id, locked);
         if (locked) {
@@ -402,7 +469,8 @@ public final class AuthManager {
             player.sendMessage(config.msg("device-trust-failed"));
             return;
         }
-        player.sendMessage(config.msg("device-trusted", "ip", device.ip, "id", device.id));
+        // Device details stay out of Minecraft chat; confirm in Telegram only.
+        notifyTelegram(id, "tg-device-trusted");
     }
 
     public void listDevices(Player player) {
@@ -415,16 +483,8 @@ public final class AuthManager {
             player.sendMessage(config.msg("must-be-authenticated"));
             return;
         }
-        List<PlayerDataManager.TrustedDevice> devices = data.getTrustedDevices(id);
-        if (devices.isEmpty()) {
-            player.sendMessage(config.msg("devices-empty"));
-            return;
-        }
-        player.sendMessage(config.msg("devices-header", "count", String.valueOf(devices.size())));
-        for (PlayerDataManager.TrustedDevice device : devices) {
-            player.sendMessage(config.msg("device-line", "id", device.id, "ip", device.ip,
-                    "date", formatDate(device.createdAt)));
-        }
+        // The list contains device ids and IPs, so send it to the owner's Telegram only.
+        listDevicesByTelegram(data.getTelegramId(id));
     }
 
     public void untrustDevice(Player player, String key) {
@@ -437,9 +497,13 @@ public final class AuthManager {
             player.sendMessage(config.msg("must-be-authenticated"));
             return;
         }
+        // Do not echo a device id/IP back into Minecraft chat.
+        if (isAllDevicesKey(key)) {
+            sendRevokedToTelegram(id, revokeAllAccess(id));
+            return;
+        }
         int removed = data.removeTrustedDevice(id, key);
-        player.sendMessage(config.msg(removed > 0 ? "device-untrusted" : "device-not-found",
-                "count", String.valueOf(removed), "key", key == null ? "" : key));
+        sendDeviceUntrustedToTelegram(id, removed, key);
     }
 
     public void listDevicesByTelegram(long telegramId) {
@@ -475,9 +539,26 @@ public final class AuthManager {
             bot.sendMessage(telegramId, config.tg("tg-lock-not-linked"));
             return;
         }
+        if (isAllDevicesKey(key)) {
+            revokeByTelegram(telegramId);
+            return;
+        }
         int removed = data.removeTrustedDevice(id, key);
         bot.sendMessage(telegramId, config.tg(removed > 0 ? "tg-device-untrusted" : "tg-device-not-found",
                 "count", String.valueOf(removed), "key", key == null ? "" : key));
+    }
+
+    private static boolean isAllDevicesKey(String key) {
+        return "all".equalsIgnoreCase(key) || "*".equals(key);
+    }
+
+    private void sendDeviceUntrustedToTelegram(UUID id, int removed, String key) {
+        TelegramTransport bot = plugin.getBot();
+        long chatId = data.getTelegramId(id);
+        if (bot != null && chatId != 0L) {
+            bot.sendMessage(chatId, config.tg(removed > 0 ? "tg-device-untrusted" : "tg-device-not-found",
+                    "count", String.valueOf(removed), "key", key == null ? "" : key));
+        }
     }
 
     private void notifyTelegram(UUID id, String key) {
@@ -725,11 +806,13 @@ public final class AuthManager {
         }
     }
 
-    private void kick(UUID id, String message) {
+    private boolean kick(UUID id, String message) {
         Player p = Bukkit.getPlayer(id);
         if (p != null) {
             p.kickPlayer(message);
+            return true;
         }
+        return false;
     }
 
     private void cleanup(AuthState st) {
