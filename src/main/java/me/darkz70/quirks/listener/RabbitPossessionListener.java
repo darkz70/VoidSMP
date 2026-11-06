@@ -328,7 +328,7 @@ public final class RabbitPossessionListener implements Listener {
 
     private static boolean canBreak(Block block) {
         return switch (block.getType()) {
-            case BEDROCK, BARRIER, COMMAND_BLOCK, STRUCTURE_BLOCK, STRUCTURE_VOID,
+            case BEDROCK, BARRIER, COMMAND_BLOCK, STRUCTURE_BLOCK, STRUCTURE_VOID, JIGSAW,
                     CHEST, TRAPPED_CHEST, ENDER_CHEST, SPAWNER, END_PORTAL_FRAME, END_PORTAL,
                     NETHER_PORTAL, WATER, LAVA, REINFORCED_DEEPSLATE -> false;
             default -> true;

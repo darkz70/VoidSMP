@@ -150,6 +150,9 @@ public final class GaidFx implements Listener {
         fx(inv, 8, Material.SCULK_SHRIEKER, "&2&lОстров: &aБольшой",
                 "&7Радиус ~70, самый долгий и зрелищный рост,",
                 "&716 деревьев, последний всплеск — крик шрайкера.");
+        fx(inv, 9, Material.ECHO_SHARD, "&3&lСкалк-цитадель",
+                "&7Радиус ~45, трава темнее обычного скалк-острова,",
+                "&7свой биом (ещё более мрачные туман/вода/небо).");
         inv.setItem(4, btn(Material.ARROW, "&7&lНазад"));
         player.openInventory(inv);
     }
@@ -183,6 +186,7 @@ public final class GaidFx implements Listener {
             case 6 -> sculkIslandSmall(player);
             case 7 -> sculkIslandMedium(player);
             case 8 -> sculkIslandLarge(player);
+            case 9 -> sculkCitadel(player);
             case 11 -> hellRift(player);
             case 12 -> hellRift(player, 5.0, 4);
             case 13 -> openHell(player);
@@ -586,9 +590,20 @@ public final class GaidFx implements Listener {
         Material.NETHER_SPROUTS, Material.NETHER_SPROUTS, Material.NETHER_SPROUTS, Material.SCULK_SENSOR
     };
 
-    private void sculkIslandSmall(Player admin) { sculkIsland(admin, 16, 11, 3); }
-    private void sculkIslandMedium(Player admin) { sculkIsland(admin, 32, 18, 7); }
-    private void sculkIslandLarge(Player admin) { sculkIsland(admin, 70, 30, 16); }
+    private void sculkIslandSmall(Player admin) {
+        sculkIsland(admin, 16, 11, 3, ISLAND_GRASS, sculkBiome(), "voidquirks:sculk_island");
+    }
+    private void sculkIslandMedium(Player admin) {
+        sculkIsland(admin, 32, 18, 7, ISLAND_GRASS, sculkBiome(), "voidquirks:sculk_island");
+    }
+    private void sculkIslandLarge(Player admin) {
+        sculkIsland(admin, 70, 30, 16, ISLAND_GRASS, sculkBiome(), "voidquirks:sculk_island");
+    }
+
+    /** Скалк-цитадель: тот же остров, но трава темнее (отдельная текстура) и свой, более мрачный биом. */
+    private void sculkCitadel(Player admin) {
+        sculkIsland(admin, 45, 24, 10, CITADEL_GRASS, citadelBiome(), "voidquirks:sculk_citadel");
+    }
 
     /**
      * Наш скалковый биом из датапака (voidquirks:sculk_island) — если сервер ещё не
@@ -596,8 +611,17 @@ public final class GaidFx implements Listener {
      * (тогда остров строится без спец-окраски травы/тумана, просто скалк-блоком).
      */
     private org.bukkit.block.Biome sculkBiome() {
+        return biomeByKey("voidquirks:sculk_island");
+    }
+
+    /** Биом более тёмной «Скалк-цитадели» (voidquirks:sculk_citadel) — та же логика, что и sculkBiome(). */
+    private org.bukkit.block.Biome citadelBiome() {
+        return biomeByKey("voidquirks:sculk_citadel");
+    }
+
+    private org.bukkit.block.Biome biomeByKey(String namespacedKey) {
         try {
-            org.bukkit.NamespacedKey key = org.bukkit.NamespacedKey.fromString("voidquirks:sculk_island");
+            org.bukkit.NamespacedKey key = org.bukkit.NamespacedKey.fromString(namespacedKey);
             if (key == null) return null;
             return org.bukkit.Registry.BIOME.get(key);
         } catch (Throwable t) {
@@ -608,9 +632,12 @@ public final class GaidFx implements Listener {
     /** Можно ставить блоки острова сюда (не трогаем бедрок/защищённые/контейнеры/жидкости). */
     private static boolean canBuildOn(Block block) {
         return switch (block.getType()) {
-            case BEDROCK, BARRIER, COMMAND_BLOCK, STRUCTURE_BLOCK, STRUCTURE_VOID,
+            case BEDROCK, BARRIER, COMMAND_BLOCK, STRUCTURE_VOID,
                     CHEST, TRAPPED_CHEST, ENDER_CHEST, SPAWNER, END_PORTAL_FRAME, END_PORTAL,
                     NETHER_PORTAL, WATER, LAVA -> false;
+            // STRUCTURE_BLOCK и JIGSAW сюда намеренно НЕ включены: это наши собственные
+            // блоки-носители текстуры скалк-травы (см. ISLAND_GRASS / CITADEL_GRASS ниже),
+            // их обязательно нужно уметь перестраивать/перекрывать как обычную землю острова.
             default -> true;
         };
     }
@@ -620,20 +647,20 @@ public final class GaidFx implements Listener {
      * на месте админа (от центра к краю, снизу вверх), плюс несколько скалк-деревьев.
      * radius — радиус острова, height — высота купола над исходной землёй, trees — сколько деревьев.
      */
-    private void sculkIsland(Player admin, int radius, int height, int trees) {
+    private void sculkIsland(Player admin, int radius, int height, int trees,
+            Material topGrass, org.bukkit.block.Biome biome, String biomeKey) {
         Location at = admin.getLocation();
         World world = at.getWorld();
         if (world == null) return;
         int cx = at.getBlockX();
         int cz = at.getBlockZ();
         int groundY = world.getHighestBlockYAt(cx, cz);
-        org.bukkit.block.Biome biome = sculkBiome();
         if (biome == null) {
             admin.sendMessage(Msg.color("&eСкалк-биом ещё не активен (нужен рестарт сервера после установки"
                     + " датапака) — туман/вода на острове будут обычными, но скалк-трава всё равно своя."));
         } else {
             admin.sendMessage(Msg.color("&aСкалк-биом активен — остров в мире &f" + world.getName()
-                    + "&a красится в voidquirks:sculk_island (туман/вода/небо)."));
+                    + "&a красится в " + biomeKey + " (туман/вода/небо)."));
         }
 
         // предрасчёт формы купола с шероховатым краем (не идеальный круг)
@@ -665,7 +692,7 @@ public final class GaidFx implements Listener {
                 int[] edge = columns.get(to - 1);
                 for (int k = from; k < to; k++) {
                     int[] col = columns.get(k);
-                    buildIslandColumn(world, cx + col[0], cz + col[1], col[2], biome);
+                    buildIslandColumn(world, cx + col[0], cz + col[1], col[2], biome, topGrass);
                 }
                 int tipGround = world.getHighestBlockYAt(cx + edge[0], cz + edge[1]);
                 Location tip = new Location(world, cx + edge[0] + 0.5, tipGround + edge[2] + 1, cz + edge[1] + 0.5);
@@ -699,8 +726,17 @@ public final class GaidFx implements Listener {
         }, finishTicks);
     }
 
-    /** Настоящий блок «скалк-травы»: переодетый (ресурспак меняет текстуру) REINFORCED_DEEPSLATE. */
-    private static final Material SCULK_GRASS = Material.REINFORCED_DEEPSLATE;
+    /**
+     * Блоки-носители текстуры скалк-травы. Раньше для этого использовался
+     * REINFORCED_DEEPSLATE, но он ещё и генерируется ВАНИЛЬНО в Древних городах —
+     * рескин ломал внешний вид вообще всех Ancient City на сервере, не только наших
+     * островов. JIGSAW и STRUCTURE_BLOCK никогда не генерируются естественно и
+     * недоступны игрокам без креатива/команд — безопасные "пустые холсты" под текстуру.
+     * Обычный остров — ISLAND_GRASS (светлая трава), Скалк-цитадель — CITADEL_GRASS
+     * (на 25% темнее, отдельная текстура).
+     */
+    private static final Material ISLAND_GRASS = Material.JIGSAW;
+    private static final Material CITADEL_GRASS = Material.STRUCTURE_BLOCK;
 
     /**
      * Один столбец острова: тёмный камень внизу, скалк-масса в толще, на самом верху —
@@ -709,7 +745,7 @@ public final class GaidFx implements Listener {
      * сервера) — ещё и вода/туман/небо вокруг острова тонируются в его цвета.
      */
     private void buildIslandColumn(World world, int x, int z, int height,
-            org.bukkit.block.Biome biome) {
+            org.bukkit.block.Biome biome, Material topGrass) {
         // высота земли СВОЯ для каждой колонки — иначе на неровном рельефе (у воды,
         // на склоне) остров рвётся/зависает в воздухе на краях
         int groundY = world.getHighestBlockYAt(x, z);
@@ -723,8 +759,8 @@ public final class GaidFx implements Listener {
             if (y < groundY - baseDepth + 1) {
                 block.setType(ThreadLocalRandom.current().nextBoolean() ? Material.DEEPSLATE : Material.TUFF);
             } else if (y == toY) {
-                block.setType(SCULK_GRASS); // скалк-травяной блок — своя текстура
-                scheduleWitherRoseGrowth(world, x, y + 1, z);
+                block.setType(topGrass); // скалк-травяной блок — своя текстура
+                scheduleWitherRoseGrowth(world, x, y + 1, z, topGrass);
             } else {
                 block.setType(Material.SCULK);
             }
@@ -752,22 +788,22 @@ public final class GaidFx implements Listener {
      * острова свой независимый случайный цикл 10-30 минут. Если место занято или остров
      * (чанк) не загружен — просто пробуем в следующий раз, растение не теряется навсегда.
      */
-    private void scheduleWitherRoseGrowth(World world, int x, int y, int z) {
+    private void scheduleWitherRoseGrowth(World world, int x, int y, int z, Material topGrass) {
         int delayTicks = ThreadLocalRandom.current().nextInt(10 * 60 * 20, 30 * 60 * 20 + 1);
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (!world.isChunkLoaded(x >> 4, z >> 4)) {
-                scheduleWitherRoseGrowth(world, x, y, z);
+                scheduleWitherRoseGrowth(world, x, y, z, topGrass);
                 return;
             }
             Block base = world.getBlockAt(x, y - 1, z);
-            if (base.getType() != SCULK_GRASS) return; // блок сломали/заменили — цикл прекращаем
+            if (base.getType() != topGrass) return; // блок сломали/заменили — цикл прекращаем
             Block spot = world.getBlockAt(x, y, z);
             if (spot.getType().isAir() && ThreadLocalRandom.current().nextInt(10) < 7) {
                 spot.setType(Material.WITHER_ROSE);
                 world.spawnParticle(Particle.SCULK_SOUL, spot.getLocation().add(0.5, 0.3, 0.5),
                         6, 0.2, 0.2, 0.2, 0.01);
             }
-            scheduleWitherRoseGrowth(world, x, y, z);
+            scheduleWitherRoseGrowth(world, x, y, z, topGrass);
         }, delayTicks);
     }
 

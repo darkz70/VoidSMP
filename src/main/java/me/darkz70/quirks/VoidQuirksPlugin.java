@@ -162,16 +162,20 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     private void installSculkDatapack() {
         String[] files = {
             "sculk_datapack/pack.mcmeta",
-            "sculk_datapack/data/voidquirks/worldgen/biome/sculk_island.json"
+            "sculk_datapack/data/voidquirks/worldgen/biome/sculk_island.json",
+            "sculk_datapack/data/voidquirks/worldgen/biome/sculk_citadel.json"
         };
         boolean installedNew = false;
         for (org.bukkit.World world : Bukkit.getWorlds()) {
             java.io.File dpRoot = new java.io.File(world.getWorldFolder(), "datapacks/voidquirks_sculk");
-            java.io.File marker = new java.io.File(dpRoot, "pack.mcmeta");
-            if (marker.exists()) continue;
+            // ВАЖНО: раньше тут была проверка "если pack.mcmeta уже есть — пропустить весь мир",
+            // из-за чего НОВЫЕ файлы (например, новый биом), добавленные в более позднюю версию
+            // плагина, никогда не докопировались на уже установленный датапак. Теперь копируем
+            // файл за файлом и считаем "новым" только то, чего раньше не было на диске.
             for (String res : files) {
                 String relative = res.substring("sculk_datapack/".length());
                 java.io.File dest = new java.io.File(dpRoot, relative);
+                boolean alreadyThere = dest.exists();
                 try {
                     dest.getParentFile().mkdirs();
                     try (var in = getResource(res)) {
@@ -182,12 +186,12 @@ public final class VoidQuirksPlugin extends JavaPlugin {
                         java.nio.file.Files.copy(in, dest.toPath(),
                                 java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                     }
+                    if (!alreadyThere) installedNew = true;
                 } catch (java.io.IOException e) {
                     getLogger().warning("Не смог установить датапак скалк-биома в " + world.getName() + ": "
                             + e.getMessage());
                 }
             }
-            installedNew = true;
         }
         if (installedNew) {
             getLogger().warning("===========================================================");
