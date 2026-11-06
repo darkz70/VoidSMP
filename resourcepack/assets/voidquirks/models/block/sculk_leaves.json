@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:block/leaves",
-  "textures": {
-    "all": "voidquirks:block/sculk_leaves"
-  }
-}
