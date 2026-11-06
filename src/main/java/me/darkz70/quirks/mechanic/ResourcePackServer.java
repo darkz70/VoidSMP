@@ -6,6 +6,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.security.MessageDigest;
 import java.time.Duration;
+import java.util.UUID;
 import me.darkz70.quirks.util.Msg;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -31,6 +32,17 @@ import org.bukkit.plugin.java.JavaPlugin;
  * хэш и посчитается.
  */
 public final class ResourcePackServer {
+
+    /**
+     * Фиксированный ID именно НАШЕГО пака в мульти-паковом слоте клиента. ВАЖНО:
+     * раньше тут использовался {@code Player#setResourcePack(...)}, который
+     * ЗАМЕНЯЕТ активный ресурспак игрока целиком — если на сервере уже стоит свой
+     * (основной) ресурспак, он слетал и подменялся на VoidQuirks. Теперь вместо
+     * этого используется {@code Player#addResourcePack(id, ...)} — он добавляет
+     * наш пак ДОПОЛНИТЕЛЬНО, остальные паки игрока (включая серверный основной
+     * resource-pack= из server.properties) не трогает.
+     */
+    private static final UUID PACK_ID = UUID.fromString("c0ffee00-0000-4000-8000-000000000001");
 
     private static volatile String url;
     private static volatile byte[] hash;
@@ -77,12 +89,14 @@ public final class ResourcePackServer {
         }
     }
 
-    /** Отправляет игроку актуальный ресурспак (если загрузка/хэш уже готовы). */
+    /** Отправляет игроку актуальный ресурспак ДОПОЛНИТЕЛЬНО (не заменяя его прочие паки). */
     public static void sendTo(Player player, JavaPlugin plugin) {
         if (!ready || url == null || hash == null) return;
         boolean force = plugin.getConfig().getBoolean("resourcepack.force", false);
         String promptRaw = plugin.getConfig().getString("resourcepack.prompt",
                 "&bУстанови ресурспак VoidQuirks — иначе причуды будут выглядеть как обычные ванильные блоки!");
-        player.setResourcePack(url, hash, Msg.color(promptRaw), force);
+        String promptLegacy = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
+                .serialize(Msg.color(promptRaw));
+        player.addResourcePack(PACK_ID, url, hash, promptLegacy, force);
     }
 }
