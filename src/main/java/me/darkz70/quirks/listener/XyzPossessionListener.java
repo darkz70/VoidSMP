@@ -70,9 +70,14 @@ public final class XyzPossessionListener implements Listener {
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
-    /** Поддерживаемые виды мобов для вселения. */
+    /**
+     * Поддерживаемые виды мобов для вселения. У шести — свой уникальный набор
+     * способностей. GENERIC — вообще ЛЮБОЙ другой живой моб игры (зомби, крипер,
+     * корова, дракон Края и т.д.) с тем же универсальным набором, что раньше был
+     * только у кролика (бой/рывок/коготь/полёт/взрывы) — Лёша попросил "всех мобов".
+     */
     private enum Kind {
-        RABBIT, BLAZE, WARDEN, FOX, PIGLIN, VILLAGER
+        RABBIT, BLAZE, WARDEN, FOX, PIGLIN, VILLAGER, GENERIC
     }
 
     private static Kind kindOf(Entity e) {
@@ -82,6 +87,9 @@ public final class XyzPossessionListener implements Listener {
         if (e instanceof Fox) return Kind.FOX;
         if (e instanceof Piglin) return Kind.PIGLIN;
         if (e instanceof Villager) return Kind.VILLAGER;
+        if (e instanceof Player) return null; // в других игроков не вселяемся
+        if (e instanceof org.bukkit.entity.ArmorStand) return null; // не живой моб
+        if (e instanceof LivingEntity) return Kind.GENERIC;
         return null;
     }
 
@@ -185,6 +193,9 @@ public final class XyzPossessionListener implements Listener {
             new Ability(Material.IRON_INGOT, "golem", "&bПризыв голема",
                     "&7Временный железный голем-союзник на 30 сек."),
         });
+        // GENERIC — любой другой живой моб игры (зомби, корова, дракон Края и т.д.):
+        // тот же набор, что был у кролика с самого начала.
+        ABILITIES.put(Kind.GENERIC, ABILITIES.get(Kind.RABBIT));
     }
 
     // ---------- вход/выход ----------
@@ -198,6 +209,9 @@ public final class XyzPossessionListener implements Listener {
         if (!admin.isOp() && !admin.hasPermission("quirks.admin")) return;
         LivingEntity mob = (LivingEntity) event.getRightClicked();
         if (kind == Kind.RABBIT && ZayceKrol.isZayce((Rabbit) mob)) return; // у зайцекролов своё меню
+        if (mob.getPersistentDataContainer().has(Keys.noLoot, PersistentDataType.BYTE)) {
+            return; // временный призванный моб (наш голем, саммоны магии и т.п.) — не для вселения
+        }
         if (mob.getPersistentDataContainer().has(Keys.xyzPossessedBy, PersistentDataType.STRING)) {
             admin.sendMessage(Msg.color("&cЭтого моба уже кто-то занял."));
             return;
@@ -248,11 +262,82 @@ public final class XyzPossessionListener implements Listener {
             le.teleport(admin.getLocation());
         }, 0L, 1L);
 
-        admin.sendMessage(Msg.color("&a✦ Ты вселился в " + displayName(kind)
+        admin.sendMessage(Msg.color("&a✦ Ты вселился в " + displayName(kind, mob)
                 + "! &7Слоты 1-6 — способности, 9 — выйти."));
     }
 
-    private static String displayName(Kind kind) {
+    /** Склонённые русские названия частых мобов для GENERIC; для редких — английское имя типа. */
+    private static final Map<org.bukkit.entity.EntityType, String> MOB_NAMES = new EnumMap<>(
+            org.bukkit.entity.EntityType.class);
+
+    static {
+        MOB_NAMES.put(org.bukkit.entity.EntityType.ZOMBIE, "зомби");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.SKELETON, "скелета");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.CREEPER, "крипера");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.ENDERMAN, "эндермена");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.SPIDER, "паука");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.CAVE_SPIDER, "пещерного паука");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.SILVERFISH, "чешуйницу");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.ENDERMITE, "эндермита");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.SLIME, "слайма");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.MAGMA_CUBE, "магма-куба");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.GHAST, "гаста");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.HOGLIN, "хоглина");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.ZOGLIN, "зоглина");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.ZOMBIFIED_PIGLIN, "зомбифицированного пиглина");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.STRIDER, "страйдера");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.WITHER_SKELETON, "иссушённого скелета");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.GUARDIAN, "стража");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.ELDER_GUARDIAN, "древнего стража");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.SHULKER, "шалкера");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.VEX, "векса");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.EVOKER, "иллюзионера");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.VINDICATOR, "иллюзера");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.PILLAGER, "разбойника");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.RAVAGER, "разорителя");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.WITCH, "ведьму");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.PHANTOM, "фантома");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.DROWNED, "утопленника");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.HUSK, "хаска");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.STRAY, "страя");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.BOGGED, "боггеда");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.BREEZE, "бриза");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.COW, "корову");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.MOOSHROOM, "грибную корову");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.PIG, "свинью");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.SHEEP, "овцу");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.CHICKEN, "курицу");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.HORSE, "лошадь");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.DONKEY, "осла");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.MULE, "мула");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.LLAMA, "ламу");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.CAT, "кота");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.WOLF, "волка");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.PARROT, "попугая");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.BAT, "летучую мышь");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.SQUID, "кальмара");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.GLOW_SQUID, "светящегося кальмара");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.DOLPHIN, "дельфина");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.TURTLE, "черепаху");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.PANDA, "панду");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.BEE, "пчелу");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.AXOLOTL, "аксолотля");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.GOAT, "козла");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.CAMEL, "верблюда");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.SNIFFER, "нюхача");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.ALLAY, "аллая");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.TADPOLE, "головастика");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.FROG, "лягушку");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.POLAR_BEAR, "белого медведя");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.SNOW_GOLEM, "снеговика");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.IRON_GOLEM, "железного голема");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.ENDER_DRAGON, "дракона Края");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.WITHER, "иссушителя");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.ARMADILLO, "броненосца");
+        MOB_NAMES.put(org.bukkit.entity.EntityType.WANDERING_TRADER, "странствующего торговца");
+    }
+
+    private static String displayName(Kind kind, LivingEntity mob) {
         return switch (kind) {
             case RABBIT -> "кролика";
             case BLAZE -> "блейза";
@@ -260,6 +345,8 @@ public final class XyzPossessionListener implements Listener {
             case FOX -> "лису";
             case PIGLIN -> "пиглина";
             case VILLAGER -> "жителя";
+            case GENERIC -> MOB_NAMES.getOrDefault(mob.getType(),
+                    "моба (" + mob.getType().name().toLowerCase().replace('_', ' ') + ")");
         };
     }
 
@@ -332,7 +419,7 @@ public final class XyzPossessionListener implements Listener {
             return;
         }
         switch (state.kind) {
-            case RABBIT -> useRabbit(player, state, ability);
+            case RABBIT, GENERIC -> useRabbit(player, state, ability);
             case BLAZE -> useBlaze(player, state, ability);
             case WARDEN -> useWarden(player, state, ability);
             case FOX -> useFox(player, state, ability);
