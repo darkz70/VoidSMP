@@ -67,3 +67,80 @@ async def test_command_menu_failure_is_not_fatal():
     async with test_utils.TestServer(app) as server, aiohttp.ClientSession() as session:
         tg=Telegram(session,str(server.make_url("/")).rstrip("/"),"test-token")
         assert await tg.set_commands() is False
+
+
+async def test_network_failure_reports_cause_not_just_http_zero():
+    """HTTP 0 must say what broke: a timeout is a hosting/network problem, not a bad token."""
+    import asyncio
+    from voidsmp_bot.telegram import network_reason
+
+    async def api(request):
+        await asyncio.sleep(5)
+        return web.json_response({"ok": True, "result": True})
+
+    app = web.Application(); app.router.add_post("/bot{token}/{method}", api)
+    async with test_utils.TestServer(app) as server, aiohttp.ClientSession() as session:
+        tg = Telegram(session, str(server.make_url("/")).rstrip("/"), "sensitive-token")
+        with pytest.raises(TelegramError) as exc:
+            await tg.call("getMe", {}, timeout=0.2)
+        assert exc.value.status == 0
+        assert exc.value.reason == "timeout"
+        assert tg.last_error == "timeout"
+        assert "sensitive-token" not in str(exc.value)
+    assert network_reason(aiohttp.ClientConnectorDNSError(None, OSError())) == "dns"
+    assert network_reason(aiohttp.ClientProxyConnectionError(None, OSError())) == "proxy"
+    assert network_reason(aiohttp.ClientConnectorError(None, OSError())) == "unreachable"
+    assert network_reason(aiohttp.ServerDisconnectedError()) == "disconnected"
+
+
+async def test_non_json_answer_is_bad_response():
+    async def api(request):
+        return web.Response(text="<html>captive portal</html>", content_type="text/html")
+    app = web.Application(); app.router.add_post("/bot{token}/{method}", api)
+    async with test_utils.TestServer(app) as server, aiohttp.ClientSession() as session:
+        tg = Telegram(session, str(server.make_url("/")).rstrip("/"), "test-token")
+        with pytest.raises(TelegramError) as exc:
+            await tg.call("getMe", {})
+        assert exc.value.status == 0 and exc.value.reason == "bad_response"
+
+
+async def test_successful_call_clears_last_error():
+    async def api(request):
+        return web.json_response({"ok": True, "result": True})
+    app = web.Application(); app.router.add_post("/bot{token}/{method}", api)
+    async with test_utils.TestServer(app) as server, aiohttp.ClientSession() as session:
+        tg = Telegram(session, str(server.make_url("/")).rstrip("/"), "test-token")
+        tg.last_error = "timeout"
+        await tg.call("sendMessage", {})
+        assert tg.last_error == ""
+
+
+def test_proxy_credentials_move_to_proxy_auth():
+    from voidsmp_bot.telegram import split_proxy
+
+    assert split_proxy("") == ("", "")
+    assert split_proxy("http://127.0.0.1:3128") == ("http://127.0.0.1:3128", "")
+    url, auth = split_proxy("http://user:p%40ss@127.0.0.1:3128")
+    assert url == "http://127.0.0.1:3128"
+    assert auth == aiohttp.encode_basic_auth("user", "p@ss")
+    # SOCKS is handled by the session connector, never as a per-request proxy.
+    assert split_proxy("socks5://user:pass@127.0.0.1:1080") == ("", "")
+
+
+async def test_http_proxy_receives_the_telegram_request():
+    """The proxy must see the absolute Telegram URL, and credentials must not stay in it."""
+    seen = []
+
+    async def proxy_handler(request):
+        seen.append((str(request.url), request.headers.get("Proxy-Authorization", "")))
+        return web.json_response({"ok": True, "result": {"id": 999, "username": "test_bot"}})
+
+    app = web.Application(); app.router.add_post("/{tail:.*}", proxy_handler)
+    async with test_utils.TestServer(app) as server, aiohttp.ClientSession() as session:
+        proxy = str(server.make_url("/")).rstrip("/").replace("http://", "http://user:pass@")
+        tg = Telegram(session, "http://api.telegram.org", "test-token", proxy)
+        assert await tg.call("getMe", {}) == {"id": 999, "username": "test_bot"}
+    assert len(seen) == 1
+    url, auth = seen[0]
+    assert url == "http://api.telegram.org/bottest-token/getMe"
+    assert auth == aiohttp.encode_basic_auth("user", "pass")

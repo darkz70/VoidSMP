@@ -9,6 +9,25 @@ from .telegram import Telegram, TelegramError
 
 log = logging.getLogger("voidsmp.bot")
 
+# A broken network can fail every few seconds for hours. Keep the console readable.
+LOG_THROTTLE_SECONDS = 300.0
+
+# What to actually do about a transport failure. Keys come from telegram.network_reason.
+NETWORK_HINTS = {
+    "timeout": "контейнер не достаёт api.telegram.org (таймаут). Обычно это блокировка исходящего трафика на ноде хостинга",
+    "unreachable": "соединение с api.telegram.org не устанавливается (сеть/файрвол ноды)",
+    "dns": "не резолвится api.telegram.org (DNS в контейнере)",
+    "tls": "TLS-рукопожатие с api.telegram.org не проходит (перехват трафика или неверное время в контейнере)",
+    "proxy": "прокси TELEGRAM_PROXY не работает или не пускает к Telegram",
+    "disconnected": "api.telegram.org разорвал соединение",
+    "bad_response": "вместо ответа Bot API пришёл не-JSON (подмена ответа прокси/порталом)",
+    "network": "сетевая ошибка при обращении к api.telegram.org",
+}
+
+NETWORK_FIX = ("Что делать: включи в профиле Bothost «Зарубежный IP для API и нейросетей» и сделай повторный деплой, "
+               "либо задай TELEGRAM_PROXY (http:// или socks5://) / TELEGRAM_API на своё зеркало Bot API. "
+               "Подробности: BOT_DEPLOY.md, раздел «HTTP 0».")
+
 
 def normalize(update: dict, bot_id: int, now: int) -> dict | None:
     """Extract Telegram identity facts, never a Minecraft UUID or an auth decision."""
@@ -55,10 +74,14 @@ class Service:
 
     def __init__(self, config: Config, session: aiohttp.ClientSession, state: State):
         self.config, self.state = config, state
-        self.telegram = Telegram(session, config.telegram_api, config.bot_token)
+        self.telegram = Telegram(session, config.telegram_api, config.bot_token, config.telegram_proxy)
         self.stop_event = asyncio.Event()
         self.offset = int(state.get("offset", "0"))
         self._identity_lock = asyncio.Lock()
+        # Log the first failure of a streak, then at most one line per LOG_THROTTLE_SECONDS.
+        self._warned_at = 0.0
+        self._warned_reason = ""
+        self._suppressed = 0
 
     async def identify(self):
         async with self._identity_lock:
@@ -70,12 +93,37 @@ class Service:
                 if not await self.telegram.set_commands():
                     log.warning("Could not publish the Telegram command menu; commands still work via /help")
 
+    def warn_transport(self, exc: TelegramError, prefix: str):
+        """Log a Telegram failure with its cause, without flooding the hosting console."""
+        reason = exc.reason
+        now = time.monotonic()
+        if reason == self._warned_reason and now - self._warned_at < LOG_THROTTLE_SECONDS:
+            self._suppressed += 1
+            return
+        repeated = f" (+{self._suppressed} подавлено)" if self._suppressed else ""
+        self._warned_at, self._warned_reason, self._suppressed = now, reason, 0
+        if exc.status:
+            log.warning("%s (HTTP %s)%s; retrying without logging credentials or updates",
+                        prefix, exc.status, repeated)
+            if exc.status in {401, 403}:
+                log.error("Telegram отверг токен. Перевыпусти его в @BotFather и обнови токен в панели Bothost.")
+            return
+        hint = NETWORK_HINTS.get(reason, NETWORK_HINTS["network"])
+        log.warning("%s (HTTP 0, %s): %s%s", prefix, reason, hint, repeated)
+        log.warning(NETWORK_FIX)
+
+    def note_recovered(self):
+        if self._warned_reason:
+            log.info("Telegram снова доступен после ошибки %s", self._warned_reason)
+            self._warned_reason, self._suppressed = "", 0
+
     async def polling(self):
         delay = 1.0
         while not self.stop_event.is_set():
             try:
                 await self.identify()
                 updates = await self.telegram.updates(self.offset)
+                self.note_recovered()
                 for update in updates:
                     if self.stop_event.is_set():
                         return
@@ -96,7 +144,7 @@ class Service:
             except TelegramError as exc:
                 self.telegram.ready = False
                 delay = exc.retry_after or (30.0 if exc.status in {401, 403, 409} else min(delay * 2, 30))
-                log.warning("Telegram unavailable (HTTP %s); retrying without logging credentials or updates", exc.status)
+                self.warn_transport(exc, "Telegram unavailable")
                 if exc.status == 409:
                     # Another consumer owns this token. Stop rather than race it indefinitely.
                     self.stop_event.set()
@@ -130,7 +178,7 @@ class Service:
                 raise
             except TelegramError as exc:
                 delay = exc.retry_after or min(delay * 2, 30)
-                log.warning("Telegram delivery failed (HTTP %s); outbox retained", exc.status)
+                self.warn_transport(exc, "Telegram delivery failed; outbox retained")
             except Exception as exc:
                 delay = min(delay * 2, 15)
                 log.warning("Outbox delivery failed (%s); outbox retained", type(exc).__name__)

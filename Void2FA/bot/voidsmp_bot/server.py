@@ -4,6 +4,7 @@ import hmac
 import json
 import re
 import time
+from urllib.parse import urlsplit
 from aiohttp import web
 from .config import Config
 from .security import fresh, signature
@@ -63,8 +64,18 @@ class SyncServer:
 
     async def health(self, _request: web.Request) -> web.Response:
         # Liveness for the hosting platform: do not restart just because Minecraft is offline.
-        return web.json_response({"status": "ok", "telegram_ready": self.service.telegram.ready},
-                                 headers={"Cache-Control": "no-store"})
+        telegram = self.service.telegram
+        last_poll = getattr(telegram, "last_poll", 0.0)
+        # Diagnostics only: reason codes and hostnames, never a token, proxy URL or chat id.
+        return web.json_response({
+            "status": "ok",
+            "telegram_ready": telegram.ready,
+            "telegram_error": getattr(telegram, "last_error", ""),
+            "telegram_api_host": urlsplit(self.config.telegram_api).hostname or "",
+            "proxy_configured": bool(self.config.telegram_proxy),
+            "last_poll_age_seconds": round(time.monotonic() - last_poll, 1) if last_poll else None,
+            "plugin_synced": bool(self.state.get("plugin_instance")),
+        }, headers={"Cache-Control": "no-store"})
 
     async def healthz(self, _request: web.Request) -> web.Response:
         ready = self.service.healthy

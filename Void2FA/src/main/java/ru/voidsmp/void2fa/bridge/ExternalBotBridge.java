@@ -36,6 +36,7 @@ public final class ExternalBotBridge implements TelegramTransport {
     private static final int MAX_EVENTS = 1000;
     private static final int BATCH = 100;
     private static final long EVENT_TTL_MS = 10 * 60 * 1000L;
+    private static final long WARN_INTERVAL_MS = 5 * 60 * 1000L;
     private static final String SYNC_PATH = "/v1/sync";
     private final Void2FAPlugin plugin;
     private final BridgeSecurity security;
@@ -52,6 +53,10 @@ public final class ExternalBotBridge implements TelegramTransport {
     private volatile long cursor;
     private volatile String botUsername = "";
     private volatile boolean telegramReady;
+    // Written only by the single bridge worker thread.
+    private long lastWarnAt;
+    private String lastWarnKind = "";
+    private int failureStreak;
 
     private record Event(String id, long createdAt, Map<String, Object> payload) {}
 
@@ -148,17 +153,58 @@ public final class ExternalBotBridge implements TelegramTransport {
             try {
                 syncOnce();
                 delay = 1000;
+                if (failureStreak > 0) {
+                    plugin.getLogger().info("Bridge снова на связи с ботом (сбоев подряд: " + failureStreak + ").");
+                    failureStreak = 0;
+                    lastWarnAt = 0;
+                    lastWarnKind = "";
+                }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return;
             } catch (Exception e) {
                 telegramReady = false;
                 delay = Math.min(delay * 2, 15000);
-                plugin.getLogger().warning("Bridge недоступен (" + e.getClass().getSimpleName()
-                        + "). Проверь URL бота, домен Bothost и общий секрет. Повтор через " + delay / 1000 + " с.");
+                warnUnavailable(e);
             }
             try { Thread.sleep(delay); } catch (InterruptedException e) { Thread.currentThread().interrupt(); return; }
         }
+    }
+
+    /**
+     * A dead bot endpoint fails every few seconds. Log the first failure and then at most
+     * one line per WARN_INTERVAL_MS, so the server console stays usable.
+     */
+    private void warnUnavailable(Exception e) {
+        String kind = e.getClass().getSimpleName();
+        long now = System.currentTimeMillis();
+        failureStreak++;
+        if (!shouldWarn(kind, now, lastWarnAt, lastWarnKind)) return;
+        String repeated = failureStreak > 1 ? " Сбоев подряд: " + failureStreak + "." : "";
+        lastWarnAt = now;
+        lastWarnKind = kind;
+        plugin.getLogger().warning("Bridge недоступен (" + kind + ")." + repeated
+                + " " + hint(kind) + " Пока связи нет, 2FA не подтверждает вход.");
+    }
+
+    /** First failure of a kind is always logged; repeats of the same kind are rate-limited. */
+    static boolean shouldWarn(String kind, long now, long lastWarnAt, String lastWarnKind) {
+        return !kind.equals(lastWarnKind) || now - lastWarnAt >= WARN_INTERVAL_MS;
+    }
+
+    static String hint(String kind) {
+        return switch (kind) {
+            case "HttpTimeoutException", "HttpConnectTimeoutException" ->
+                    "Сервер не дождался ответа от бота. Проверь, что бот на Bothost запущен, "
+                    + "и открой в браузере https://<домен-бота>/health: нет ответа — проблема домена/порта, "
+                    + "telegram_ready=false — бот не достаёт Telegram.";
+            case "ConnectException", "UnknownHostException" ->
+                    "Не удаётся соединиться с доменом бота. Проверь telegram.bridge.url и домен в панели Bothost.";
+            case "SSLHandshakeException", "SSLException" ->
+                    "TLS-рукопожатие с доменом бота не прошло. Проверь сертификат и системное время на сервере.";
+            default ->
+                    "Проверь URL бота, домен Bothost и общий секрет. При неверном секрете был бы HTTP 401.";
+        };
     }
 
     private void syncOnce() throws Exception {

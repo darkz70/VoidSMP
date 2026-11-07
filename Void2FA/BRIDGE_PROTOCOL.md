@@ -1,6 +1,6 @@
 # Void2FA external bridge, protocol V2FA1 / version 1
 
-Это документация реализованного моста в исходниках 1.3.1, не описание старого JAR 1.0.0.
+Это документация реализованного моста в исходниках 1.3.2, не описание старого JAR 1.0.0.
 Транспорт: HTTPS, JSON, POST. Бот — сервер (`0.0.0.0:$PORT` на Bothost), плагин Paper — клиент.
 Плагин инициирует единственный запрос `POST /v1/sync`; входящий порт Minecraft-сервера не нужен.
 Один секрет — один сервер и один бот.
@@ -132,3 +132,17 @@ HTTP redirects и proxy environment отключены.
 но не авторизацию. Код остаётся в истории Telegram до ручного удаления/политики чата.
 Мост и SQLite не рассчитаны на multi-server federation. Секреты и коды не логируются приложением;
 операционная система, reverse proxy и Telegram имеют собственные политики хранения, которые нужно настроить отдельно.
+
+## Диагностика
+
+`GET /health` (без HMAC, только для оператора) отдаёт состояние транспорта:
+
+```json
+{"status":"ok","telegram_ready":true,"telegram_error":"","telegram_api_host":"api.telegram.org",
+ "proxy_configured":false,"last_poll_age_seconds":3.4,"plugin_synced":true}
+```
+
+`telegram_error` — короткий код причины последней ошибки без токена и URL: пусто при успехе,
+иначе `timeout`, `unreachable`, `dns`, `tls`, `proxy`, `disconnected`, `bad_response` или `http_<код>`.
+`plugin_synced` показывает, доходил ли до бота хоть один `/v1/sync` от плагина.
+`GET /healthz` остаётся readiness-пробой платформы: 200 только если был успешный `getUpdates` за последние 60 с.

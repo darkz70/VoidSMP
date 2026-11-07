@@ -112,3 +112,45 @@ async def test_menu_failure_does_not_break_identify(service):
     await service.identify()
     assert service.telegram.ready
     assert service.state.get("bot_id") == "999"
+
+
+def test_repeated_network_failure_is_throttled_and_explains_the_cause(service, caplog):
+    """A dead network must not print two warnings every few seconds for hours."""
+    import logging
+    from voidsmp_bot.service import LOG_THROTTLE_SECONDS
+
+    caplog.set_level(logging.INFO, logger="voidsmp.bot")
+    error = TelegramError(0, reason="timeout")
+    for _ in range(50):
+        service.warn_transport(error, "Telegram unavailable")
+    lines = [r.getMessage() for r in caplog.records]
+    assert len([m for m in lines if "Telegram unavailable" in m]) == 1
+    assert any("timeout" in m and "api.telegram.org" in m for m in lines)
+    assert any("Зарубежный IP" in m or "TELEGRAM_PROXY" in m for m in lines)
+
+    # Once the throttle window passes, one summary line reports the suppressed count.
+    service._warned_at -= LOG_THROTTLE_SECONDS + 1
+    caplog.clear()
+    service.warn_transport(error, "Telegram unavailable")
+    assert any("подавлено" in r.getMessage() for r in caplog.records)
+
+
+def test_recovery_is_logged_once(service, caplog):
+    import logging
+
+    caplog.set_level(logging.INFO, logger="voidsmp.bot")
+    service.warn_transport(TelegramError(0, reason="dns"), "Telegram unavailable")
+    caplog.clear()
+    service.note_recovered()
+    service.note_recovered()
+    assert len([r for r in caplog.records if "снова доступен" in r.getMessage()]) == 1
+
+
+def test_bad_token_says_to_reissue_it(service, caplog):
+    import logging
+
+    caplog.set_level(logging.INFO, logger="voidsmp.bot")
+    service.warn_transport(TelegramError(401), "Telegram unavailable")
+    messages = [r.getMessage() for r in caplog.records]
+    assert any("401" in m for m in messages)
+    assert any("BotFather" in m for m in messages)

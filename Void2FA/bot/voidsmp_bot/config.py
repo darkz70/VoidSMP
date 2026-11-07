@@ -2,6 +2,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import urlsplit
 from .security import decode_secret
 
 
@@ -34,6 +35,29 @@ def _state_path() -> Path:
     return Path("state/bot.sqlite3")
 
 
+def _telegram_proxy() -> str:
+    """Optional outbound proxy for api.telegram.org.
+
+    Some hosting nodes (including Russian ones) cannot reach Telegram directly.
+    Bothost's own "foreign IP" option is the first thing to try; this is the fallback.
+    """
+    proxy = os.environ.get("TELEGRAM_PROXY", "").strip()
+    if not proxy:
+        return ""
+    parts = urlsplit(proxy)
+    if parts.scheme not in {"http", "https", "socks5", "socks5h"} or not parts.hostname:
+        raise ValueError("TELEGRAM_PROXY must be http://, https://, socks5:// or socks5h:// with a host")
+    if parts.scheme in {"socks5", "socks5h"}:
+        try:
+            import aiohttp_socks  # noqa: F401
+        except ImportError:
+            raise ValueError(
+                "TELEGRAM_PROXY uses SOCKS but aiohttp-socks is not installed; "
+                "use an http:// proxy or add aiohttp-socks to requirements.txt"
+            ) from None
+    return proxy
+
+
 @dataclass(frozen=True)
 class Config:
     bot_token: str = field(repr=False)
@@ -42,6 +66,7 @@ class Config:
     listen_host: str = "0.0.0.0"
     listen_port: int = 8080
     telegram_api: str = "https://api.telegram.org"
+    telegram_proxy: str = field(default="", repr=False)
 
     @classmethod
     def from_env(cls) -> "Config":
@@ -69,4 +94,5 @@ class Config:
             listen_host=os.environ.get("HOST", "0.0.0.0"),
             listen_port=port,
             telegram_api=os.environ.get("TELEGRAM_API", "https://api.telegram.org").rstrip("/"),
+            telegram_proxy=_telegram_proxy(),
         )

@@ -65,3 +65,29 @@ def test_secret_files_and_repr(monkeypatch, tmp_path):
     monkeypatch.setenv("BOT_TOKEN", "duplicate")
     with pytest.raises(ValueError):
         Config.from_env()
+
+
+def test_telegram_proxy_is_optional_and_validated(monkeypatch):
+    setup_env(monkeypatch)
+    monkeypatch.delenv("TELEGRAM_PROXY", raising=False)
+    assert Config.from_env().telegram_proxy == ""
+    monkeypatch.setenv("TELEGRAM_PROXY", "http://user:pass@127.0.0.1:3128")
+    c = Config.from_env()
+    assert c.telegram_proxy == "http://user:pass@127.0.0.1:3128"
+    # A proxy may carry credentials, so it must never show up in logs of the config.
+    assert "pass" not in repr(c)
+    monkeypatch.setenv("TELEGRAM_PROXY", "127.0.0.1:3128")
+    with pytest.raises(ValueError, match="TELEGRAM_PROXY must be"):
+        Config.from_env()
+
+
+def test_socks_proxy_without_dependency_has_actionable_error(monkeypatch):
+    setup_env(monkeypatch)
+    monkeypatch.setenv("TELEGRAM_PROXY", "socks5://127.0.0.1:1080")
+    try:
+        import aiohttp_socks  # noqa: F401
+    except ImportError:
+        with pytest.raises(ValueError, match="aiohttp-socks is not installed"):
+            Config.from_env()
+    else:
+        assert Config.from_env().telegram_proxy == "socks5://127.0.0.1:1080"

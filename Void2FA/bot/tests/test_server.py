@@ -93,3 +93,19 @@ async def test_invalid_event_rejected(server):
     bad = {"type": "message", "event_id": "event-01", "chat_id": -1, "text": "hello"}
     status, _ = await call(server, {"version": 1, "instance_id": "instance-1", "cursor": 0, "events": [bad]})
     assert status == 400
+
+
+async def test_health_exposes_cause_without_secrets(server):
+    server.service.telegram.last_error = "timeout"
+    async with test_utils.TestServer(server.app()) as tsrv:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(str(tsrv.make_url("/health"))) as r:
+                assert r.status == 200
+                value = await r.json()
+    assert value["status"] == "ok"
+    assert value["telegram_ready"] is True
+    assert value["telegram_error"] == "timeout"
+    assert value["telegram_api_host"] == "api.telegram.org"
+    assert value["proxy_configured"] is False
+    assert value["plugin_synced"] is False
+    assert "test-token" not in json.dumps(value)

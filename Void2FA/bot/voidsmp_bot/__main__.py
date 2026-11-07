@@ -3,12 +3,22 @@ import asyncio
 import logging
 import os
 import signal
+from pathlib import Path
+from urllib.parse import urlsplit
 import aiohttp
 from aiohttp import web
 from .config import Config
 from .server import SyncServer
 from .service import Service
 from .state import State
+
+
+def _session_kwargs(proxy: str) -> dict:
+    """SOCKS needs a connector; HTTP proxies are passed per request in Telegram.call."""
+    if urlsplit(proxy).scheme in {"socks5", "socks5h"}:
+        from aiohttp_socks import ProxyConnector
+        return {"connector": ProxyConnector.from_url(proxy)}
+    return {}
 
 
 async def run(config: Config):
@@ -23,7 +33,7 @@ async def run(config: Config):
             raise RuntimeError("Another bot process owns this state directory") from None
         state = State(config.state_path)
         try:
-            async with aiohttp.ClientSession(trust_env=False) as session:
+            async with aiohttp.ClientSession(trust_env=False, **_session_kwargs(config.telegram_proxy)) as session:
                 service = Service(config, session, state)
                 loop = asyncio.get_running_loop()
                 for sig in (signal.SIGINT, signal.SIGTERM):
