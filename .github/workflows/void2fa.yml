@@ -70,4 +70,4 @@ jobs:
       - uses: actions/upload-artifact@v5
         with:
           name: Void2FA-plugin
-          path: Void2FA/build/libs/Void2FA-1.3.2.jar
+          path: Void2FA/build/libs/Void2FA-1.3.3.jar

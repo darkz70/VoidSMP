@@ -42,7 +42,7 @@ public final class Void2FAPlugin extends JavaPlugin {
 
         startBot();
 
-        getLogger().info("Void2FA 1.3.2 включён. Режим: " + config.getMode() + ".");
+        getLogger().info("Void2FA 1.3.3 включён. Режим: " + config.getMode() + ".");
         if ("external".equals(config.getTransport())) {
             getLogger().info("External: запусти отдельный бот-сервис по BOT_DEPLOY.md; токен в плагин не требуется.");
         } else if (config.getBotToken().isEmpty()) {

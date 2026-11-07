@@ -47,6 +47,8 @@ public final class ExternalBotBridge implements TelegramTransport {
     private final SecureRandom random = new SecureRandom();
     private HttpClient http;
     private URI syncUri;
+    private Duration requestTimeout = Duration.ofSeconds(30);
+    private long readyGraceMillis = 40_000L;
     private Thread worker;
     private volatile boolean running;
     private volatile long lastSync;
@@ -90,7 +92,10 @@ public final class ExternalBotBridge implements TelegramTransport {
         if (!"https".equalsIgnoreCase(scheme) && !("http".equalsIgnoreCase(scheme) && loopback))
             throw new IOException("telegram.bridge.url must use HTTPS (HTTP is allowed only for loopback tests)");
         syncUri = URI.create((configured.endsWith("/") ? configured.substring(0, configured.length() - 1) : configured) + SYNC_PATH);
-        http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10))
+        requestTimeout = Duration.ofSeconds(plugin.getConfigManager().getBridgeTimeoutSeconds());
+        readyGraceMillis = plugin.getConfigManager().getBridgeReadyGraceSeconds() * 1000L;
+        http = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(plugin.getConfigManager().getBridgeConnectTimeoutSeconds()))
                 .followRedirects(HttpClient.Redirect.NEVER).build();
         running = true;
         worker = new Thread(this::loop, "Void2FA-Bridge");
@@ -101,7 +106,7 @@ public final class ExternalBotBridge implements TelegramTransport {
     }
 
     @Override public boolean isReady() {
-        return running && telegramReady && System.currentTimeMillis() - lastSync < 15000;
+        return running && telegramReady && System.currentTimeMillis() - lastSync < readyGraceMillis;
     }
     @Override public String getBotUsername() { return botUsername; }
     @Override public void sendMessage(long chatId, String text) {
@@ -216,7 +221,7 @@ public final class ExternalBotBridge implements TelegramTransport {
         if (body.length > MAX_BODY) throw new IOException("Bridge request too large");
         long ts = System.currentTimeMillis() / 1000;
         String nonce = nonce();
-        HttpRequest request = HttpRequest.newBuilder(syncUri).timeout(Duration.ofSeconds(20))
+        HttpRequest request = HttpRequest.newBuilder(syncUri).timeout(requestTimeout)
                 .header("Content-Type", "application/json")
                 .header("Cache-Control", "no-store")
                 .header("X-Void2FA-Timestamp", Long.toString(ts))

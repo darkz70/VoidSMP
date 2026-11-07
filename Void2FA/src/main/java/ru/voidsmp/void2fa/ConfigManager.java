@@ -16,6 +16,9 @@ public final class ConfigManager {
     private String transport;
     private String bridgeUrl;
     private String bridgeSecretFile;
+    private int bridgeTimeoutSeconds;
+    private int bridgeConnectTimeoutSeconds;
+    private int bridgeReadyGraceSeconds;
     private String mode;
     private int codeLength;
     private int codeTtlSeconds;
@@ -46,6 +49,10 @@ public final class ConfigManager {
         if (!transport.equals("external")) transport = "embedded";
         bridgeUrl = c.getString("telegram.bridge.url", "").trim();
         bridgeSecretFile = c.getString("telegram.bridge.secret-file", "bridge-secret.txt").trim();
+        bridgeTimeoutSeconds = clamp(c.getInt("telegram.bridge.timeout-seconds", 30), 5, 120);
+        bridgeConnectTimeoutSeconds = clamp(c.getInt("telegram.bridge.connect-timeout-seconds", 10), 3, 60);
+        // 0 = derive from the request timeout, so a slow-but-working bot never reads as "offline".
+        bridgeReadyGraceSeconds = clamp(c.getInt("telegram.bridge.ready-grace-seconds", 0), 0, 600);
         mode = c.getString("settings.mode", "opt-in").trim().toLowerCase();
         if (!mode.equals("required")) {
             mode = "opt-in";
@@ -76,6 +83,19 @@ public final class ConfigManager {
     public String getTransport() { return transport; }
     public String getBridgeUrl() { return bridgeUrl; }
     public String getBridgeSecretFile() { return bridgeSecretFile; }
+    public int getBridgeTimeoutSeconds() { return bridgeTimeoutSeconds; }
+    public int getBridgeConnectTimeoutSeconds() { return bridgeConnectTimeoutSeconds; }
+
+    /**
+     * How long a successful sync keeps the transport "ready".
+     * Must exceed one request timeout plus the loop delay, otherwise a slow bot
+     * looks permanently offline even while every sync succeeds.
+     */
+    public int getBridgeReadyGraceSeconds() {
+        return bridgeReadyGraceSeconds > 0
+                ? bridgeReadyGraceSeconds
+                : Math.max(15, bridgeTimeoutSeconds + 10);
+    }
 
     public String getBotToken() {
         return botToken;
