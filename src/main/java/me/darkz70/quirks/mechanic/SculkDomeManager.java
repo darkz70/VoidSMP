@@ -37,8 +37,12 @@ import org.joml.Vector3f;
  * то же самое "кастомный блок без хитбокса" даёт штатный BlockDisplay (Paper API,
  * с 1.19.4) — один повёрнутый по вертикали дисплей на каждую клетку периметра,
  * вместо столбика из отдельных блоков на каждую высоту (дешевле по сущностям).
- * Текстура — переодетый TINTED_GLASS (редкий крафтовый блок, не генерируется
- * естественно) с собственной полупрозрачной скалковой текстурой.
+ * Текстура — переодетый STRUCTURE_VOID (технический блок редактора структур:
+ * у игроков нет предмета, чтобы его получить/поставить — ни один настоящий
+ * блок на сервере никогда не превратится в стену купола и наоборот).
+ * Это и есть "свой" кастомный блок без стороннего плагина (ExecutableBlocks
+ * и т.п. физически недоступны в этом окружении — ни скачать, ни поставить
+ * на чужой боевой сервер).
  */
 public final class SculkDomeManager {
 
@@ -226,7 +230,7 @@ public final class SculkDomeManager {
     private BlockDisplay spawnWall(World world, int x, int baseY, int z, int height, String domeName) {
         Location loc = new Location(world, x, baseY, z);
         BlockDisplay display = world.spawn(loc, BlockDisplay.class, bd -> {
-            bd.setBlock(Material.TINTED_GLASS.createBlockData());
+            bd.setBlock(Material.STRUCTURE_VOID.createBlockData());
             bd.setTransformation(new Transformation(
                     new Vector3f(0f, 0f, 0f),
                     new AxisAngle4f(),
