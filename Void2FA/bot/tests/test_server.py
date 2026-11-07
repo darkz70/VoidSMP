@@ -109,3 +109,18 @@ async def test_health_exposes_cause_without_secrets(server):
     assert value["proxy_configured"] is False
     assert value["plugin_synced"] is False
     assert "test-token" not in json.dumps(value)
+
+
+async def test_health_identifies_the_answering_container(server, monkeypatch):
+    """After moving to a foreign-IP node the operator must be able to confirm which bot answered."""
+    from voidsmp_bot import __version__
+
+    monkeypatch.setenv("BOT_ID", "bot_1793902194_2443_verte82")
+    monkeypatch.setenv("DOMAIN", "bot-1793902194-2443-verte82.bothost.tech")
+    async with test_utils.TestServer(server.app()) as tsrv:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(str(tsrv.make_url("/health"))) as r:
+                value = await r.json()
+    assert value["version"] == __version__
+    assert value["hosting_bot_id"] == "bot_1793902194_2443_verte82"
+    assert value["hosting_domain"] == "bot-1793902194-2443-verte82.bothost.tech"

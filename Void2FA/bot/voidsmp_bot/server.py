@@ -2,10 +2,12 @@ from __future__ import annotations
 import asyncio
 import hmac
 import json
+import os
 import re
 import time
 from urllib.parse import urlsplit
 from aiohttp import web
+from . import __version__
 from .config import Config
 from .security import fresh, signature
 from .service import Service
@@ -69,12 +71,17 @@ class SyncServer:
         # Diagnostics only: reason codes and hostnames, never a token, proxy URL or chat id.
         return web.json_response({
             "status": "ok",
+            "version": __version__,
             "telegram_ready": telegram.ready,
             "telegram_error": getattr(telegram, "last_error", ""),
             "telegram_api_host": urlsplit(self.config.telegram_api).hostname or "",
             "proxy_configured": bool(self.config.telegram_proxy),
             "last_poll_age_seconds": round(time.monotonic() - last_poll, 1) if last_poll else None,
             "plugin_synced": bool(self.state.get("plugin_instance")),
+            # Bothost injects BOT_ID/DOMAIN. They identify which container answered, so a
+            # redeploy onto a different node is visible instead of guessed.
+            "hosting_bot_id": os.environ.get("BOT_ID", ""),
+            "hosting_domain": os.environ.get("DOMAIN", ""),
         }, headers={"Cache-Control": "no-store"})
 
     async def healthz(self, _request: web.Request) -> web.Response:

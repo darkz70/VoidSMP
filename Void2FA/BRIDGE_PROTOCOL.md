@@ -138,11 +138,17 @@ HTTP redirects и proxy environment отключены.
 `GET /health` (без HMAC, только для оператора) отдаёт состояние транспорта:
 
 ```json
-{"status":"ok","telegram_ready":true,"telegram_error":"","telegram_api_host":"api.telegram.org",
- "proxy_configured":false,"last_poll_age_seconds":3.4,"plugin_synced":true}
+{"status":"ok","version":"1.3.0","telegram_ready":true,"telegram_error":"",
+ "telegram_api_host":"api.telegram.org","proxy_configured":false,"last_poll_age_seconds":3.4,
+ "plugin_synced":true,"hosting_bot_id":"bot_1793902194_2443_verte82",
+ "hosting_domain":"bot-1793902194-2443-verte82.bothost.tech"}
 ```
 
 `telegram_error` — короткий код причины последней ошибки без токена и URL: пусто при успехе,
 иначе `timeout`, `unreachable`, `dns`, `tls`, `proxy`, `disconnected`, `bad_response` или `http_<код>`.
 `plugin_synced` показывает, доходил ли до бота хоть один `/v1/sync` от плагина.
 `GET /healthz` остаётся readiness-пробой платформы: 200 только если был успешный `getUpdates` за последние 60 с.
+
+`version` — версия пакета бота. `hosting_bot_id`/`hosting_domain` — значения переменных Bothost
+`BOT_ID`/`DOMAIN` (пустые строки вне Bothost). Они не секретны и нужны, чтобы отличить старый
+контейнер от нового после пересоздания бота на другой ноде.
