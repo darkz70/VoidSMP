@@ -39,6 +39,7 @@ public final class Keys {
     public static NamespacedKey xyzPossessedBy;   // причуда XYZ: UUID админа, который управляет мобом
     public static NamespacedKey superCarrot;     // супер-морковь: метка предмета
     public static NamespacedKey sculkWoodType;   // скалк-древесина: "log"/"leaves"/"planks" на предмете и как маркер блока
+    public static NamespacedKey domeMarker;      // скалк-купол: имя купола на каждой BlockDisplay-панели
 
     private Keys() {}
 
@@ -77,5 +78,6 @@ public final class Keys {
         xyzPossessedBy = new NamespacedKey(plugin, "xyz_possessed_by");
         superCarrot = new NamespacedKey(plugin, "super_carrot");
         sculkWoodType = new NamespacedKey(plugin, "sculk_wood_type");
+        domeMarker = new NamespacedKey(plugin, "dome_marker");
     }
 }

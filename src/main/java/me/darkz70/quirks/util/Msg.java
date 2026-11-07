@@ -116,6 +116,7 @@ public final class Msg {
         def("magic-spell-locked", "&8Заклинание &7%spell% &8откроется на %level% уровне магии.");
         def("magic-cooldown", "&7Заклинание остывает: &f%time%с&7.");
         def("magic-no-mana", "&cМаны не хватает — нужно %need%.");
+        def("magic-dome-suppressed", "&3✦ &7Скалк-купол подавляет эту магию. Работают только Тьма и Свет.");
         def("magic-quirks-back", "&7Отголоски чужих душ рассеялись. Ты снова собой.");
         def("magic-flight-end", "&7Крылья магии угасают… плавное снижение.");
         def("magic-menu-title", "%emoji% Заклинания: %element%");

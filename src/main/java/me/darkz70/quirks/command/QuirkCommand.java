@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 /** /quirk — управление причудами. Причуд можно несколько на одного игрока. */
 public final class QuirkCommand implements CommandExecutor, TabCompleter {
 
-    private static final List<String> SUBS = List.of("set", "remove", "remove_admin", "remove_tmp", "info", "list", "reload", "notify", "item", "pack", "lab", "zayce");
+    private static final List<String> SUBS = List.of("set", "remove", "remove_admin", "remove_tmp", "info", "list", "reload", "notify", "item", "pack", "lab", "zayce", "dome");
     private static final List<String> QUIRKS = List.of(
             "инженер", "кот", "бедрок", "топор", "скалк", "фермер", "земноводный", "паук",
             "engineer", "cat", "bedrock", "axe", "sculk", "farmer", "amphibian", "spider",
@@ -65,6 +65,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             case "pack", "resourcepack" -> handlePack(sender);
             case "lab", "labyrinth" -> handleLab(sender, args);
             case "zayce" -> handleZayce(sender, args);
+            case "dome" -> handleDome(sender, args);
             case "acceptsculk" -> {
                 if (sender instanceof Player p) {
                     plugin.sculkLeader().acceptInvite(p);
@@ -406,6 +407,49 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    /**
+     * /quirk dome create <имя> <x1> <z1> <x2> <z2> <высота> — скалк-купол: стена по периметру
+     *   прямоугольника (X/Z), высотой от текущего Y отправителя. Проходим насквозь, не ломается,
+     *   внутри подавлена вся магия кроме Тьмы и Света.
+     * /quirk dome remove <имя>
+     * /quirk dome list
+     */
+    private void handleDome(CommandSender sender, String[] args) {
+        if (!admin(sender)) return;
+        if (args.length < 2) {
+            Msg.send(sender, "usage");
+            return;
+        }
+        switch (args[1].toLowerCase(Locale.ROOT)) {
+            case "create" -> {
+                if (args.length < 8) {
+                    sender.sendMessage(Msg.color("&cИспользование: /quirk dome create <имя> <x1> <z1> <x2> <z2> <высота>"));
+                    return;
+                }
+                try {
+                    String name = args[2];
+                    int x1 = Integer.parseInt(args[3]);
+                    int z1 = Integer.parseInt(args[4]);
+                    int x2 = Integer.parseInt(args[5]);
+                    int z2 = Integer.parseInt(args[6]);
+                    int height = Integer.parseInt(args[7]);
+                    plugin.domes().create(sender, name, x1, z1, x2, z2, height);
+                } catch (NumberFormatException e) {
+                    sender.sendMessage(Msg.color("&cКоординаты и высота должны быть целыми числами."));
+                }
+            }
+            case "remove", "delete" -> {
+                if (args.length < 3) {
+                    sender.sendMessage(Msg.color("&cИспользование: /quirk dome remove <имя>"));
+                    return;
+                }
+                plugin.domes().remove(sender, args[2]);
+            }
+            case "list" -> plugin.domes().list(sender);
+            default -> Msg.send(sender, "usage");
+        }
+    }
+
     private void handleReload(CommandSender sender) {
         if (!admin(sender)) return;
         plugin.reloadPluginConfig();
@@ -442,6 +486,10 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
         } else if (args.length == 3 && args[0].equalsIgnoreCase("lab")
                 && (args[1].equalsIgnoreCase("tp") || args[1].equalsIgnoreCase("back"))) {
             addPlayers(out, args[2]);
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("dome")) {
+            if ("create".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("create");
+            if ("remove".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("remove");
+            if ("list".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("list");
         } else if (args.length == 2
                 && List.of("set", "remove", "info", "get", "remove_admin", "remove_tmp")
                     .contains(args[0].toLowerCase(Locale.ROOT))) {

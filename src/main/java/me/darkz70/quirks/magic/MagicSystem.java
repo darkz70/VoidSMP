@@ -484,6 +484,11 @@ public final class MagicSystem {
             Msg.send(player, "magic-no-mage");
             return;
         }
+        if (element != Element.DARK && element != Element.LIGHT
+                && plugin.domes() != null && plugin.domes().insideAnyDome(player.getLocation())) {
+            Msg.send(player, "magic-dome-suppressed");
+            return;
+        }
         Spell[] spells = Spell.of(element);
         int idx = Math.max(0, Math.min(data.selectedSpell(), spells.length - 1));
         Spell spell = spells[idx];

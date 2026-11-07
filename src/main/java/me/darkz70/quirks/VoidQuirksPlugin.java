@@ -37,6 +37,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     private me.darkz70.quirks.command.GaidMenus gaidMenus;
     private me.darkz70.quirks.command.AdminMenu adminMenu;
     private me.darkz70.quirks.labyrinth.LabyrinthManager labyrinth;
+    private me.darkz70.quirks.mechanic.SculkDomeManager domes;
 
     @Override
     public void onEnable() {
@@ -54,6 +55,8 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         magic = new MagicSystem(this);
         labyrinth = new me.darkz70.quirks.labyrinth.LabyrinthManager(this);
         labyrinth.loadIfExists();
+        domes = new me.darkz70.quirks.mechanic.SculkDomeManager(this);
+        domes.loadIfExists();
 
         gaidMenus = new me.darkz70.quirks.command.GaidMenus(this);
         adminMenu = new me.darkz70.quirks.command.AdminMenu(this);
@@ -270,6 +273,10 @@ public final class VoidQuirksPlugin extends JavaPlugin {
 
     public me.darkz70.quirks.labyrinth.LabyrinthManager labyrinth() {
         return labyrinth;
+    }
+
+    public me.darkz70.quirks.mechanic.SculkDomeManager domes() {
+        return domes;
     }
 
     /** Отправить оповещение с учётом личного тумблера /quirk notify. */
