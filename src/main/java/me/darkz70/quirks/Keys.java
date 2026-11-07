@@ -40,6 +40,7 @@ public final class Keys {
     public static NamespacedKey superCarrot;     // супер-морковь: метка предмета
     public static NamespacedKey sculkWoodType;   // скалк-древесина: "log"/"leaves"/"planks" на предмете и как маркер блока
     public static NamespacedKey domeMarker;      // скалк-купол: имя купола на каждой BlockDisplay-панели
+    public static NamespacedKey customBlockType; // общий реестр кастомных блоков: id типа (CustomBlockType) на BlockDisplay
 
     private Keys() {}
 
@@ -79,5 +80,6 @@ public final class Keys {
         superCarrot = new NamespacedKey(plugin, "super_carrot");
         sculkWoodType = new NamespacedKey(plugin, "sculk_wood_type");
         domeMarker = new NamespacedKey(plugin, "dome_marker");
+        customBlockType = new NamespacedKey(plugin, "custom_block_type");
     }
 }

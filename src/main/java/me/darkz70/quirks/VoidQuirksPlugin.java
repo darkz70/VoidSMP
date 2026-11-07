@@ -37,6 +37,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     private me.darkz70.quirks.command.GaidMenus gaidMenus;
     private me.darkz70.quirks.command.AdminMenu adminMenu;
     private me.darkz70.quirks.labyrinth.LabyrinthManager labyrinth;
+    private me.darkz70.quirks.mechanic.customblock.CustomBlockService customBlocks;
     private me.darkz70.quirks.mechanic.SculkDomeManager domes;
 
     @Override
@@ -55,6 +56,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         magic = new MagicSystem(this);
         labyrinth = new me.darkz70.quirks.labyrinth.LabyrinthManager(this);
         labyrinth.loadIfExists();
+        customBlocks = new me.darkz70.quirks.mechanic.customblock.CustomBlockService(this);
         domes = new me.darkz70.quirks.mechanic.SculkDomeManager(this);
         domes.loadIfExists();
 
@@ -277,6 +279,10 @@ public final class VoidQuirksPlugin extends JavaPlugin {
 
     public me.darkz70.quirks.mechanic.SculkDomeManager domes() {
         return domes;
+    }
+
+    public me.darkz70.quirks.mechanic.customblock.CustomBlockService customBlocks() {
+        return customBlocks;
     }
 
     /** Отправить оповещение с учётом личного тумблера /quirk notify. */

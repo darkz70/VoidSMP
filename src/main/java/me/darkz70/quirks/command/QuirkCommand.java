@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 /** /quirk — управление причудами. Причуд можно несколько на одного игрока. */
 public final class QuirkCommand implements CommandExecutor, TabCompleter {
 
-    private static final List<String> SUBS = List.of("set", "remove", "remove_admin", "remove_tmp", "info", "list", "reload", "notify", "item", "pack", "lab", "zayce", "dome");
+    private static final List<String> SUBS = List.of("set", "remove", "remove_admin", "remove_tmp", "info", "list", "reload", "notify", "item", "pack", "lab", "zayce", "dome", "block");
     private static final List<String> QUIRKS = List.of(
             "инженер", "кот", "бедрок", "топор", "скалк", "фермер", "земноводный", "паук",
             "engineer", "cat", "bedrock", "axe", "sculk", "farmer", "amphibian", "spider",
@@ -66,6 +66,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             case "lab", "labyrinth" -> handleLab(sender, args);
             case "zayce" -> handleZayce(sender, args);
             case "dome" -> handleDome(sender, args);
+            case "block" -> handleBlock(sender, args);
             case "acceptsculk" -> {
                 if (sender instanceof Player p) {
                     plugin.sculkLeader().acceptInvite(p);
@@ -450,6 +451,53 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    /**
+     * /quirk block list — какие типы кастомных блоков вообще есть в VoidQuirks
+     *   (общий реестр, не только для купола — любая будущая механика может взять готовый тип).
+     * /quirk block place <тип> — поставить один такой блок там, где стоит игрок (для теста/декора).
+     * /quirk block remove — убрать ближайший кастомный блок VoidQuirks в радиусе 3 блоков.
+     */
+    private void handleBlock(CommandSender sender, String[] args) {
+        if (!admin(sender)) return;
+        if (args.length < 2) {
+            Msg.send(sender, "usage");
+            return;
+        }
+        switch (args[1].toLowerCase(Locale.ROOT)) {
+            case "list" -> {
+                sender.sendMessage(Msg.color("&3&lКастомные блоки VoidQuirks:"));
+                for (var type : me.darkz70.quirks.mechanic.customblock.CustomBlockRegistry.all()) {
+                    sender.sendMessage(Msg.color("&7— &f" + type.id() + " &7(" + type.label()
+                            + "&7, база &f" + type.base() + "&7)"));
+                }
+            }
+            case "place" -> {
+                if (!(sender instanceof Player p)) {
+                    sender.sendMessage(Msg.color("&cТолько для игрока."));
+                    return;
+                }
+                if (args.length < 3) {
+                    sender.sendMessage(Msg.color("&cИспользование: /quirk block place <тип>"));
+                    return;
+                }
+                var type = me.darkz70.quirks.mechanic.customblock.CustomBlockRegistry.get(args[2]);
+                if (type == null) {
+                    sender.sendMessage(Msg.color("&cНет такого типа. /quirk block list"));
+                    return;
+                }
+                if (type.id().startsWith("sculk_log") || type.id().startsWith("sculk_leaves")
+                        || type.id().startsWith("sculk_planks")) {
+                    sender.sendMessage(Msg.color("&cЭто настоящий блок скалк-древесины — его ставят "
+                            + "обычным кликом из предмета (крафт/дроп), а не через эту тестовую команду."));
+                    return;
+                }
+                plugin.customBlocks().place(p.getWorld(), p.getLocation().getBlock().getLocation(), type, 1f, 1f, 1f);
+                sender.sendMessage(Msg.color("&a✦ Поставлено: &f" + type.id()));
+            }
+            default -> Msg.send(sender, "usage");
+        }
+    }
+
     private void handleReload(CommandSender sender) {
         if (!admin(sender)) return;
         plugin.reloadPluginConfig();
@@ -490,6 +538,14 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             if ("create".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("create");
             if ("remove".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("remove");
             if ("list".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("list");
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("block")) {
+            if ("list".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("list");
+            if ("place".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("place");
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("block") && args[1].equalsIgnoreCase("place")) {
+            String prefix = args[2].toLowerCase(Locale.ROOT);
+            for (var type : me.darkz70.quirks.mechanic.customblock.CustomBlockRegistry.all()) {
+                if (type.id().startsWith(prefix)) out.add(type.id());
+            }
         } else if (args.length == 2
                 && List.of("set", "remove", "info", "get", "remove_admin", "remove_tmp")
                     .contains(args[0].toLowerCase(Locale.ROOT))) {

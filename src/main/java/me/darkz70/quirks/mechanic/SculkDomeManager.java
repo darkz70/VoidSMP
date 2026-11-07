@@ -10,22 +10,18 @@ import java.util.UUID;
 import java.util.logging.Level;
 import me.darkz70.quirks.Keys;
 import me.darkz70.quirks.VoidQuirksPlugin;
+import me.darkz70.quirks.mechanic.customblock.CustomBlockType;
 import me.darkz70.quirks.util.Msg;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.BlockDisplay;
-import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.Nullable;
-import org.joml.AxisAngle4f;
-import org.joml.Vector3f;
 
 /**
  * Скалк-купол: прямоугольная (по периметру, без крыши и пола) стена из
@@ -229,18 +225,8 @@ public final class SculkDomeManager {
 
     private BlockDisplay spawnWall(World world, int x, int baseY, int z, int height, String domeName) {
         Location loc = new Location(world, x, baseY, z);
-        BlockDisplay display = world.spawn(loc, BlockDisplay.class, bd -> {
-            bd.setBlock(Material.STRUCTURE_VOID.createBlockData());
-            bd.setTransformation(new Transformation(
-                    new Vector3f(0f, 0f, 0f),
-                    new AxisAngle4f(),
-                    new Vector3f(1f, height, 1f),
-                    new AxisAngle4f()));
-            bd.setBrightness(new Display.Brightness(15, 15));
-            bd.setShadowRadius(0f);
-            bd.setPersistent(true);
-            bd.getPersistentDataContainer().set(Keys.domeMarker, PersistentDataType.STRING, domeName);
-        });
+        BlockDisplay display = plugin.customBlocks().place(world, loc, CustomBlockType.SCULK_WARD, 1f, height, 1f);
+        display.getPersistentDataContainer().set(Keys.domeMarker, PersistentDataType.STRING, domeName);
         return display;
     }
 
