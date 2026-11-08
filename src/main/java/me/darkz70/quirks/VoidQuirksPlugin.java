@@ -59,6 +59,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         customBlocks = new me.darkz70.quirks.mechanic.customblock.CustomBlockService(this);
         domes = new me.darkz70.quirks.mechanic.SculkDomeManager(this);
         domes.loadIfExists();
+        domes.startWarding();
 
         gaidMenus = new me.darkz70.quirks.command.GaidMenus(this);
         adminMenu = new me.darkz70.quirks.command.AdminMenu(this);

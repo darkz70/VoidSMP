@@ -10,17 +10,22 @@ import java.util.UUID;
 import java.util.logging.Level;
 import me.darkz70.quirks.Keys;
 import me.darkz70.quirks.VoidQuirksPlugin;
+import me.darkz70.quirks.magic.Element;
 import me.darkz70.quirks.mechanic.customblock.CustomBlockType;
 import me.darkz70.quirks.util.Msg;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.BlockDisplay;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -31,8 +36,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * Технически — никакого стороннего плагина (ExecutableBlocks и т.п.) не нужно:
  * то же самое "кастомный блок без хитбокса" даёт штатный BlockDisplay (Paper API,
- * с 1.19.4) — один повёрнутый по вертикали дисплей на каждую клетку периметра,
- * вместо столбика из отдельных блоков на каждую высоту (дешевле по сущностям).
+ * с 1.19.4) — один НЕмасштабированный дисплей на каждый блок периметра×высоты
+ * (масштабирование по Y тянет одну и ту же текстуру на всю высоту вместо
+ * повтора — именно так ловился баг с гигантскими полосами вместо решётки).
  * Текстура — переодетый STRUCTURE_VOID (технический блок редактора структур:
  * у игроков нет предмета, чтобы его получить/поставить — ни один настоящий
  * блок на сервере никогда не превратится в стену купола и наоборот).
@@ -120,7 +126,7 @@ public final class SculkDomeManager {
 
     // ---------- создание/удаление ----------
 
-    private static final int MAX_CELLS = 4000; // защита от случайного лагодрома
+    private static final int MAX_ENTITIES = 6000; // защита от случайного лагодрома (периметр × высота)
 
     public void create(CommandSender sender, String rawName, int x1, int z1, int x2, int z2, int height) {
         if (!(sender instanceof Player admin)) {
@@ -144,9 +150,10 @@ public final class SculkDomeManager {
         long width = (long) (nx2 - nx1 + 1);
         long depth = (long) (nz2 - nz1 + 1);
         long perimeter = width <= 1 || depth <= 1 ? width * depth : 2 * width + 2 * depth - 4;
-        if (perimeter <= 0 || perimeter > MAX_CELLS) {
-            admin.sendMessage(Msg.color("&cСлишком большой периметр (" + perimeter
-                    + " клеток, максимум " + MAX_CELLS + "). Уменьши прямоугольник."));
+        long totalEntities = perimeter * height;
+        if (perimeter <= 0 || totalEntities > MAX_ENTITIES) {
+            admin.sendMessage(Msg.color("&cСлишком много панелей (" + totalEntities
+                    + ", максимум " + MAX_ENTITIES + "). Уменьши прямоугольник или высоту."));
             return;
         }
 
@@ -160,8 +167,10 @@ public final class SculkDomeManager {
         dome.height = height;
 
         for (int[] cell : perimeterCells(nx1, nz1, nx2, nz2)) {
-            BlockDisplay display = spawnWall(world, cell[0], baseY, cell[1], height, name);
-            dome.entities.add(display.getUniqueId());
+            for (int dy = 0; dy < height; dy++) {
+                BlockDisplay display = spawnUnit(world, cell[0], baseY + dy, cell[1], name);
+                dome.entities.add(display.getUniqueId());
+            }
         }
 
         domes.put(name, dome);
@@ -223,9 +232,10 @@ public final class SculkDomeManager {
         return cells;
     }
 
-    private BlockDisplay spawnWall(World world, int x, int baseY, int z, int height, String domeName) {
-        Location loc = new Location(world, x, baseY, z);
-        BlockDisplay display = plugin.customBlocks().place(world, loc, CustomBlockType.SCULK_WARD, 1f, height, 1f);
+    /** Один НЕмасштабированный блок-панель (ровно как обычный блок 1×1×1) — без растяжки текстуры. */
+    private BlockDisplay spawnUnit(World world, int x, int y, int z, String domeName) {
+        Location loc = new Location(world, x, y, z);
+        BlockDisplay display = plugin.customBlocks().place(world, loc, CustomBlockType.SCULK_WARD, 1f, 1f, 1f);
         display.getPersistentDataContainer().set(Keys.domeMarker, PersistentDataType.STRING, domeName);
         return display;
     }
@@ -248,5 +258,33 @@ public final class SculkDomeManager {
             if (e.getValue().contains(loc)) return e.getKey();
         }
         return null;
+    }
+
+    // ---------- "поглощение" уже летящей/существующей чужой магии ----------
+
+    /** Запускается один раз из onEnable: уже выпущенные снаряды заклинаний, залетевшие
+     *  в купол, гасятся (кроме Тьмы и Света) — не только новый каст блокируется, но и то,
+     *  что уже летело снаружи и попало внутрь. */
+    public void startWarding() {
+        Bukkit.getScheduler().runTaskTimer(plugin, this::purgeForeignMagic, 20L, 4L);
+    }
+
+    private void purgeForeignMagic() {
+        if (domes.isEmpty()) return;
+        for (Dome d : domes.values()) {
+            World world = Bukkit.getWorld(d.world);
+            if (world == null) continue;
+            BoundingBox box = new BoundingBox(d.x1, d.baseY, d.z1, d.x2 + 1, d.baseY + d.height, d.z2 + 1);
+            for (Entity e : world.getNearbyEntities(box)) {
+                if (e instanceof BlockDisplay) continue; // наши же панели купола
+                String elemId = e.getPersistentDataContainer().get(Keys.spellElem, PersistentDataType.STRING);
+                if (elemId == null) continue;
+                Element element = Element.byId(elemId);
+                if (element == Element.DARK || element == Element.LIGHT) continue;
+                world.spawnParticle(Particle.SCULK_SOUL, e.getLocation(), 10, 0.2, 0.2, 0.2, 0.01);
+                world.playSound(e.getLocation(), Sound.BLOCK_SCULK_CATALYST_BLOOM, 0.6f, 1.4f);
+                e.remove();
+            }
+        }
     }
 }
