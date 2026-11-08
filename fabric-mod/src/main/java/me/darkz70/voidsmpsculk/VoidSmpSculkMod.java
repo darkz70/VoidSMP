@@ -4,7 +4,9 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
@@ -24,6 +26,14 @@ import net.minecraft.world.level.material.MapColor;
  *
  * Биомы (data/voidquirks/worldgen/biome/*.json) взяты 1:1 из серверного датапака
  * VoidQuirks — тот же "voidquirks:sculk_island" / "voidquirks:sculk_citadel".
+ *
+ * ВАЖНО (MC 26.x): начиная с этой версии API, {@code BlockBehaviour.Properties}
+ * (и {@code Item.Properties}) требуют явный id, установленный через
+ * {@code .setId(ResourceKey)} ДО вызова конструктора блока/предмета — иначе
+ * конструктор падает с NullPointerException("Block id not set") при первом же
+ * обращении к effectiveDrops()/effectiveDescriptionId(). Поэтому ключи регистрации
+ * создаются заранее (см. {@link #blockKey(String)}/{@link #itemKey(String)}) и
+ * передаются в Properties до создания самого блока/предмета.
  */
 public final class VoidSmpSculkMod implements ModInitializer {
 
@@ -31,6 +41,7 @@ public final class VoidSmpSculkMod implements ModInitializer {
 
     public static final Block SCULK_LOG = new RotatedPillarBlock(
             BlockBehaviour.Properties.of()
+                    .setId(blockKey("sculk_log"))
                     .mapColor(MapColor.COLOR_CYAN)
                     .strength(2.0f)
                     .sound(SoundType.SCULK)
@@ -38,6 +49,7 @@ public final class VoidSmpSculkMod implements ModInitializer {
 
     public static final Block SCULK_LEAVES = new Block(
             BlockBehaviour.Properties.of()
+                    .setId(blockKey("sculk_leaves"))
                     .mapColor(MapColor.COLOR_CYAN)
                     .strength(0.2f)
                     .sound(SoundType.SCULK)
@@ -45,6 +57,7 @@ public final class VoidSmpSculkMod implements ModInitializer {
 
     public static final Block SCULK_PLANKS = new Block(
             BlockBehaviour.Properties.of()
+                    .setId(blockKey("sculk_planks"))
                     .mapColor(MapColor.COLOR_CYAN)
                     .strength(2.0f)
                     .sound(SoundType.SCULK)
@@ -59,7 +72,7 @@ public final class VoidSmpSculkMod implements ModInitializer {
         register("sculk_planks", SCULK_PLANKS);
 
         SCULK_SAPLING_ITEM = Registry.register(BuiltInRegistries.ITEM, id("sculk_sapling"),
-                new Item(new Item.Properties()));
+                new Item(new Item.Properties().setId(itemKey("sculk_sapling"))));
 
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.BUILDING_BLOCKS).register(entries -> {
             entries.accept(SCULK_LOG);
@@ -74,10 +87,19 @@ public final class VoidSmpSculkMod implements ModInitializer {
 
     private static void register(String path, Block block) {
         Registry.register(BuiltInRegistries.BLOCK, id(path), block);
-        Registry.register(BuiltInRegistries.ITEM, id(path), new BlockItem(block, new Item.Properties()));
+        Registry.register(BuiltInRegistries.ITEM, id(path),
+                new BlockItem(block, new Item.Properties().setId(itemKey(path))));
     }
 
     public static Identifier id(String path) {
         return Identifier.fromNamespaceAndPath(MOD_ID, path);
+    }
+
+    private static ResourceKey<Block> blockKey(String path) {
+        return ResourceKey.create(Registries.BLOCK, id(path));
+    }
+
+    private static ResourceKey<Item> itemKey(String path) {
+        return ResourceKey.create(Registries.ITEM, id(path));
     }
 }

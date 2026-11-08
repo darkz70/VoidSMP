@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "me.darkz70.voidsmpsculk"
-version = "0.1.0"
+version = "0.1.1"
 
 base {
     archivesName.set("VoidSculk-Fabric")
