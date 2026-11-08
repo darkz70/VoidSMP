@@ -26,8 +26,10 @@ dependencies {
     // Minecraft 26.2 распространяется уже без обфускации — отдельные маппинги (Yarn/Mojang)
     // больше не нужны, Loom работает напрямую.
     minecraft("com.mojang:minecraft:26.2")
-    modImplementation("net.fabricmc:fabric-loader:0.20.1")
-    modImplementation("net.fabricmc.fabric-api:fabric-api:0.161.0+26.2")
+    // С 26.1+ Minecraft распространяется без обфускации — "modImplementation" в Loom
+    // больше не нужен (и не существует), используем обычный "implementation".
+    implementation("net.fabricmc:fabric-loader:0.20.1")
+    implementation("net.fabricmc.fabric-api:fabric-api:0.161.0+26.2")
 }
 
 tasks.withType<JavaCompile> {
