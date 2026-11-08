@@ -8,6 +8,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionCheck;
+import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -28,7 +30,9 @@ public final class SculkVillageCommand {
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(Commands.literal("sculkvillage")
-                        .requires(src -> src.hasPermission(2))
+                        // 26.x: CommandSourceStack.hasPermission(int) больше нет —
+                        // права проверяются через Permissions/PermissionCheck (как в ванильном GameModeCommand).
+                        .requires(Commands.hasPermission(new PermissionCheck.Require(Permissions.COMMANDS_GAMEMASTER)))
                         .executes(SculkVillageCommand::run)));
     }
 

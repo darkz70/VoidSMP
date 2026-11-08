@@ -1,10 +1,10 @@
 package me.darkz70.voidsmpsculk;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
@@ -61,12 +61,12 @@ public final class VoidSmpSculkMod implements ModInitializer {
         SCULK_SAPLING_ITEM = Registry.register(BuiltInRegistries.ITEM, id("sculk_sapling"),
                 new Item(new Item.Properties()));
 
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.BUILDING_BLOCKS).register(entries -> {
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.BUILDING_BLOCKS).register(entries -> {
             entries.accept(SCULK_LOG);
             entries.accept(SCULK_LEAVES);
             entries.accept(SCULK_PLANKS);
         });
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.NATURAL_BLOCKS).register(entries ->
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.NATURAL_BLOCKS).register(entries ->
                 entries.accept(SCULK_SAPLING_ITEM));
 
         SculkVillageCommand.register();
@@ -77,7 +77,7 @@ public final class VoidSmpSculkMod implements ModInitializer {
         Registry.register(BuiltInRegistries.ITEM, id(path), new BlockItem(block, new Item.Properties()));
     }
 
-    public static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+    public static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
     }
 }
