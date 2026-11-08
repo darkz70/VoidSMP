@@ -99,14 +99,19 @@ public final class XyzPossessionListener implements Listener {
         final ItemStack[] savedHotbar;
         final boolean savedAllowFlight;
         final boolean savedFlying;
+        final boolean savedCollidable;
+        final boolean savedInvulnerable;
         BukkitTask followTask;
 
-        State(Kind kind, UUID mobId, ItemStack[] savedHotbar, boolean savedAllowFlight, boolean savedFlying) {
+        State(Kind kind, UUID mobId, ItemStack[] savedHotbar, boolean savedAllowFlight, boolean savedFlying,
+              boolean savedCollidable, boolean savedInvulnerable) {
             this.kind = kind;
             this.mobId = mobId;
             this.savedHotbar = savedHotbar;
             this.savedAllowFlight = savedAllowFlight;
             this.savedFlying = savedFlying;
+            this.savedCollidable = savedCollidable;
+            this.savedInvulnerable = savedInvulnerable;
         }
     }
 
@@ -242,6 +247,18 @@ public final class XyzPossessionListener implements Listener {
         admin.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,
                 Integer.MAX_VALUE, 0, true, false, false));
 
+        boolean savedCollidable = admin.isCollidable();
+        boolean savedInvulnerable = admin.isInvulnerable();
+        // Коллизия bidirectional: чтобы ничего не толкало моба (и моб не толкал
+        // игрока), обе стороны (моб И невидимый админ) должны быть non-collidable —
+        // иначе моб всё равно будет постоянно "ёрзать"/дёргаться от физики игрока.
+        admin.setCollidable(false);
+        // Пока админ "внутри" моба, его собственный (невидимый) хитбокс не должен
+        // быть уязвим — удары/стрелы других игроков, целящихся в видимого моба,
+        // не должны случайно попадать по игроку под ним. invulnerable полностью
+        // гасит урон ещё до события в движке — выглядит как промах "сквозь".
+        admin.setInvulnerable(true);
+
         mob.setAI(false);
         mob.setInvulnerable(true);
         mob.setSilent(true);
@@ -250,7 +267,8 @@ public final class XyzPossessionListener implements Listener {
         mob.getPersistentDataContainer().set(Keys.xyzPossessedBy, PersistentDataType.STRING,
                 admin.getUniqueId().toString());
 
-        State state = new State(kind, mob.getUniqueId(), saved, admin.getAllowFlight(), admin.isFlying());
+        State state = new State(kind, mob.getUniqueId(), saved, admin.getAllowFlight(), admin.isFlying(),
+                savedCollidable, savedInvulnerable);
         active.put(admin.getUniqueId(), state);
 
         state.followTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
@@ -361,6 +379,8 @@ public final class XyzPossessionListener implements Listener {
         admin.removePotionEffect(PotionEffectType.INVISIBILITY);
         admin.setAllowFlight(state.savedAllowFlight);
         admin.setFlying(state.savedFlying && state.savedAllowFlight);
+        admin.setCollidable(state.savedCollidable);
+        admin.setInvulnerable(state.savedInvulnerable);
 
         Entity e = Bukkit.getEntity(state.mobId);
         if (e instanceof LivingEntity mob && mob.isValid()) {
