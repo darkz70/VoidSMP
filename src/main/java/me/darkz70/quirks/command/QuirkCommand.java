@@ -62,7 +62,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             case "reload" -> handleReload(sender);
             case "notify", "notifications" -> handleNotify(sender);
             case "item", "shard" -> handleItem(sender, args);
-            case "pack", "resourcepack" -> handlePack(sender);
+            case "pack", "resourcepack" -> handlePack(sender, args);
             case "lab", "labyrinth" -> handleLab(sender, args);
             case "zayce" -> handleZayce(sender, args);
             case "dome" -> handleDome(sender, args);
@@ -123,10 +123,27 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
         Msg.send(sender, "zayce-spawned", "%role%", role.display);
     }
 
-    /** /quirk pack — показать ссылку на ресурспак с текстурой осколка. */
-    private void handlePack(CommandSender sender) {
+    /**
+     * /quirk pack — показать ссылку на ресурспак с текстурой осколка.
+     * /quirk pack retry — (админ) форсировать немедленную повторную попытку авто-раздачи
+     * ресурспака, не перезапуская сервер — полезно после починки сети/файрвола хостинга.
+     */
+    private void handlePack(CommandSender sender, String[] args) {
+        if (args.length >= 2 && args[1].equalsIgnoreCase("retry")) {
+            if (!admin(sender)) return;
+            if (me.darkz70.quirks.mechanic.ResourcePackServer.retryNow()) {
+                Msg.send(sender, "pack-retry-started");
+            } else {
+                Msg.send(sender, "pack-retry-disabled");
+            }
+            return;
+        }
         Msg.send(sender, "pack-link",
                 "%link%", "https://github.com/darkz70/VoidSMP/releases/download/ci-build/VoidQuirks-Pack.zip");
+        if (sender.hasPermission("quirks.admin")) {
+            boolean ready = me.darkz70.quirks.mechanic.ResourcePackServer.isReady();
+            Msg.send(sender, ready ? "pack-status-ready" : "pack-status-not-ready");
+        }
     }
 
     /** /quirk item <причуда> [уровень] [игрок] — выдать осколок души предметом. */
@@ -534,6 +551,8 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
         } else if (args.length == 3 && args[0].equalsIgnoreCase("lab")
                 && (args[1].equalsIgnoreCase("tp") || args[1].equalsIgnoreCase("back"))) {
             addPlayers(out, args[2]);
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("pack")) {
+            if ("retry".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("retry");
         } else if (args.length == 2 && args[0].equalsIgnoreCase("dome")) {
             if ("create".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("create");
             if ("remove".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("remove");

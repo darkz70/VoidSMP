@@ -56,6 +56,10 @@ public final class Msg {
         def("shard-weaker", "%prefix%&7Твоя душа уже носит эту причуду (или сильнее). Осколок сохранён.");
         def("soul-freed", "&d✦ &b%player% &dосвободил душу из клетки лабиринта! Она оставила осколок…");
         def("pack-link", "%prefix%&bРесурспак VoidSMP: &f%link%\n%prefix%&7Пропиши ссылку в server.properties в строку &fresource-pack=&7 и перезапусти.");
+        def("pack-status-ready", "%prefix%&aАвто-раздача ресурспака: готова (игроки получают пак автоматически при входе).");
+        def("pack-status-not-ready", "%prefix%&cАвто-раздача ресурспака: НЕ готова (скачать пак с GitHub не вышло — смотри варнинги в консоли). Попробуй &f/quirk pack retry&c.");
+        def("pack-retry-started", "%prefix%&bЗапускаю повторную попытку скачать ресурспак... Результат смотри в консоли через пару секунд (или снова набери /quirk pack).");
+        def("pack-retry-disabled", "%prefix%&cАвто-раздача ресурспака выключена в config.yml (resourcepack.enabled: false).");
         def("lab-world-ready", "%prefix%&6Мир принят как есть. Туда — /quirk lab tp.");
         def("lab-building", "%prefix%&5Начинаю строить лабиринт душ в мире &f%world%&5… не выключай сервер.");
         def("lab-created", "%prefix%&6Чистый void-мир '%world%' создан. Загрузи туда свой лабиринт!");
