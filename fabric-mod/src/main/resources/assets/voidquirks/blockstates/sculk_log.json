@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "axis=y": { "model": "voidquirks:block/sculk_log" },
+    "axis=z": { "model": "voidquirks:block/sculk_log", "x": 90 },
+    "axis=x": { "model": "voidquirks:block/sculk_log", "x": 90, "y": 90 }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "block.voidquirks.sculk_log": "Sculk Log",
+  "block.voidquirks.sculk_leaves": "Sculk Leaves",
+  "block.voidquirks.sculk_planks": "Sculk Planks",
+  "item.voidquirks.sculk_sapling": "Sculk Sapling",
+  "biome.voidquirks.sculk_island": "Sculk Island",
+  "biome.voidquirks.sculk_citadel": "Sculk Citadel",
+  "commands.sculkvillage.usage": "Summons an instant village and re-skins nearby oak wood into Sculk Wood.",
+  "commands.sculkvillage.success": "A Sculk village has risen."
+}

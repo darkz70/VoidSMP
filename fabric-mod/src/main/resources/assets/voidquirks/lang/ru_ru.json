@@ -1,0 +1,10 @@
+{
+  "block.voidquirks.sculk_log": "Скалк-бревно",
+  "block.voidquirks.sculk_leaves": "Скалк-листва",
+  "block.voidquirks.sculk_planks": "Скалк-доски",
+  "item.voidquirks.sculk_sapling": "Скалк-саженец",
+  "biome.voidquirks.sculk_island": "Скалк-остров",
+  "biome.voidquirks.sculk_citadel": "Скалк-цитадель",
+  "commands.sculkvillage.usage": "Мгновенно создаёт деревню и перекрашивает дубовую древесину рядом в скалк-древесину.",
+  "commands.sculkvillage.success": "✦ Скалк-деревня поднялась из земли."
+}
