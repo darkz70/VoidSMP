@@ -76,6 +76,8 @@ class Service:
         self.config, self.state = config, state
         self.telegram = Telegram(session, config.telegram_api, config.bot_token, config.telegram_proxy)
         self.stop_event = asyncio.Event()
+        # Set by /v1/sync when the plugin queues work, so delivery does not wait out a timer.
+        self.outbox_ready = asyncio.Event()
         self.offset = int(state.get("offset", "0"))
         self._identity_lock = asyncio.Lock()
         # Log the first failure of a streak, then at most one line per LOG_THROTTLE_SECONDS.
@@ -138,7 +140,8 @@ class Service:
                         self.state.enqueue_command(event)
                     self.offset = uid + 1
                     self.state.set("offset", str(self.offset))
-                delay = 1.0
+                # A non-empty batch means Telegram has more to say: re-poll at once.
+                delay = 0.0 if updates else 1.0
             except asyncio.CancelledError:
                 raise
             except TelegramError as exc:
@@ -159,21 +162,25 @@ class Service:
             await self.sleep(delay)
 
     async def outbox(self):
-        delay = 1.0
+        delay = 0.0
         while not self.stop_event.is_set():
             try:
                 await self.identify()
+                # Clear first: a signal arriving after the query must still wake the wait below.
+                self.outbox_ready.clear()
                 events = self.state.pending_outbox(20)
                 if not events:
-                    delay = 1.0
-                    await self.sleep(0.5)
+                    delay = 0.0
+                    # Sleep until the plugin queues something, or 1s as a safety net.
+                    await self.wait_outbox(1.0)
                     continue
                 for event in events:
                     if self.stop_event.is_set():
                         return
                     await self.deliver(event)
                     self.state.mark_outbox_delivered(event["event_id"])
-                delay = 1.0
+                # More may already be queued: keep draining without a pause.
+                delay = 0.0
             except asyncio.CancelledError:
                 raise
             except TelegramError as exc:
@@ -211,7 +218,22 @@ class Service:
         else:
             raise ValueError("Unknown outbox event type")
 
+    async def wait_outbox(self, timeout: float):
+        """Block until /v1/sync signals new work, the timeout expires, or shutdown starts."""
+        waiter = asyncio.create_task(self.outbox_ready.wait())
+        stopper = asyncio.create_task(self.stop_event.wait())
+        try:
+            await asyncio.wait({waiter, stopper}, timeout=timeout, return_when=asyncio.FIRST_COMPLETED)
+        finally:
+            waiter.cancel()
+            stopper.cancel()
+            await asyncio.gather(waiter, stopper, return_exceptions=True)
+
     async def sleep(self, seconds: float):
+        if seconds <= 0:
+            # Yield so a shutdown or a wake-up is observed, without a real delay.
+            await asyncio.sleep(0)
+            return
         try:
             await asyncio.wait_for(self.stop_event.wait(), timeout=seconds)
         except TimeoutError:

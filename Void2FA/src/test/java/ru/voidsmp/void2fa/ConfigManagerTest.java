@@ -93,4 +93,28 @@ class ConfigManagerTest {
         assertEquals(60, manager.getBridgeConnectTimeoutSeconds());
         assertEquals(600, manager.getBridgeReadyGraceSeconds());
     }
+
+    @Test void activePollingIsFasterThanIdleToKeepLoginLatencyLow() {
+        ConfigManager manager = new ConfigManager(plugin);
+        assertEquals(1000, manager.getBridgePollIntervalMs());
+        assertEquals(250, manager.getBridgeActivePollIntervalMs());
+        assertTrue(manager.getBridgeActivePollIntervalMs() < manager.getBridgePollIntervalMs(),
+                "a login must be polled faster than an idle server");
+    }
+
+    @Test void activePollIntervalNeverSlowerThanIdle() {
+        config.set("telegram.bridge.poll-interval-ms", 300);
+        config.set("telegram.bridge.active-poll-interval-ms", 2000);
+        ConfigManager manager = new ConfigManager(plugin);
+        assertEquals(300, manager.getBridgeActivePollIntervalMs());
+    }
+
+    @Test void pollIntervalsAreClamped() {
+        config.set("telegram.bridge.poll-interval-ms", 1);
+        config.set("telegram.bridge.active-poll-interval-ms", 99999);
+        ConfigManager manager = new ConfigManager(plugin);
+        assertEquals(200, manager.getBridgePollIntervalMs());
+        // Clamped to 5000, then pulled down to the idle interval.
+        assertEquals(200, manager.getBridgeActivePollIntervalMs());
+    }
 }

@@ -60,7 +60,9 @@ async def test_group_update_never_queued(service):
     for _ in range(100):
         if service.offset == 2: break
         await asyncio.sleep(.01)
-    service.stop_event.set(); await asyncio.wait_for(task, 1)
+    service.stop_event.set(); task.cancel()
+    try: await task
+    except asyncio.CancelledError: pass
     assert service.state.commands_after(0) == []
 
 
@@ -154,3 +156,58 @@ def test_bad_token_says_to_reissue_it(service, caplog):
     messages = [r.getMessage() for r in caplog.records]
     assert any("401" in m for m in messages)
     assert any("BotFather" in m for m in messages)
+
+
+async def test_outbox_wakes_immediately_when_plugin_queues_work(service):
+    """A login prompt must not wait out a polling tick: /v1/sync wakes the delivery loop."""
+    task = asyncio.create_task(service.outbox())
+    # Let the loop reach the waiting state.
+    for _ in range(100):
+        if not service.outbox_ready.is_set():
+            await asyncio.sleep(.005)
+        else:
+            break
+    await asyncio.sleep(.02)
+    event = {"type": "message", "event_id": "wake1", "chat_id": 123, "text": "approve?"}
+    service.state.enqueue_events([event])
+    started = time.monotonic()
+    service.outbox_ready.set()
+    for _ in range(200):
+        if service.telegram.sent:
+            break
+        await asyncio.sleep(.005)
+    elapsed = time.monotonic() - started
+    service.stop_event.set(); service.outbox_ready.set(); task.cancel()
+    try: await task
+    except asyncio.CancelledError: pass
+    assert service.telegram.sent and service.telegram.sent[0][1] == "approve?"
+    # Well under the old fixed 0.5-1.0s tick.
+    assert elapsed < 0.3, elapsed
+
+
+async def test_wait_outbox_returns_on_stop_event(service):
+    """Shutdown must not block for the full safety-net timeout."""
+    async def stop_soon():
+        await asyncio.sleep(.02)
+        service.stop_event.set()
+    asyncio.create_task(stop_soon())
+    started = time.monotonic()
+    await service.wait_outbox(5.0)
+    assert time.monotonic() - started < 1.0
+
+
+async def test_empty_poll_does_not_spin_hot(service):
+    """An empty batch keeps the relaxed cadence; a non-empty one re-polls at once."""
+    u = {"update_id": 7, "message": {"from": {"id": 123, "is_bot": False},
+                                    "chat": {"id": 123, "type": "private"}, "text": "/status",
+                                    "date": int(time.time())}}
+    service.telegram.batches = [[u]]
+    task = asyncio.create_task(service.polling())
+    for _ in range(200):
+        if service.offset == 8:
+            break
+        await asyncio.sleep(.005)
+    service.stop_event.set(); task.cancel()
+    try: await task
+    except asyncio.CancelledError: pass
+    assert service.offset == 8

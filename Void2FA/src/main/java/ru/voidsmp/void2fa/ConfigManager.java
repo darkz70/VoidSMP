@@ -19,6 +19,8 @@ public final class ConfigManager {
     private int bridgeTimeoutSeconds;
     private int bridgeConnectTimeoutSeconds;
     private int bridgeReadyGraceSeconds;
+    private int bridgePollIntervalMs;
+    private int bridgeActivePollIntervalMs;
     private String mode;
     private int codeLength;
     private int codeTtlSeconds;
@@ -53,6 +55,10 @@ public final class ConfigManager {
         bridgeConnectTimeoutSeconds = clamp(c.getInt("telegram.bridge.connect-timeout-seconds", 10), 3, 60);
         // 0 = derive from the request timeout, so a slow-but-working bot never reads as "offline".
         bridgeReadyGraceSeconds = clamp(c.getInt("telegram.bridge.ready-grace-seconds", 0), 0, 600);
+        bridgePollIntervalMs = clamp(c.getInt("telegram.bridge.poll-interval-ms", 1000), 200, 10000);
+        bridgeActivePollIntervalMs = clamp(c.getInt("telegram.bridge.active-poll-interval-ms", 250), 100, 5000);
+        // An "active" interval slower than the idle one would be a configuration trap.
+        if (bridgeActivePollIntervalMs > bridgePollIntervalMs) bridgeActivePollIntervalMs = bridgePollIntervalMs;
         mode = c.getString("settings.mode", "opt-in").trim().toLowerCase();
         if (!mode.equals("required")) {
             mode = "opt-in";
@@ -85,6 +91,8 @@ public final class ConfigManager {
     public String getBridgeSecretFile() { return bridgeSecretFile; }
     public int getBridgeTimeoutSeconds() { return bridgeTimeoutSeconds; }
     public int getBridgeConnectTimeoutSeconds() { return bridgeConnectTimeoutSeconds; }
+    public int getBridgePollIntervalMs() { return bridgePollIntervalMs; }
+    public int getBridgeActivePollIntervalMs() { return bridgeActivePollIntervalMs; }
 
     /**
      * How long a successful sync keeps the transport "ready".

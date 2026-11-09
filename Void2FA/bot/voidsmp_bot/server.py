@@ -134,6 +134,9 @@ class SyncServer:
                     self.state.set("plugin_instance", instance)
                 self.state.ack_commands(cursor)
             accepted = self.state.enqueue_events(events)
+            if accepted:
+                # Wake the delivery loop now: a login prompt must not sit until the next tick.
+                self.service.outbox_ready.set()
             commands = self.state.commands_after(cursor, 100)
             sequence = self.state.command_sequence()
         response = {

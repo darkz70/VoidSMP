@@ -163,6 +163,14 @@ public final class AuthManager {
         return pending.containsKey(id);
     }
 
+    /**
+     * True while at least one player waits for a Telegram decision. The bridge uses this
+     * to poll fast only during an actual login instead of hammering the bot all day.
+     */
+    public boolean hasPending() {
+        return !pending.isEmpty();
+    }
+
     // ------------------------------------------------------------------
     //  Code flow
     // ------------------------------------------------------------------

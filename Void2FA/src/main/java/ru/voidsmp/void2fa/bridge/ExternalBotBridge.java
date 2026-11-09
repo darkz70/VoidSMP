@@ -51,6 +51,11 @@ public final class ExternalBotBridge implements TelegramTransport {
     private final List<Event> outbox = new ArrayList<>();
     private final Map<String, Long> receipts = new ConcurrentHashMap<>();
     private final SecureRandom random = new SecureRandom();
+    /** Signalled on enqueue so a fresh auth request leaves on the next tick, not after a full idle interval. */
+    private final java.util.concurrent.atomic.AtomicBoolean pendingWork = new java.util.concurrent.atomic.AtomicBoolean();
+    private final Object sleepLock = new Object();
+    private long pollIntervalMs = 1000;
+    private long activePollIntervalMs = 250;
     private HttpClient http;
     private URI syncUri;
     private Duration requestTimeout = Duration.ofSeconds(30);
@@ -118,6 +123,8 @@ public final class ExternalBotBridge implements TelegramTransport {
         syncUri = URI.create((configured.endsWith("/") ? configured.substring(0, configured.length() - 1) : configured) + SYNC_PATH);
         requestTimeout = Duration.ofSeconds(plugin.getConfigManager().getBridgeTimeoutSeconds());
         readyGraceMillis = plugin.getConfigManager().getBridgeReadyGraceSeconds() * 1000L;
+        pollIntervalMs = plugin.getConfigManager().getBridgePollIntervalMs();
+        activePollIntervalMs = plugin.getConfigManager().getBridgeActivePollIntervalMs();
         http = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(plugin.getConfigManager().getBridgeConnectTimeoutSeconds()))
                 .followRedirects(HttpClient.Redirect.NEVER).build();
@@ -158,6 +165,9 @@ public final class ExternalBotBridge implements TelegramTransport {
         String id = UUID.randomUUID().toString();
         payload.put("event_id", id);
         outbox.add(new Event(id, System.currentTimeMillis(), payload));
+        // Do not make the player wait out an idle interval before the request is even sent.
+        pendingWork.set(true);
+        synchronized (sleepLock) { sleepLock.notifyAll(); }
     }
 
     private synchronized List<Event> batch() {
@@ -176,12 +186,26 @@ public final class ExternalBotBridge implements TelegramTransport {
         receipts.entrySet().removeIf(e -> now - e.getValue() > 10 * 60 * 1000L);
     }
 
+    /** Fast while someone is logging in or an event is queued; relaxed when nothing happens. */
+    private long nextDelay() {
+        boolean busy = pendingWork.get();
+        if (!busy) {
+            synchronized (this) { busy = !outbox.isEmpty(); }
+        }
+        if (!busy) {
+            ru.voidsmp.void2fa.AuthManager auth = plugin.getAuthManager();
+            busy = auth != null && auth.hasPending();
+        }
+        return busy ? activePollIntervalMs : pollIntervalMs;
+    }
+
     private void loop() {
-        long delay = 1000;
+        long delay = pollIntervalMs;
         while (running) {
             try {
+                pendingWork.set(false);
                 syncOnce();
-                delay = 1000;
+                delay = nextDelay();
                 if (failureStreak > 0 && failureStreak < FAILURE_THRESHOLD) {
                     // Tolerated blips recovered on their own: no outage was ever declared.
                     failureStreak = 0;
@@ -203,21 +227,25 @@ public final class ExternalBotBridge implements TelegramTransport {
             } catch (RejectedException e) {
                 // Reachable bot, refused exchange. Keep readiness and the fast cadence:
                 // backing off here would turn a config nit into a fake outage.
-                delay = 1000;
+                delay = pollIntervalMs;
                 warnRejected(e);
             } catch (Exception e) {
                 failureStreak++;
                 if (failureStreak < FAILURE_THRESHOLD) {
                     // Isolated blip: keep readiness and the fast cadence, stay quiet.
                     // The grace window still expires on its own if the bot really died.
-                    delay = 1000;
+                    delay = pollIntervalMs;
                 } else {
                     telegramReady = false;
                     delay = Math.min(delay * 2, 15000);
                     warnUnavailable(e);
                 }
             }
-            try { Thread.sleep(delay); } catch (InterruptedException e) { Thread.currentThread().interrupt(); return; }
+            try {
+                synchronized (sleepLock) {
+                    if (running && !pendingWork.get()) sleepLock.wait(delay);
+                }
+            } catch (InterruptedException e) { Thread.currentThread().interrupt(); return; }
         }
     }
 
@@ -396,6 +424,7 @@ public final class ExternalBotBridge implements TelegramTransport {
 
     @Override public void stop() {
         running = false; telegramReady = false;
+        synchronized (sleepLock) { sleepLock.notifyAll(); }
         if (worker != null) worker.interrupt();
         synchronized (this) { outbox.clear(); }
         receipts.clear();
