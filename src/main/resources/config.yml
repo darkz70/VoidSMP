@@ -406,10 +406,11 @@ demon:
   enabled: true
   interval-minutes: 10        # допустимые значения: 5 / 10 / 15 / 20 / 30 / 60
   chance: 0.6                 # вероятность на игрока за каждый интервал
-  min-distance: 25
+  min-distance: 20            # никогда не ближе 20 блоков (жёсткий пол и в коде)
   max-distance: 50
   min-lifetime-seconds: 6
   max-lifetime-seconds: 10
+  manual-lifetime-seconds: 25 # сколько живёт демон, вызванный вручную кнопкой у админа
 
 cooldowns:
   spells-scale: 0.34

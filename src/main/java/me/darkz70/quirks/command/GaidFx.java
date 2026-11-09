@@ -132,10 +132,17 @@ public final class GaidFx implements Listener {
         // демон азарта: вкл/выкл (слот 3) и интервал (слот 5)
         boolean demonOn = plugin.getConfig().getBoolean("demon.enabled", true);
         int demonInt = plugin.getConfig().getInt("demon.interval-minutes", 10);
+        fx(inv, 2, Material.WITHER_SKELETON_SKULL,
+                "&4&lПризвать демона &8(заглушка)",
+                "&7Фигура демона (голова — скин-заглушка из ресурспака,",
+                "&7тёмная ряса) появится не ближе &f20&7 блоков от тебя,",
+                "&7в тёмных и адских частицах. Живёт ~25 секунд.",
+                "&8Превью будущего «Демона азарта» — настоящий босс скоро.");
         fx(inv, 3, demonOn ? Material.REDSTONE_TORCH : Material.DEAD_BUSH,
                 demonOn ? "&5&lДемон азарта: &aВКЛ" : "&5&lДемон азарта: &cВЫКЛ",
-                "&7Пассивный силуэт в 25–50 блоках от игроков,",
-                "&7скалка+ад частицы, без чата. Клик — переключить.");
+                "&7Пассивный силуэт не ближе 20 блоков от игроков,",
+                "&7тёмные+адские частицы (без скалка), без чата.",
+                "&7Клик — переключить.");
         fx(inv, 5, Material.CLOCK,
                 "&5&lИнтервал демона: &f" + demonInt + " мин",
                 "&7Клик — цикл: 5 → 10 → 15 → 20 → 30 → 60 минут.",
@@ -172,6 +179,7 @@ public final class GaidFx implements Listener {
                 Bukkit.getScheduler().runTask(plugin, () -> player.performCommand("gaid"));
                 return;
             }
+            case 2 -> plugin.demonWatcher().summonManual(player); // демон: ручной призыв (заглушка)
             case 3 -> { // демон: вкл/выкл
                 boolean now = !plugin.getConfig().getBoolean("demon.enabled", true);
                 plugin.getConfig().set("demon.enabled", now);

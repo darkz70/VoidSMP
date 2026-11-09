@@ -148,7 +148,8 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         new MagicTask(this).runTaskTimer(this, 20L, 20L);
         // Демон азарта: тик каждые полсекунды (картинка силуэтов); появление — раз в
         // demon.interval-minutes из конфига (5/10/15/20/30/60 мин)
-        new DemonWatcherTask(this).runTaskTimer(this, 40L, 10L);
+        demonWatcher = new DemonWatcherTask(this);
+        demonWatcher.runTaskTimer(this, 40L, 10L);
         zayceTask.runTaskTimer(this, 200L, 200L);
 
         long autosave = Math.max(1, getConfig().getLong("tasks.autosave-minutes", 5)) * 60L * 20L;
@@ -232,6 +233,11 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     private me.darkz70.quirks.command.PoliticsMenu gaipolitics;
     private me.darkz70.quirks.command.GaidFx gaidFx;
     private me.darkz70.quirks.command.ZayceMobMenu zayceMobMenu;
+    private DemonWatcherTask demonWatcher;
+
+    public DemonWatcherTask demonWatcher() {
+        return demonWatcher;
+    }
 
     public me.darkz70.quirks.mechanic.PoliticsStore politics() {
         return politics;
