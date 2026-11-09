@@ -54,7 +54,11 @@ public final class GaidMenus implements Listener {
 
     // ---------- описания (меню книг) ----------
 
-    private void openBooksMenu(Player player) {
+    /**
+     * Публичное меню книг-описаний — доступно ВСЕМ игрокам через /guide
+     * (в отличие от корня /gaid, тут только читалки, без админ-инструментов).
+     */
+    public void openBooksMenu(Player player) {
         BooksHolder holder = new BooksHolder();
         Inventory inv = Bukkit.createInventory(holder, 27, Msg.color("&5Гайд: описания"));
         holder.inv = inv;
@@ -448,7 +452,15 @@ public final class GaidMenus implements Listener {
                 case 12 -> GaidBooks.openMagic(player);
                 case 14 -> GaidBooks.openBrewing(player);
                 case 16 -> GaidBooks.openCommands(player);
-                case 22 -> openRoot(player);
+                // «назад»: админам — в полный хаб /gaid; обычным игрокам (пришли через
+                // публичный /guide) — некуда возвращаться, админ-хаб им не светим, просто закрываем
+                case 22 -> {
+                    if (player.hasPermission("quirks.admin")) {
+                        openRoot(player);
+                    } else {
+                        player.closeInventory();
+                    }
+                }
                 default -> { }
             }
         } else if (holder instanceof ItemsHolder itemsHolder) {
