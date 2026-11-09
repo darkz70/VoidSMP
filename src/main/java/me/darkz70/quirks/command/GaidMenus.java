@@ -46,6 +46,7 @@ public final class GaidMenus implements Listener {
         inv.setItem(12, button(Material.CHEST, "&eПредметы", "&7Все предметы плагина + крафты (+взять себе)"));
         inv.setItem(13, button(Material.ZOMBIE_SPAWN_EGG, "&9Призыв", "&740 отрядов мобов для ваших сцен"));
         inv.setItem(10, button(Material.END_CRYSTAL, "&5Эффекты", "&7Сценические явления: разломы, гроза, страх"));
+        inv.setItem(9, button(Material.SCULK, "&2Скалк острова", "&7Выращивание островов и скалк-цитадели"));
         inv.setItem(14, button(Material.WHITE_BANNER, "&6Политика", "&7Партии, цари и выборы зайцекролов"));
         inv.setItem(15, button(Material.PLAYER_HEAD, "&cАдмин-панель", "&7Причуды и магии онлайн-игроков"));
         inv.setItem(16, button(Material.CLOCK, "&bНастройки КД", "&7Масштаб кулдаунов заклинаний/зелий/вещей"));
@@ -54,11 +55,7 @@ public final class GaidMenus implements Listener {
 
     // ---------- описания (меню книг) ----------
 
-    /**
-     * Публичное меню книг-описаний — доступно ВСЕМ игрокам через /guide
-     * (в отличие от корня /gaid, тут только читалки, без админ-инструментов).
-     */
-    public void openBooksMenu(Player player) {
+    private void openBooksMenu(Player player) {
         BooksHolder holder = new BooksHolder();
         Inventory inv = Bukkit.createInventory(holder, 27, Msg.color("&5Гайд: описания"));
         holder.inv = inv;
@@ -440,6 +437,7 @@ public final class GaidMenus implements Listener {
                 case 11 -> openBooksMenu(player);
                 case 12 -> openItemsMenu(player, 0);
                 case 10 -> plugin.gaidFx().open(player);
+                case 9 -> plugin.gaidFx().openIslands(player);
                 case 13 -> openSquadsMenu(player, 0);
                 case 14 -> plugin.gaipolitics().openRoot(player);
                 case 15 -> AdminMenu.openHub(plugin, player);
@@ -452,15 +450,7 @@ public final class GaidMenus implements Listener {
                 case 12 -> GaidBooks.openMagic(player);
                 case 14 -> GaidBooks.openBrewing(player);
                 case 16 -> GaidBooks.openCommands(player);
-                // «назад»: админам — в полный хаб /gaid; обычным игрокам (пришли через
-                // публичный /guide) — некуда возвращаться, админ-хаб им не светим, просто закрываем
-                case 22 -> {
-                    if (player.hasPermission("quirks.admin")) {
-                        openRoot(player);
-                    } else {
-                        player.closeInventory();
-                    }
-                }
+                case 22 -> openRoot(player);
                 default -> { }
             }
         } else if (holder instanceof ItemsHolder itemsHolder) {

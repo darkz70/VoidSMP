@@ -135,23 +135,6 @@ public final class VoidQuirksPlugin extends JavaPlugin {
             gaid.setExecutor(gaidCommand);
         }
 
-        // /guide — публичный гайд для ОБЫЧНЫХ игроков: те же книги-описания (причуды,
-        // магия, зелья, команды), что и в /gaid, но БЕЗ админ-инструментов (FX, выдача
-        // предметов, отряды мобов, политика, редактор причуд онлайн-игроков). Без этого
-        // игроки физически не могли узнать секретные рецепты «дерева зелий» — единственное
-        // их описание («Книга зелий») лежало только внутри /gaid, доступного лишь по quirks.admin.
-        PluginCommand guide = getCommand("guide");
-        if (guide != null) {
-            guide.setExecutor((sender, cmd, label, args) -> {
-                if (!(sender instanceof org.bukkit.entity.Player player)) {
-                    sender.sendMessage("Только для игроков.");
-                    return true;
-                }
-                gaidMenus.openBooksMenu(player);
-                return true;
-            });
-        }
-
         IventCommand iventCommand = new IventCommand(this);
         PluginCommand ivent = getCommand("ivent");
         if (ivent != null) {

@@ -32,13 +32,23 @@ import org.bukkit.potion.PotionEffectType;
 
 /**
  * /gaid → «Эффекты»: сценические явления на месте админа —
- * адские разломы, гром и молнии, страх и глобальный страх.
+ * адские разломы, гром и молнии, страх и глобальный страх, демон азарта
+ * (призыв/вкл-выкл/интервал). «Скалк острова» — отдельная вкладка
+ * (см. {@link #openIslands(Player)}), вынесена из общего меню эффектов.
  */
 public final class GaidFx implements Listener {
 
     private final VoidQuirksPlugin plugin;
 
     private record Holder() implements InventoryHolder {
+        @Override
+        public Inventory getInventory() {
+            return Bukkit.createInventory(this, 27, Component.empty());
+        }
+    }
+
+    /** Отдельная вкладка «Скалк острова» — своё меню, своя клавиатура кликов. */
+    private record IslandsHolder() implements InventoryHolder {
         @Override
         public Inventory getInventory() {
             return Bukkit.createInventory(this, 27, Component.empty());
@@ -52,7 +62,7 @@ public final class GaidFx implements Listener {
 
     public void open(Player player) {
         Inventory inv = Bukkit.createInventory(new Holder(), 54,
-                Msg.color("&5Эффекты (на месте админа) — 28 штук"));
+                Msg.color("&5Эффекты (на месте админа) — 24 штуки"));
         // — ряд 1: классика —
         fx(inv, 11, Material.MAGMA_BLOCK, "&c&lАдские разломы",
                 "&7Магма-подложка, 4 трещины растут по 9 блоков с искрами,",
@@ -147,25 +157,60 @@ public final class GaidFx implements Listener {
                 "&5&lИнтервал демона: &f" + demonInt + " мин",
                 "&7Клик — цикл: 5 → 10 → 15 → 20 → 30 → 60 минут.",
                 "&7Новый интервал применяется сразу.");
-        // скалковые острова: выращиваются из-под земли на месте админа
-        fx(inv, 6, Material.SCULK, "&2&lОстров: &aМаленький",
+        inv.setItem(4, btn(Material.ARROW, "&7&lНазад"));
+        player.openInventory(inv);
+    }
+
+    // ---------- отдельная вкладка: скалк острова ----------
+
+    /**
+     * «Скалк острова» — вынесено из общего меню «Эффекты» в свою вкладку /gaid,
+     * чтобы не мешать со сценическими эффектами (разломы/гроза/демон и т.д.).
+     */
+    public void openIslands(Player player) {
+        Inventory inv = Bukkit.createInventory(new IslandsHolder(), 27,
+                Msg.color("&2Скалк острова (на месте админа)"));
+        fx(inv, 11, Material.SCULK, "&2&lОстров: &aМаленький",
                 "&7Радиус ~16, растёт из-под земли за пару секунд,",
                 "&73 дерева (скалк- или костяные). Скалк-трава прорастает визер-розами.");
-        fx(inv, 7, Material.SCULK_SENSOR, "&2&lОстров: &aСредний",
+        fx(inv, 12, Material.SCULK_SENSOR, "&2&lОстров: &aСредний",
                 "&7Радиус ~32, растёт дольше и мощнее трясёт,",
                 "&77 деревьев (скалк-/костяные вперемешку).");
-        fx(inv, 8, Material.SCULK_SHRIEKER, "&2&lОстров: &aБольшой",
+        fx(inv, 13, Material.SCULK_SHRIEKER, "&2&lОстров: &aБольшой",
                 "&7Радиус ~70, самый долгий и зрелищный рост,",
                 "&716 деревьев, последний всплеск — крик шрайкера.");
-        fx(inv, 9, Material.ECHO_SHARD, "&3&lСкалк-цитадель",
+        fx(inv, 14, Material.ECHO_SHARD, "&3&lСкалк-цитадель",
                 "&7Радиус ~45, трава темнее обычного скалк-острова,",
                 "&7свой биом (ещё более мрачные туман/вода/небо).");
-        inv.setItem(4, btn(Material.ARROW, "&7&lНазад"));
+        inv.setItem(22, btn(Material.ARROW, "&7&lНазад"));
         player.openInventory(inv);
     }
 
     private void fx(Inventory inv, int slot, Material icon, String name, String... lore) {
         inv.setItem(slot, btn(icon, name, lore));
+    }
+
+    @EventHandler(ignoreCancelled = false)
+    public void onIslandsClick(InventoryClickEvent event) {
+        if (!(event.getInventory().getHolder() instanceof IslandsHolder)) return;
+        event.setCancelled(true);
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        switch (event.getRawSlot()) {
+            case 22 -> {
+                player.closeInventory();
+                Bukkit.getScheduler().runTask(plugin, () -> player.performCommand("gaid"));
+                return;
+            }
+            case 11 -> sculkIslandSmall(player);
+            case 12 -> sculkIslandMedium(player);
+            case 13 -> sculkIslandLarge(player);
+            case 14 -> sculkCitadel(player);
+            default -> { return; }
+        }
+        // остров растёт — меню остаётся открытым (переоткрываем, чтобы сбросить курсор/слот)
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (player.isOnline()) openIslands(player);
+        });
     }
 
     @EventHandler(ignoreCancelled = false)
@@ -191,10 +236,6 @@ public final class GaidFx implements Listener {
                 plugin.getConfig().set("demon.interval-minutes", nxt);
                 plugin.saveConfig();
             }
-            case 6 -> sculkIslandSmall(player);
-            case 7 -> sculkIslandMedium(player);
-            case 8 -> sculkIslandLarge(player);
-            case 9 -> sculkCitadel(player);
             case 11 -> hellRift(player);
             case 12 -> hellRift(player, 5.0, 4);
             case 13 -> openHell(player);
