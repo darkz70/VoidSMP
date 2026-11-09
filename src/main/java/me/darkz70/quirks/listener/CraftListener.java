@@ -43,6 +43,8 @@ import org.jetbrains.annotations.Nullable;
 public final class CraftListener implements Listener {
 
     public static NamespacedKey fertilizerKey;
+    public static NamespacedKey firmwareKey;
+    public static NamespacedKey tridentKey;
 
     /** Выдать/забрать видимость рецепта удобрения у игрока. */
     public static void syncFertilizerRecipe(Player player, boolean farmer) {
@@ -51,6 +53,26 @@ public final class CraftListener implements Listener {
             player.discoverRecipe(fertilizerKey);
         } else {
             player.undiscoverRecipe(fertilizerKey);
+        }
+    }
+
+    /** Выдать/забрать видимость рецепта прошивки медных големов (Инженер, со 2 ур.). */
+    public static void syncFirmwareRecipe(Player player, boolean visible) {
+        if (firmwareKey == null) return;
+        if (visible) {
+            player.discoverRecipe(firmwareKey);
+        } else {
+            player.undiscoverRecipe(firmwareKey);
+        }
+    }
+
+    /** Выдать/забрать видимость рецепта усиленного трезубца (Земноводный). */
+    public static void syncTridentRecipe(Player player, boolean visible) {
+        if (tridentKey == null) return;
+        if (visible) {
+            player.discoverRecipe(tridentKey);
+        } else {
+            player.undiscoverRecipe(tridentKey);
         }
     }
 
@@ -167,6 +189,20 @@ public final class CraftListener implements Listener {
         heartOfSea.addIngredient(4, Material.PRISMARINE_SHARD);
         heartOfSea.addIngredient(1, Material.GOLD_INGOT);
         add(new NamespacedKey(plugin, "heart_of_the_sea"), heartOfSea);
+
+        // прошивка медных големов: блок редстоуна + блок меди (только Инженер, со 2 ур.)
+        firmwareKey = new NamespacedKey(plugin, "engineer_firmware");
+        ShapelessRecipe firmware = new ShapelessRecipe(firmwareKey, CopperGolemListener.makeFirmware());
+        firmware.addIngredient(1, Material.REDSTONE_BLOCK);
+        firmware.addIngredient(1, Material.COPPER_BLOCK);
+        add(firmwareKey, firmware);
+
+        // трезубец глубин: обычный трезубец + незеритовый слиток (только Земноводный)
+        tridentKey = new NamespacedKey(plugin, "amphib_trident");
+        ShapelessRecipe trident = new ShapelessRecipe(tridentKey, AmphibianListener.makeTrident());
+        trident.addIngredient(1, Material.TRIDENT);
+        trident.addIngredient(1, Material.NETHERITE_INGOT);
+        add(tridentKey, trident);
     }
 
     private static void addCooking(VoidQuirksPlugin plugin, String id, org.bukkit.inventory.CookingRecipe<?> recipe) {
@@ -340,6 +376,16 @@ public final class CraftListener implements Listener {
             if (tag != null && tag.startsWith("upbook-") && !seesSecretBasics(player)) {
                 return; // книги прокачки — только магам и Админам
             }
+            if (CopperGolemListener.isFirmware(serverResult)
+                    && plugin.quirks().levelOf(player, Quirk.ENGINEER) < 2
+                    && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
+                return; // прошивку собирает только Инженер со 2 ур. (и Админ)
+            }
+            if (AmphibianListener.isAmphibTrident(serverResult)
+                    && plugin.quirks().levelOf(player, Quirk.AMPHIBIAN) == 0
+                    && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
+                return; // трезубец глубин собирает только Земноводный (и Админ)
+            }
             inventory.setResult(serverResult);
         }
     }
@@ -359,6 +405,18 @@ public final class CraftListener implements Listener {
         if (BrewTree.tagged(result, "fertilizer") && plugin.quirks().levelOf(player, Quirk.FARMER) == 0) {
             event.setCancelled(true);
             Msg.send(player, "farmer-craft-denied");
+            return;
+        }
+        if (CopperGolemListener.isFirmware(result) && plugin.quirks().levelOf(player, Quirk.ENGINEER) < 2
+                && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
+            event.setCancelled(true);
+            Msg.send(player, "engineer-firmware-craft-denied");
+            return;
+        }
+        if (AmphibianListener.isAmphibTrident(result) && plugin.quirks().levelOf(player, Quirk.AMPHIBIAN) == 0
+                && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
+            event.setCancelled(true);
+            Msg.send(player, "amphib-trident-craft-denied");
             return;
         }
         // яично-океанская тройка: светлый фолиант ложится стеком, тёмный — бонусом

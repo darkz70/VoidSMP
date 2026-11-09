@@ -98,6 +98,7 @@ cat:
   creeper-fear-radius: 7   # криперы боятся кота в этом радиусе (с 1 уровня)
   fish-saturation-seconds-1: 5
   fish-saturation-seconds-2: 10
+  arrow-dodge-chance: 25   # % — кошачье уклонение от стрел, с 2 уровня
 
 engineer:
   hunger-effect-seconds: 10   # эффект голода за попытку съесть мясо (эльфийский желудок, 2-3 ур.)
@@ -106,7 +107,7 @@ engineer:
 axe:
   # регенерация II за убийство топором — только 1 уровень
   regen-chance: 5        # %
-  regen-duration-seconds: 2
+  regen-duration-seconds: 10
   rage-cooldown-minutes: 30   # режим ярости (2-3 ур.): Shift, затем Ctrl
   head-chance: 2         # % — головы мобов с 3 уровня
   head-include-players: true

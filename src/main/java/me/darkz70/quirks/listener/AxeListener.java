@@ -248,12 +248,13 @@ public final class AxeListener implements Listener {
         }
 
         ScanUtil.stamp(player.getUniqueId(), "axe-rage");
-        // ярость: сила 4 сек; скорость II 2 сек; реген 2 сек (уровень зависит от причуды)
+        // ярость: сила/скорость II/реген — все на 10 секунд (было 4/2/2) (уровень зависит от причуды)
         int strengthAmp = lvl >= 3 ? 1 : 0;
         int regenAmp = lvl >= 3 ? 2 : 1;
-        player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 80, strengthAmp, true, false, true));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 40, 1, true, false, true));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 40, regenAmp, true, false, true));
+        int ragedTicks = 10 * 20;
+        player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, ragedTicks, strengthAmp, true, false, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, ragedTicks, 1, true, false, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, ragedTicks, regenAmp, true, false, true));
         Msg.send(player, "axe-rage-on");
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5f, 1.2f);
     }

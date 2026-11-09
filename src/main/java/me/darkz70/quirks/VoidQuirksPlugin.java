@@ -101,6 +101,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         new me.darkz70.quirks.listener.SculkWoodListener(this); // скалк-древесина (настоящий новый блок)
         new me.darkz70.quirks.listener.SculkSensorBoostListener(this); // скалк-древесина усиливает сенсоры рядом
         new me.darkz70.quirks.listener.WardenSculkImmunityListener(this); // вардены не трогают скалк 2+ ур.
+        new me.darkz70.quirks.listener.CopperGolemListener(this); // инженер: прошивка медных големов (2+ ур.)
         me.darkz70.quirks.command.DecoyCommand[] decoys = {
             new me.darkz70.quirks.command.DecoyCommand(0), new me.darkz70.quirks.command.DecoyCommand(1),
             new me.darkz70.quirks.command.DecoyCommand(2), new me.darkz70.quirks.command.DecoyCommand(3),

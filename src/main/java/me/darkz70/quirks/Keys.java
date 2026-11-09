@@ -41,6 +41,11 @@ public final class Keys {
     public static NamespacedKey sculkWoodType;   // скалк-древесина: "log"/"leaves"/"planks" на предмете и как маркер блока
     public static NamespacedKey domeMarker;      // скалк-купол: имя купола на каждой BlockDisplay-панели
     public static NamespacedKey customBlockType; // общий реестр кастомных блоков: id типа (CustomBlockType) на BlockDisplay
+    public static NamespacedKey engineerFirmware; // инженер: метка предмета «прошивка» для медных големов
+    public static NamespacedKey golemOwner;        // медный голем-работник: UUID инженера-хозяина
+    public static NamespacedKey golemJob;          // медный голем-работник: "mine" / "kill"
+    public static NamespacedKey amphibTrident;     // земноводный: метка усиленного трезубца
+    public static NamespacedKey amphibTridentDamage; // земноводный: модификатор урона трезубца
 
     private Keys() {}
 
@@ -81,5 +86,10 @@ public final class Keys {
         sculkWoodType = new NamespacedKey(plugin, "sculk_wood_type");
         domeMarker = new NamespacedKey(plugin, "dome_marker");
         customBlockType = new NamespacedKey(plugin, "custom_block_type");
+        engineerFirmware = new NamespacedKey(plugin, "engineer_firmware");
+        golemOwner = new NamespacedKey(plugin, "golem_owner");
+        golemJob = new NamespacedKey(plugin, "golem_job");
+        amphibTrident = new NamespacedKey(plugin, "amphib_trident");
+        amphibTridentDamage = new NamespacedKey(plugin, "amphib_trident_damage");
     }
 }

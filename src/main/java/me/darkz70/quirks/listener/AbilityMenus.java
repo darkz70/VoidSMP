@@ -149,7 +149,9 @@ public final class AbilityMenus implements Listener {
         Inventory inv = Bukkit.createInventory(new Holder("eng"), 27, Msg.color("&8Инженер: зачехли стак стрел"));
         inv.setItem(11, btn(Material.TIPPED_ARROW, "&c16 стрел моментального урона I",
                 "&7Цена: &f64 стрелы&7. Клик — обменять."));
-        inv.setItem(15, btn(Material.SUGAR, "&bСкорость на 6 секунд",
+        inv.setItem(13, btn(Material.BLAZE_POWDER, "&6Сила II на 10 секунд",
+                "&7Цена: &f64 стрелы&7. Клик — обменять."));
+        inv.setItem(15, btn(Material.SUGAR, "&bСкорость на 60 секунд",
                 "&7Цена: &f64 стрелы&7. Клик — обменять."));
         inv.setItem(22, btn(Material.ARROW, "&7Назад"));
         player.openInventory(inv);
@@ -272,8 +274,9 @@ public final class AbilityMenus implements Listener {
 
         switch (holder.page()) {
             case "eng" -> {
-                if (slot == 11) engPay(player, false);
-                else if (slot == 15) engPay(player, true);
+                if (slot == 11) engPay(player, 0);
+                else if (slot == 13) engPay(player, 2);
+                else if (slot == 15) engPay(player, 1);
                 else if (slot == 22) player.closeInventory();
             }
             case "farmer" -> {
@@ -342,24 +345,32 @@ public final class AbilityMenus implements Listener {
 
     // ---------- Инженер: обмен стрел ----------
 
-    private void engPay(Player player, boolean speed) {
+    /** 0 — стрелы урона, 1 — скорость (×10 от старых 6 сек), 2 — сила II на 10 сек. */
+    private void engPay(Player player, int mode) {
         if (lvl(player, Quirk.ENGINEER) < 2) return;
         if (!take(player, Material.ARROW, 64)) {
             deny(player, "Нужен целый стак обычных стрел (64).");
             return;
         }
-        if (speed) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 120, 0, true, false, true));
-            msg(player, "Скорость на 6 секунд. (-64 стрелы)");
-        } else {
-            ItemStack arrows = new ItemStack(Material.TIPPED_ARROW, 16);
-            if (arrows.getItemMeta() instanceof PotionMeta meta) {
-                meta.setBasePotionType(PotionType.HARMING);
-                arrows.setItemMeta(meta);
+        switch (mode) {
+            case 1 -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1200, 0, true, false, true));
+                msg(player, "Скорость на 60 секунд. (-64 стрелы)");
             }
-            var leftover = player.getInventory().addItem(arrows);
-            leftover.values().forEach(it -> player.getWorld().dropItemNaturally(player.getLocation(), it));
-            msg(player, "16 стрел моментального урона I. (-64 стрелы)");
+            case 2 -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 200, 1, true, false, true));
+                msg(player, "Сила II на 10 секунд. (-64 стрелы)");
+            }
+            default -> {
+                ItemStack arrows = new ItemStack(Material.TIPPED_ARROW, 16);
+                if (arrows.getItemMeta() instanceof PotionMeta meta) {
+                    meta.setBasePotionType(PotionType.HARMING);
+                    arrows.setItemMeta(meta);
+                }
+                var leftover = player.getInventory().addItem(arrows);
+                leftover.values().forEach(it -> player.getWorld().dropItemNaturally(player.getLocation(), it));
+                msg(player, "16 стрел моментального урона I. (-64 стрелы)");
+            }
         }
         player.closeInventory();
     }

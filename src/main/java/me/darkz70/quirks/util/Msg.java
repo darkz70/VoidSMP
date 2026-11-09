@@ -44,6 +44,10 @@ public final class Msg {
         def("axe-hint-2", "&eShift+ЛКМ &fтопором — ярость");
         def("axe-hint-3", "&eShift+ПКМ &f— разрыв пространства &8| &eShift+ЛКМ &f— ярость");
         def("axe-rage-on", "&4Ярость переполняет тебя!");
+        def("engineer-golem-need-level", "%prefix%&cПрошивать медных големов умеет только Инженер от 2 уровня.");
+        def("engineer-golem-set-mine", "%prefix%&6✦ Голем прошит: теперь он добывает руду рядом и несёт находки тебе.");
+        def("engineer-golem-set-kill", "%prefix%&c✦ Голем прошит: теперь он бьёт враждебных мобов рядом.");
+        def("engineer-golem-gone", "%prefix%&7Голем куда-то делся…");
         def("axe-rage-cooldown", "&cЯрость остывает: &f%time%&c.");
         def("axe-teleport-cooldown", "&cРывок ещё остывает: &f%time% с.");
         def("axe-teleport-fail", "&cНекуда телепортироваться.");
@@ -97,11 +101,14 @@ public final class Msg {
         def("title-engineer-redstone", "&cРедстоуна поблизости: &f%count%");
         def("title-engineer-tnt", "&4ТНТ рядом: &c%count%");
         def("title-cat-water", "&bВоды поблизости: &f%count%");
+        def("cat-arrow-dodge", "&b✦ Кошачья реакция: стрела прошла мимо!");
         // v0.6.0 — крафты, Фермер, Земноводный, Паук
         def("antidote-cured", "%prefix%&2Антидот жжёт вены… чужеродное покидает твоё тело!");
         def("antidote-none", "%prefix%&7Горьковато. Но и изгонять нечего.");
         def("farmer-raw-denied", "&eСырое! Это нужно пожарить.");
         def("farmer-craft-denied", "&cТвоим рукам этот рецепт не подвластен.");
+        def("engineer-firmware-craft-denied", "&cПрошивку медных големов умеет собрать только Инженер (от 2 ур.).");
+        def("amphib-trident-craft-denied", "&cТрезубец глубин умеет собрать только Земноводный.");
         def("spider-meat-denied", "&cЭто тело питается только мясом!");
         def("spider-webs-hint", "&eShift + ПКМ мечом &f— выстрел паутиной &8(&7нужно 9 паутины&8)");
         def("spider-webs-cooldown", "&cПаутинные железы отдыхают: &f%time%&c.");

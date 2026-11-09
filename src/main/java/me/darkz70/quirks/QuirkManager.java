@@ -110,6 +110,11 @@ public final class QuirkManager {
                 if (level == 1) {
                     applyFlaggedEffect(player, PotionEffectType.WEAKNESS, 0, Keys.effWeakness);
                 }
+                if (level >= 1) {
+                    applyReach(player, engineerReachBonus(level));
+                }
+                // крафт прошивки медных големов виден/доступен только Инженеру со 2 ур.
+                me.darkz70.quirks.listener.CraftListener.syncFirmwareRecipe(player, level >= 2);
             }
             case BEDROCK -> {
                 BedrockLogic.applyLayout(plugin, player, level);
@@ -135,6 +140,10 @@ public final class QuirkManager {
                     applyFlaggedEffect(player, PotionEffectType.HERO_OF_THE_VILLAGE, 0, Keys.effHero);
                 }
             }
+            case AMPHIBIAN -> {
+                // крафт усиленного трезубца виден только Земноводному
+                me.darkz70.quirks.listener.CraftListener.syncTridentRecipe(player, true);
+            }
             default -> { /* кот и топор не имеют пассивок при выдаче */ }
         }
     }
@@ -145,6 +154,7 @@ public final class QuirkManager {
             case ENGINEER -> {
                 removeFlaggedEffect(player, PotionEffectType.WEAKNESS, Keys.effWeakness);
                 removeReach(player);
+                me.darkz70.quirks.listener.CraftListener.syncFirmwareRecipe(player, false);
             }
             case BEDROCK -> {
                 removeFlaggedEffect(player, PotionEffectType.SPEED, Keys.effSpeed);
@@ -159,8 +169,19 @@ public final class QuirkManager {
                 removeFlaggedEffect(player, PotionEffectType.HERO_OF_THE_VILLAGE, Keys.effHero);
                 me.darkz70.quirks.listener.CraftListener.syncFertilizerRecipe(player, false);
             }
+            case AMPHIBIAN -> me.darkz70.quirks.listener.CraftListener.syncTridentRecipe(player, false);
             default -> { }
         }
+    }
+
+    /** Инженер: бонус к дальности блока по уровню причуды — растёт с +2 до +5. */
+    private int engineerReachBonus(int level) {
+        return switch (level) {
+            case 1, 2 -> 2;
+            case 3 -> 3;
+            case 4 -> 4;
+            default -> 5; // 5 ур.
+        };
     }
 
     /** Инженер: ставит/бьёт блоки дальше (модификатор BLOCK_INTERACTION_RANGE). */

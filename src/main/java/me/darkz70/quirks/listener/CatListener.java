@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import me.darkz70.quirks.Quirk;
 import me.darkz70.quirks.VoidQuirksPlugin;
 import me.darkz70.quirks.util.MaterialLists;
@@ -13,12 +14,16 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
@@ -142,6 +147,26 @@ public final class CatListener implements Listener {
         if (event.getCause() == EntityDamageEvent.DamageCause.FALL && level(player) >= 1) {
             event.setCancelled(true);
         }
+    }
+
+    /** Кошачья реакция (с 2 ур.): шанс уклониться от стрелы — урон не проходит. */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onArrowHit(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        Entity damager = event.getDamager();
+        // AbstractArrow покрывает Arrow, SpectralArrow и Trident (брошенный трезубец) —
+        // всё, что летит по дуге, как стрела.
+        if (!(damager instanceof AbstractArrow)) return;
+        if (level(player) < 2) return;
+
+        int chance = plugin.getConfig().getInt("cat.arrow-dodge-chance", 25);
+        if (ThreadLocalRandom.current().nextInt(100) >= chance) return;
+
+        event.setCancelled(true);
+        Msg.send(player, "cat-arrow-dodge");
+        player.getWorld().spawnParticle(Particle.CLOUD, player.getLocation().add(0, 1, 0), 10,
+                0.3, 0.4, 0.3, 0.02);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_CAT_AMBIENT, 1f, 1.4f);
     }
 
     /** Рыба даёт насыщение. */

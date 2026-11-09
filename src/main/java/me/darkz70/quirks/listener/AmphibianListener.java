@@ -1,30 +1,47 @@
 package me.darkz70.quirks.listener;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import me.darkz70.quirks.Keys;
 import me.darkz70.quirks.Quirk;
 import me.darkz70.quirks.VoidQuirksPlugin;
 import me.darkz70.quirks.task.EffectsTask;
 import me.darkz70.quirks.util.Msg;
 import me.darkz70.quirks.util.ScanUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Drowned;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 /**
  * Причуда «Земноводный» (v0.6.0):
  * вода даёт дыхание/скорость/силу; утопленники мирные; солнце жжёт (1-2 ур.);
- * в аду сохнет (2-3 ур.) без незеритовой брони (2 ур.).
+ * в аду сохнет (2-3 ур.) без незеритовой брони (2 ур.);
+ * усиленный трезубец (крафт: трезубец + незеритовый слиток) — доп. урон,
+ * при смерти не падает дропом, а возвращается в инвентарь (но выбросить его можно).
  */
 public final class AmphibianListener implements Listener {
 
     private final VoidQuirksPlugin plugin;
+    /** Трезубцы, которые нужно вернуть владельцу после респауна. */
+    private static final Map<UUID, List<ItemStack>> PENDING_RETURN = new HashMap<>();
 
     public AmphibianListener(VoidQuirksPlugin plugin) {
         this.plugin = plugin;
@@ -32,6 +49,61 @@ public final class AmphibianListener implements Listener {
 
     private int level(Player player) {
         return plugin.quirks().levelOf(player, Quirk.AMPHIBIAN);
+    }
+
+    // ---------- усиленный трезубец ----------
+
+    /** Трезубец + незеритовый слиток → усиленный трезубец (видно/крафтит только Земноводный). */
+    public static ItemStack makeTrident() {
+        ItemStack item = new ItemStack(Material.TRIDENT);
+        item.editMeta(meta -> {
+            meta.displayName(Msg.color("&bТрезубец глубин"));
+            meta.lore(List.of(
+                    Msg.color("&7Обычный трезубец, закалённый незеритом."),
+                    Msg.color("&7Доп. урон в ближнем бою."),
+                    Msg.color("&8Не теряется при смерти — вернётся в инвентарь.")));
+            meta.addAttributeModifier(Attribute.ATTACK_DAMAGE, new AttributeModifier(
+                    Keys.amphibTridentDamage, 4.0, AttributeModifier.Operation.ADD_NUMBER,
+                    EquipmentSlotGroup.MAINHAND));
+            meta.getPersistentDataContainer().set(Keys.amphibTrident, PersistentDataType.BYTE, (byte) 1);
+        });
+        return item;
+    }
+
+    public static boolean isAmphibTrident(ItemStack item) {
+        return item != null && item.hasItemMeta()
+                && item.getItemMeta().getPersistentDataContainer().has(Keys.amphibTrident, PersistentDataType.BYTE);
+    }
+
+    /** При смерти трезубец не падает дропом — откладывается, вернётся после респауна. */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onDeath(PlayerDeathEvent event) {
+        Player player = event.getEntity();
+        List<ItemStack> saved = new ArrayList<>();
+        event.getDrops().removeIf(stack -> {
+            if (isAmphibTrident(stack)) {
+                saved.add(stack);
+                return true;
+            }
+            return false;
+        });
+        if (!saved.isEmpty()) {
+            PENDING_RETURN.put(player.getUniqueId(), saved);
+        }
+    }
+
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        List<ItemStack> saved = PENDING_RETURN.remove(player.getUniqueId());
+        if (saved == null || saved.isEmpty()) return;
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!player.isOnline()) return;
+            for (ItemStack stack : saved) {
+                var leftover = player.getInventory().addItem(stack);
+                leftover.values().forEach(it -> player.getWorld().dropItemNaturally(player.getLocation(), it));
+            }
+        });
     }
 
     /** Утопленники: 1 ур. — атакуют лишь вблизи; 2-3 ур. — не нападают первыми. */
