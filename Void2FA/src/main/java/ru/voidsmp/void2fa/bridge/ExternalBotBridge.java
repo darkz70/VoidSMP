@@ -37,6 +37,12 @@ public final class ExternalBotBridge implements TelegramTransport {
     private static final int BATCH = 100;
     private static final long EVENT_TTL_MS = 10 * 60 * 1000L;
     private static final long WARN_INTERVAL_MS = 5 * 60 * 1000L;
+    /**
+     * Consecutive transport failures tolerated before the bridge is declared down.
+     * A shared host occasionally drops one request (502 from the edge, a GC pause);
+     * one blip must not disable 2FA nor print an outage line for a working bot.
+     */
+    private static final int FAILURE_THRESHOLD = 3;
     private static final String SYNC_PATH = "/v1/sync";
     private final Void2FAPlugin plugin;
     private final BridgeSecurity security;
@@ -59,8 +65,26 @@ public final class ExternalBotBridge implements TelegramTransport {
     private long lastWarnAt;
     private String lastWarnKind = "";
     private int failureStreak;
+    private long lastRejectAt;
+    private String lastRejectKind = "";
 
     private record Event(String id, long createdAt, Map<String, Object> payload) {}
+
+    /**
+     * The bot answered our request, but we refused the payload or it refused our credentials.
+     * The endpoint is reachable, so this must never be reported as an outage and must never
+     * clear readiness: doing that made a perfectly healthy bot look dead and silently
+     * disabled 2FA for every joining player.
+     */
+    static final class RejectedException extends IOException {
+        private final String kind;
+        RejectedException(String kind, String message) { super(message); this.kind = kind; }
+        String kind() { return kind; }
+    }
+
+    /** 401/403 means the bot is up and rejected our secret, not that the network failed. */
+    static boolean credentialsRejected(int status) { return status == 401 || status == 403; }
+
 
     public ExternalBotBridge(Void2FAPlugin plugin, byte[] secret) {
         this.plugin = plugin;
@@ -158,19 +182,40 @@ public final class ExternalBotBridge implements TelegramTransport {
             try {
                 syncOnce();
                 delay = 1000;
-                if (failureStreak > 0) {
+                if (failureStreak > 0 && failureStreak < FAILURE_THRESHOLD) {
+                    // Tolerated blips recovered on their own: no outage was ever declared.
+                    failureStreak = 0;
+                } else if (failureStreak >= FAILURE_THRESHOLD) {
                     plugin.getLogger().info("Bridge снова на связи с ботом (сбоев подряд: " + failureStreak + ").");
                     failureStreak = 0;
                     lastWarnAt = 0;
                     lastWarnKind = "";
                 }
+                if (!lastRejectKind.isEmpty()) {
+                    plugin.getLogger().info("Bridge: обмен с ботом снова проходит штатно ("
+                            + lastRejectKind + " больше не возникает).");
+                    lastRejectKind = "";
+                    lastRejectAt = 0;
+                }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return;
+            } catch (RejectedException e) {
+                // Reachable bot, refused exchange. Keep readiness and the fast cadence:
+                // backing off here would turn a config nit into a fake outage.
+                delay = 1000;
+                warnRejected(e);
             } catch (Exception e) {
-                telegramReady = false;
-                delay = Math.min(delay * 2, 15000);
-                warnUnavailable(e);
+                failureStreak++;
+                if (failureStreak < FAILURE_THRESHOLD) {
+                    // Isolated blip: keep readiness and the fast cadence, stay quiet.
+                    // The grace window still expires on its own if the bot really died.
+                    delay = 1000;
+                } else {
+                    telegramReady = false;
+                    delay = Math.min(delay * 2, 15000);
+                    warnUnavailable(e);
+                }
             }
             try { Thread.sleep(delay); } catch (InterruptedException e) { Thread.currentThread().interrupt(); return; }
         }
@@ -183,13 +228,23 @@ public final class ExternalBotBridge implements TelegramTransport {
     private void warnUnavailable(Exception e) {
         String kind = e.getClass().getSimpleName();
         long now = System.currentTimeMillis();
-        failureStreak++;
         if (!shouldWarn(kind, now, lastWarnAt, lastWarnKind)) return;
         String repeated = failureStreak > 1 ? " Сбоев подряд: " + failureStreak + "." : "";
         lastWarnAt = now;
         lastWarnKind = kind;
         plugin.getLogger().warning("Bridge недоступен (" + kind + ")." + repeated
                 + " " + hint(kind) + " Пока связи нет, 2FA не подтверждает вход.");
+    }
+
+    /** The bot is reachable but the exchange was refused. Say exactly that, not "unavailable". */
+    private void warnRejected(RejectedException e) {
+        String kind = e.kind();
+        long now = System.currentTimeMillis();
+        if (!shouldWarn(kind, now, lastRejectAt, lastRejectKind)) return;
+        lastRejectAt = now;
+        lastRejectKind = kind;
+        plugin.getLogger().warning("Bridge ответил, но обмен отклонён (" + kind + "). "
+                + hint(kind) + " Связь с ботом есть — это не обрыв сети.");
     }
 
     /** First failure of a kind is always logged; repeats of the same kind are rate-limited. */
@@ -207,6 +262,20 @@ public final class ExternalBotBridge implements TelegramTransport {
                     "Не удаётся соединиться с доменом бота. Проверь telegram.bridge.url и домен в панели Bothost.";
             case "SSLHandshakeException", "SSLException" ->
                     "TLS-рукопожатие с доменом бота не прошло. Проверь сертификат и системное время на сервере.";
+            case "http-401", "http-403" ->
+                    "Бот отверг подпись запроса. Секрет в bridge-secret.txt (или VOID2FA_BRIDGE_SECRET) "
+                    + "не совпадает с BRIDGE_SHARED_SECRET у бота. Приведи их к одному значению.";
+            case "clock-skew" ->
+                    "Подпись верна, но время в ответе расходится с часами сервера больше чем на 30 с. "
+                    + "Синхронизируй системное время на Minecraft-сервере (NTP).";
+            case "bad-signature" ->
+                    "Подпись ответа бота не совпала. Секреты на двух сторонах разные — "
+                    + "проверь bridge-secret.txt и BRIDGE_SHARED_SECRET.";
+            case "username" ->
+                    "Имя бота не совпало с telegram.bot-username. Очисти это поле или укажи верное имя.";
+            case "protocol" ->
+                    "Бот ответил в неожидаемом формате. Версии плагина и бота разошлись — "
+                    + "собери обе стороны из одного коммита.";
             default ->
                     "Проверь URL бота, домен Bothost и общий секрет. При неверном секрете был бы HTTP 401.";
         };
@@ -229,26 +298,37 @@ public final class ExternalBotBridge implements TelegramTransport {
                 .header("X-Void2FA-Signature", security.sign("request", SYNC_PATH, ts, nonce, body))
                 .POST(HttpRequest.BodyPublishers.ofByteArray(body)).build();
         HttpResponse<byte[]> response = http.send(request, HttpResponse.BodyHandlers.ofByteArray());
-        if (response.statusCode() != 200 || response.body().length > MAX_BODY)
+        if (credentialsRejected(response.statusCode()))
+            throw new RejectedException("http-" + response.statusCode(),
+                    "Bridge rejected credentials (HTTP " + response.statusCode() + ")");
+        if (response.statusCode() != 200)
             throw new IOException("Bridge rejected request (HTTP " + response.statusCode() + ")");
+        if (response.body().length > MAX_BODY) throw new RejectedException("protocol", "Bridge response too large");
         long responseTs;
         try { responseTs = Long.parseLong(response.headers().firstValue("X-Void2FA-Timestamp").orElse("")); }
-        catch (NumberFormatException e) { throw new IOException("Unauthenticated bridge response"); }
+        catch (NumberFormatException e) { throw new RejectedException("protocol", "Missing bridge response timestamp"); }
         String responseNonce = response.headers().firstValue("X-Void2FA-Nonce").orElse("");
         String signature = response.headers().firstValue("X-Void2FA-Signature").orElse("");
         long now = System.currentTimeMillis() / 1000;
-        if (!BridgeSecurity.fresh(responseTs, now) || !nonce.equals(responseNonce)
+        if (!nonce.equals(responseNonce)
                 || !security.matches(security.sign("response", SYNC_PATH, responseTs, responseNonce, response.body()), signature))
-            throw new IOException("Unauthenticated bridge response");
+            throw new RejectedException("bad-signature", "Unauthenticated bridge response");
+        // Signature is valid, so the peer holds the right secret: only the clock is off.
+        if (!BridgeSecurity.fresh(responseTs, now))
+            throw new RejectedException("clock-skew", "Bridge response timestamp outside the allowed skew");
         Map<String, Object> value = Json.asObject(Json.parse(new String(response.body(), StandardCharsets.UTF_8)));
-        if (value == null || Json.asLong(value.get("version")) != 1) throw new IOException("Invalid bridge protocol response");
+        if (value == null || Json.asLong(value.get("version")) != 1)
+            throw new RejectedException("protocol", "Invalid bridge protocol response");
         String username = Json.asString(value.get("bot_username"));
-        if (username == null || !username.matches("[A-Za-z0-9_]{5,32}")) throw new IOException("Invalid bot username");
+        if (username == null || !username.matches("[A-Za-z0-9_]{5,32}"))
+            throw new RejectedException("username", "Invalid bot username");
         String expected = plugin.getConfigManager().getBotUsernameOverride();
-        if (!expected.isEmpty() && !expected.equalsIgnoreCase(username)) throw new IOException("Bot username mismatch");
+        if (!expected.isEmpty() && !expected.equalsIgnoreCase(username))
+            throw new RejectedException("username", "Bot username mismatch");
         List<Object> acceptedRaw = Json.asArray(value.get("accepted"));
         List<Object> commands = Json.asArray(value.get("commands"));
-        if (acceptedRaw == null || commands == null) throw new IOException("Invalid bridge protocol response");
+        if (acceptedRaw == null || commands == null)
+            throw new RejectedException("protocol", "Invalid bridge protocol response");
         List<String> accepted = new ArrayList<>();
         for (Object o : acceptedRaw) { String id = Json.asString(o); if (id != null) accepted.add(id); }
         accept(accepted);
@@ -261,7 +341,7 @@ public final class ExternalBotBridge implements TelegramTransport {
         }
         for (Object o : commands) {
             Map<String, Object> command = Json.asObject(o);
-            if (command == null) throw new IOException("Invalid bridge command");
+            if (command == null) throw new RejectedException("protocol", "Invalid bridge command");
             long seq = Json.asLong(command.get("seq"));
             if (seq <= cursor) continue;
             if (!dispatch(command)) return;

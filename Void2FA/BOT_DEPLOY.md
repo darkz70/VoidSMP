@@ -12,7 +12,7 @@ Telegram Bot API <--единственный getUpdates--> Python-бот на bo
                          HTTPS-домен Bothost, 0.0.0.0:$PORT
                          POST /v1/sync, HMAC-SHA256 в обе стороны
                                                |
-                         Void2FA 1.3.3 bridge (исходящий клиент Paper)
+                         Void2FA 1.3.4 bridge (исходящий клиент Paper)
                                                |
                          AuthManager на main thread Paper
                          коды, UUID, привязки, срок, одноразовость
@@ -46,7 +46,7 @@ Java 25 и Gradle с поддержкой Java 25 (в CI используетс�
 ```bash
 cd Void2FA
 gradle build --no-daemon
-# build/libs/Void2FA-1.3.3.jar
+# build/libs/Void2FA-1.3.4.jar
 ```
 
 Для Paper API нужен доступ к `repo.papermc.io`. GitHub Actions `.github/workflows/void2fa.yml`
@@ -98,7 +98,7 @@ python3 -c 'import secrets; print(secrets.token_hex(32))'
 
 ## 5. Установка плагина на тестовую копию Paper
 
-Сначала останови тестовый сервер. Замени старый JAR на собранный `Void2FA-1.3.3.jar`.
+Сначала останови тестовый сервер. Замени старый JAR на собранный `Void2FA-1.3.4.jar`.
 Сохрани резервную копию `plugins/Void2FA/config.yml` и `data.yml`.
 Новые поля не добавляются автоматически в уже существующий YAML: добавь их вручную.
 
