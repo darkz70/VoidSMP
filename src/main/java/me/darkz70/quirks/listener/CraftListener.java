@@ -341,6 +341,16 @@ public final class CraftListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPrepareCraft(PrepareItemCraftEvent event) {
         CraftingInventory inventory = event.getInventory();
+        // Снимок результата, который сервер УЖЕ посчитал сам, до нашего вмешательства.
+        // Для «сложных» рецептов (фейерверки, наконечные стрелы, карты, баннеры,
+        // перекраска брони, починка в сетке и т.п.) Recipe.getResult() ниже по
+        // коду всегда возвращает пустышку AIR — это официально задокументированное
+        // поведение ComplexRecipe в Paper API, т.к. их настоящий итог сервер
+        // считает динамически по содержимому сетки, а не берёт из шаблона рецепта.
+        // Без этого снимка такие рецепты оставались с пустым слотом результата —
+        // отсюда жалобы "фейерверки нельзя скрафтить" (и та же беда была бы у
+        // наконечных стрел ванили, перекраски карт/баннеров/брони и т.д.).
+        ItemStack vanillaComputed = inventory.getResult();
         inventory.setResult(null); // иначе возможны «залипшие» результаты при ручном матчинге
         if (!(event.getView().getPlayer() instanceof Player player)) return;
 
@@ -379,28 +389,35 @@ public final class CraftListener implements Listener {
         // 3) ванильный результат выше был сброшен — вернём его из рецепта,
         //    но удобрение не-фермеру не показываем
         ItemStack serverResult = event.getRecipe() == null ? null : event.getRecipe().getResult();
-        if (serverResult != null) {
-            if (BrewTree.tagged(serverResult, "fertilizer")
-                    && plugin.quirks().levelOf(player, Quirk.FARMER) == 0
-                    && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
-                return; // не-фермер (и не Админ) не видит удобрение
+        if (serverResult == null || serverResult.getType().isAir()) {
+            // «Сложный» рецепт (фейерверки/наконечные стрелы/карты/баннеры/перекраска
+            // брони и т.д.) — у него нет своих admin-гейтов (это чистая ваниль),
+            // просто отдаём то, что сервер уже честно посчитал сам.
+            if (vanillaComputed != null && !vanillaComputed.getType().isAir()) {
+                inventory.setResult(vanillaComputed);
             }
-            String tag = BrewTree.markOf(serverResult);
-            if (tag != null && tag.startsWith("upbook-") && !seesSecretBasics(player)) {
-                return; // книги прокачки — только магам и Админам
-            }
-            if (CopperGolemListener.isFirmware(serverResult)
-                    && plugin.quirks().levelOf(player, Quirk.ENGINEER) < 2
-                    && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
-                return; // прошивку собирает только Инженер со 2 ур. (и Админ)
-            }
-            if (AmphibianListener.isAmphibTrident(serverResult)
-                    && plugin.quirks().levelOf(player, Quirk.AMPHIBIAN) == 0
-                    && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
-                return; // трезубец глубин собирает только Земноводный (и Админ)
-            }
-            inventory.setResult(serverResult);
+            return;
         }
+        if (BrewTree.tagged(serverResult, "fertilizer")
+                && plugin.quirks().levelOf(player, Quirk.FARMER) == 0
+                && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
+            return; // не-фермер (и не Админ) не видит удобрение
+        }
+        String tag = BrewTree.markOf(serverResult);
+        if (tag != null && tag.startsWith("upbook-") && !seesSecretBasics(player)) {
+            return; // книги прокачки — только магам и Админам
+        }
+        if (CopperGolemListener.isFirmware(serverResult)
+                && plugin.quirks().levelOf(player, Quirk.ENGINEER) < 2
+                && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
+            return; // прошивку собирает только Инженер со 2 ур. (и Админ)
+        }
+        if (AmphibianListener.isAmphibTrident(serverResult)
+                && plugin.quirks().levelOf(player, Quirk.AMPHIBIAN) == 0
+                && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
+            return; // трезубец глубин собирает только Земноводный (и Админ)
+        }
+        inventory.setResult(serverResult);
     }
 
     /** Маги (ур. 1+) и причуда Админ могут видеть/делать нейтралку, основу и улучшатели. */
