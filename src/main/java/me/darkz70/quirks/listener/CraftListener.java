@@ -356,10 +356,23 @@ public final class CraftListener implements Listener {
             return;
         }
 
-        // 2) дерево зелий — скрытый матчинг (нейтралка/основа доступны всем игрокам)
-        ItemStack brew = BrewTree.match(stacks);
+        // 2) дерево зелий — скрытый матчинг (нейтралка/основа доступны всем игрокам).
+        // Бумага ни в один реальный рецепт не входит — её можно докинуть «сверху»
+        // к любой уже верно собранной комбинации: тогда вместо зелья получится
+        // исписанная книга с точным составом (чтобы показать/передать рецепт другим
+        // игрокам). Без бумаги — всё крафтится ровно как раньше, без изменений.
+        List<ItemStack> withoutPaper = new ArrayList<>();
+        int paperCount = 0;
+        for (ItemStack stack : stacks) {
+            if (stack.getType() == Material.PAPER && !stack.hasItemMeta()) {
+                paperCount++;
+            } else {
+                withoutPaper.add(stack);
+            }
+        }
+        ItemStack brew = BrewTree.match(withoutPaper);
         if (brew != null) {
-            inventory.setResult(brew);
+            inventory.setResult(paperCount > 0 ? BrewTree.makeRecipeNote(brew, withoutPaper) : brew);
             return;
         }
 

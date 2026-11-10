@@ -724,6 +724,49 @@ public final class BrewTree {
         return null;
     }
 
+    // ---------- рецептовая записка (бумага поверх рецепта) ----------
+
+    /** Человекочитаемое имя предмета: отображаемое имя, иначе название материала. */
+    private static String plainName(ItemStack item) {
+        if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
+            return net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
+                    .serialize(item.getItemMeta().displayName());
+        }
+        String raw = item.getType().name().toLowerCase(java.util.Locale.ROOT).replace('_', ' ');
+        return Character.toUpperCase(raw.charAt(0)) + raw.substring(1);
+    }
+
+    /**
+     * Рецептовая записка: если при сборке любого рецепта дерева зелий в сетку
+     * верстака докинуть обычную бумагу (хоть одну — бумага ни в один реальный
+     * рецепт не входит), результат вместо самого предмета — исписанная книга
+     * с точным составом того, что было в сетке, чтобы показать/передать
+     * рецепт другому игроку. {@code ingredients} — сетка БЕЗ учёта бумаги.
+     */
+    public static ItemStack makeRecipeNote(ItemStack result, List<ItemStack> ingredients) {
+        String resultName = plainName(result);
+        java.util.LinkedHashMap<String, Integer> counts = new java.util.LinkedHashMap<>();
+        for (ItemStack ingredient : ingredients) {
+            counts.merge(plainName(ingredient), ingredient.getAmount(), Integer::sum);
+        }
+        StringBuilder page = new StringBuilder();
+        page.append("&5&l").append(resultName).append("&r\n\n&7Состав:\n");
+        for (var entry : counts.entrySet()) {
+            page.append("&f- ").append(entry.getKey());
+            if (entry.getValue() > 1) page.append(" &7x").append(entry.getValue());
+            page.append('\n');
+        }
+        ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+        book.editMeta(org.bukkit.inventory.meta.BookMeta.class, meta -> {
+            String title = resultName.length() > 28 ? resultName.substring(0, 28) : resultName;
+            meta.setTitle("Рецепт: " + title);
+            meta.setAuthor("Хранитель недр");
+            meta.addPages(me.darkz70.quirks.util.Msg.color(page.toString()));
+            meta.displayName(me.darkz70.quirks.util.Msg.color("&dРецепт: &f" + resultName));
+        });
+        return book;
+    }
+
     static {
         // двойное отравление
         rule(l -> makeDoublePoison(), mark("neutral"), potionFam("POISON"), mark("neutral"));
