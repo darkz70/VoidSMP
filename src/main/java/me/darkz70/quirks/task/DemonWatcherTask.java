@@ -21,11 +21,19 @@ import org.bukkit.util.EulerAngle;
 /**
  * «Демон азарта» (ЗАГЛУШКА до нормального босса): изредка вдали от игроков
  * (минимум 20 блоков) возникает тёмная фигура — невидимая броня-стойка в
- * позе с поднятыми руками, голова — скин демона (из ресурспака, заменяет
- * дефолтный Стив/Алекс), тело — тёмно-чёрная «ряса». Вокруг — ПРЕИМУЩЕСТВЕННО
- * тёмные и адские частицы (пламя душ, пепел, дым, чернильная тьма, капли
- * лавы, споры недра) — скалковых частиц больше нет. Стоит несколько секунд
- * и растворяется со вспышкой.
+ * позе с поднятыми руками, голова — чёрный иссохший череп (WITHER_SKELETON_SKULL,
+ * ванильная модель, видна всегда и без ресурспака), тело — тёмно-чёрная «ряса».
+ * Вокруг — ПРЕИМУЩЕСТВЕННО тёмные и адские частицы (пламя душ, пепел, дым,
+ * чернильная тьма, капли лавы, споры недра) — скалковых частиц больше нет.
+ * Контур фигуры светится (setGlowing), чтобы её было видно даже в темноте/сквозь
+ * частицы. Стоит несколько секунд и растворяется со вспышкой.
+ * <p>
+ * ПРИМЕЧАНИЕ: раньше голова была обычным PLAYER_HEAD без владельца, в расчёте
+ * на то, что ресурспак подменяет дефолтный клиентский скин Стива/Алекса на
+ * скин демона — ненадёжно (нужен принятый клиентом ресурспак + полный рестарт
+ * сервера на каждое обновление пака) и к тому же задевало бы ВСЕ безскиновые
+ * головы/игроков на сервере. Заменено на ванильный WITHER_SKELETON_SKULL —
+ * не зависит вообще ни от чего, выглядит зловеще и сразу гарантированно видно.
  *
  * Никаких сообщений в чат при пассивном появлении, звуки — только тихие,
  * по месту фигуры. Настраивается: demon.enabled (вкл/выкл),
@@ -34,8 +42,10 @@ import org.bukkit.util.EulerAngle;
  *
  * Админ может вызвать появление вручную — кнопка «Призвать демона» в
  * /gaid → Эффекты, рядом с переключателями демона (см. {@link #summonManual}).
- * Ручной вызов — ровно на месте админа, без ограничения по дистанции и без
- * сообщений в чат (ни об успехе, ни о неудаче).
+ * Ручной вызов — В 2.5 БЛОКАХ ПЕРЕД админом (в направлении его взгляда), а не
+ * буквально в точке, где стоит сам игрок — иначе фигура спавнится внутри
+ * собственной камеры игрока и её физически не видно. Без ограничения по
+ * дальним дистанциям и без сообщений в чат (ни об успехе, ни о неудаче).
  */
 public final class DemonWatcherTask extends BukkitRunnable {
 
@@ -44,6 +54,9 @@ public final class DemonWatcherTask extends BukkitRunnable {
 
     /** Жёсткий пол дистанции появления — никогда не ближе этого, даже если в конфиге меньше. */
     public static final int HARD_MIN_DISTANCE = 20;
+
+    /** На таком расстоянии перед админом встаёт фигура при ручном вызове — чтобы не спавниться у него в камере. */
+    private static final double MANUAL_SPAWN_DISTANCE = 2.5;
 
     private final VoidQuirksPlugin plugin;
     /** Активные силуэты. */
@@ -96,16 +109,25 @@ public final class DemonWatcherTask extends BukkitRunnable {
     }
 
     /**
-     * Ручной вызов демона админом (кнопка в /gaid → Эффекты). В отличие от пассивного
-     * появления (не ближе HARD_MIN_DISTANCE от игроков), тут фигура встаёт РОВНО на
-     * месте самого админа — дистанция не применяется. Живёт дольше обычного пассивного
-     * появления, чтобы было время рассмотреть. Никаких сообщений в чат — ни об успехе,
-     * ни о неудаче: появление должно быть тихим и незаметным по тексту.
+     * Ручной вызов демона админом (кнопка в /gaid → Эффекты). Фигура встаёт в
+     * {@value #MANUAL_SPAWN_DISTANCE} блоках прямо перед админом (по направлению
+     * взгляда), а не буквально на его ногах — иначе она спавнится внутри
+     * собственной камеры игрока и физически не видна. Дистанция до игроков не
+     * ограничивается (HARD_MIN_DISTANCE тут не применяется — это не пассивное
+     * появление). Живёт намного дольше обычного пассивного появления, чтобы было
+     * время спокойно рассмотреть. Никаких сообщений в чат — ни об успехе, ни о
+     * неудаче: появление должно быть тихим и незаметным по тексту.
      */
     public void summonManual(Player admin) {
         var cfg = plugin.getConfig();
-        long life = cfg.getInt("demon.manual-lifetime-seconds", 25) * 1000L;
-        Location spot = admin.getLocation().clone();
+        long life = cfg.getInt("demon.manual-lifetime-seconds", 60) * 1000L;
+        // Горизонтальное направление по yaw игрока (а не по getDirection()) — так оно
+        // всегда ненулевое, даже если админ смотрит строго вверх/вниз (pitch ±90).
+        double yawRad = Math.toRadians(admin.getLocation().getYaw());
+        org.bukkit.util.Vector forward = new org.bukkit.util.Vector(-Math.sin(yawRad), 0, Math.cos(yawRad));
+        Location spot = admin.getLocation().clone().add(forward.multiply(MANUAL_SPAWN_DISTANCE));
+        spot.setY(spot.getWorld().getHighestBlockYAt(spot) + 1.0);
+        spot.setDirection(forward.clone().multiply(-1)); // лицом к админу
         ArmorStand stand = spawnFigure(spot);
         if (stand == null) return;
         active.put(UUID.randomUUID(), new Silhouette(spot, stand, System.currentTimeMillis() + life));
@@ -138,7 +160,7 @@ public final class DemonWatcherTask extends BukkitRunnable {
         return spot;
     }
 
-    /** Невидимая броня-стойка в позе демона: голова — скин демона, тело — чёрная ряса. */
+    /** Невидимая броня-стойка в позе демона: голова — чёрный череп, тело — чёрная ряса, контур светится. */
     private ArmorStand spawnFigure(Location spot) {
         try {
             return spot.getWorld().spawn(spot, ArmorStand.class, as -> {
@@ -150,15 +172,16 @@ public final class DemonWatcherTask extends BukkitRunnable {
                 as.setSilent(true);
                 as.setPersistent(false);
                 as.setCollidable(false);
+                as.setGlowing(true); // контур виден даже в темноте/сквозь частицы — без ресурспака
                 as.setRightArmPose(new EulerAngle(Math.toRadians(-70), 0, Math.toRadians(-12)));
                 as.setLeftArmPose(new EulerAngle(Math.toRadians(-65), 0, Math.toRadians(12)));
                 as.setHeadPose(new EulerAngle(Math.toRadians(8), 0, 0));
 
                 var eq = as.getEquipment();
                 if (eq != null) {
-                    // голова: обычный PLAYER_HEAD без владельца — клиент рисует дефолтный
-                    // Стив/Алекс скин, который у нас в ресурспаке подменён на скин демона
-                    eq.setHelmet(new ItemStack(Material.PLAYER_HEAD));
+                    // голова: ванильный WITHER_SKELETON_SKULL — чёрный зловещий череп,
+                    // не зависит ни от скина, ни от ресурспака, виден абсолютно всем сразу
+                    eq.setHelmet(new ItemStack(Material.WITHER_SKELETON_SKULL));
                     eq.setChestplate(darkLeather(Material.LEATHER_CHESTPLATE));
                     eq.setLeggings(darkLeather(Material.LEATHER_LEGGINGS));
                     eq.setBoots(darkLeather(Material.LEATHER_BOOTS));

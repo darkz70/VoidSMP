@@ -410,7 +410,7 @@ demon:
   max-distance: 50
   min-lifetime-seconds: 6
   max-lifetime-seconds: 10
-  manual-lifetime-seconds: 25 # сколько живёт демон, вызванный вручную кнопкой у админа
+  manual-lifetime-seconds: 60 # сколько живёт демон, вызванный вручную кнопкой у админа
 
 # Глобальные режимы неба — на весь сервер (переключаются в /gaid → Эффекты, слоты 0/1)
 sky:
