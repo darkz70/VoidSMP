@@ -144,6 +144,10 @@ public final class QuirkManager {
                 // крафт усиленного трезубца виден только Земноводному
                 me.darkz70.quirks.listener.CraftListener.syncTridentRecipe(player, true);
             }
+            case MAGE -> {
+                // крафт книг стихий виден только причуде «Маг» (магия ограничена по плану)
+                me.darkz70.quirks.listener.CraftListener.syncElementBookRecipes(player, true);
+            }
             default -> { /* кот и топор не имеют пассивок при выдаче */ }
         }
     }
@@ -170,6 +174,7 @@ public final class QuirkManager {
                 me.darkz70.quirks.listener.CraftListener.syncFertilizerRecipe(player, false);
             }
             case AMPHIBIAN -> me.darkz70.quirks.listener.CraftListener.syncTridentRecipe(player, false);
+            case MAGE -> me.darkz70.quirks.listener.CraftListener.syncElementBookRecipes(player, false);
             default -> { }
         }
     }

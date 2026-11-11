@@ -195,6 +195,28 @@ public final class MagicSystem {
         return true;
     }
 
+    // ---------- причуда «Маг»: прямой выбор стихии в менюшке ----------
+
+    /**
+     * Прямой выбор/смена стихии — причуда «Маг» (/mage), без крафта фолианта и
+     * без ограничения в 4 книги для тьмы/света. Полностью независимо от обычного
+     * пути (крафт фолианта работает для всех игроков как раньше): это просто
+     * более удобный перк для тех, у кого есть причуда «Маг». Можно выбирать
+     * заново в любой момент — старая стихия и прогресс заменяются новой с нуля.
+     */
+    public void pickElementDirect(Player player, Element element) {
+        PlayerData data = dataOrCreate(player);
+        data.magicElement(element.id());
+        data.magicLevel(1);
+        data.selectedSpell(0);
+        data.mana(maxMana(1));
+        grantUpgradeBookRecipes(player);
+        plugin.storage().save();
+        Msg.send(player, "magic-learned", "%element%", element.display(), "%emoji%", element.emoji());
+        player.getWorld().playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 0.8f);
+        player.getWorld().spawnParticle(Particle.WITCH, player.getLocation().add(0, 1, 0), 30, 0.4, 0.8, 0.4, 0.02);
+    }
+
     // ---------- изучение и книги ----------
 
     /** Изучить стихию книгой стихии. Возвращает true, если книгу можно потратить. */

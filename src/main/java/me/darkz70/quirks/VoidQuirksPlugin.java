@@ -88,6 +88,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         politics = new me.darkz70.quirks.mechanic.PoliticsStore(this);
         gaipolitics = new me.darkz70.quirks.command.PoliticsMenu(this);
         gaidFx = new me.darkz70.quirks.command.GaidFx(this);
+        mageMenu = new me.darkz70.quirks.command.MageMenu(this); // причуда «Маг»: меню выбора стихии
         new me.darkz70.quirks.listener.AbilityMenus(this);
         zayceMobMenu = new me.darkz70.quirks.command.ZayceMobMenu(this);
         toggleMenu = new me.darkz70.quirks.command.ToggleMenu(this);
@@ -133,6 +134,11 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         PluginCommand gaid = getCommand("gaid");
         if (gaid != null) {
             gaid.setExecutor(gaidCommand);
+        }
+
+        PluginCommand mage = getCommand("mage");
+        if (mage != null) {
+            mage.setExecutor(new me.darkz70.quirks.command.MageCommand(this));
         }
 
         IventCommand iventCommand = new IventCommand(this);
@@ -234,6 +240,11 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     private me.darkz70.quirks.command.GaidFx gaidFx;
     private me.darkz70.quirks.command.ZayceMobMenu zayceMobMenu;
     private DemonWatcherTask demonWatcher;
+    private me.darkz70.quirks.command.MageMenu mageMenu;
+
+    public me.darkz70.quirks.command.MageMenu mageMenu() {
+        return mageMenu;
+    }
 
     public DemonWatcherTask demonWatcher() {
         return demonWatcher;

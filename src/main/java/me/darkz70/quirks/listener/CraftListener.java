@@ -45,6 +45,7 @@ public final class CraftListener implements Listener {
     public static NamespacedKey fertilizerKey;
     public static NamespacedKey firmwareKey;
     public static NamespacedKey tridentKey;
+    public static final java.util.List<NamespacedKey> elementBookKeys = new java.util.ArrayList<>();
 
     /** Выдать/забрать видимость рецепта удобрения у игрока. */
     public static void syncFertilizerRecipe(Player player, boolean farmer) {
@@ -73,6 +74,17 @@ public final class CraftListener implements Listener {
             player.discoverRecipe(tridentKey);
         } else {
             player.undiscoverRecipe(tridentKey);
+        }
+    }
+
+    /** Выдать/забрать видимость рецептов книг стихий (причуда «Маг»). */
+    public static void syncElementBookRecipes(Player player, boolean visible) {
+        for (NamespacedKey key : elementBookKeys) {
+            if (visible) {
+                player.discoverRecipe(key);
+            } else {
+                player.undiscoverRecipe(key);
+            }
         }
     }
 
@@ -129,12 +141,13 @@ public final class CraftListener implements Listener {
             if (element == Element.LIGHT || element == Element.DARK) {
                 continue; // светлый и тёмный фолианты — только вершинами яично-океанской ветки
             }
-            ShapelessRecipe book = new ShapelessRecipe(new NamespacedKey(plugin, "elem_book_" + element.id()),
-                    makeElementBook(element));
+            NamespacedKey elemBookKey = new NamespacedKey(plugin, "elem_book_" + element.id());
+            ShapelessRecipe book = new ShapelessRecipe(elemBookKey, makeElementBook(element));
             book.addIngredient(Material.BOOK);
             book.addIngredient(4, Material.AMETHYST_SHARD);
             book.addIngredient(element.catalyst());
-            add(new NamespacedKey(plugin, "elem_book_" + element.id()), book);
+            add(elemBookKey, book);
+            elementBookKeys.add(elemBookKey);
         }
 
         // книги прокачки
@@ -407,6 +420,11 @@ public final class CraftListener implements Listener {
         if (tag != null && tag.startsWith("upbook-") && !seesSecretBasics(player)) {
             return; // книги прокачки — только магам и Админам
         }
+        if (tag != null && tag.startsWith("elem-book-")
+                && plugin.quirks().levelOf(player, Quirk.MAGE) == 0
+                && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
+            return; // книги стихий крафтит только причуда «Маг» (и Админ)
+        }
         if (CopperGolemListener.isFirmware(serverResult)
                 && plugin.quirks().levelOf(player, Quirk.ENGINEER) < 2
                 && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
@@ -447,6 +465,14 @@ public final class CraftListener implements Listener {
                 && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
             event.setCancelled(true);
             Msg.send(player, "amphib-trident-craft-denied");
+            return;
+        }
+        String elemTag = BrewTree.markOf(result);
+        if (elemTag != null && elemTag.startsWith("elem-book-")
+                && plugin.quirks().levelOf(player, Quirk.MAGE) == 0
+                && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
+            event.setCancelled(true);
+            Msg.send(player, "mage-need-quirk");
             return;
         }
         // яично-океанская тройка: светлый фолиант ложится стеком, тёмный — бонусом

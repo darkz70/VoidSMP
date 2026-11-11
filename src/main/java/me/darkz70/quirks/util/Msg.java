@@ -21,7 +21,7 @@ public final class Msg {
         def("no-permission", "%prefix%&cНедостаточно прав.");
         def("usage", "%prefix%&f/quirk set <игрок> <причуда> [уровень] &8| &f/quirk remove <игрок> &8| &f/quirk info [игрок] &8| &f/quirk list &8| &f/quirk reload");
         def("target-offline", "%prefix%&cИгрок не найден или не в сети.");
-        def("invalid-quirk", "%prefix%&cНеизвестная причуда. Доступны: инженер, кот, бедрок, топор, скалк, фермер, земноводный, паук.");
+        def("invalid-quirk", "%prefix%&cНеизвестная причуда. Доступны: инженер, кот, бедрок, топор, скалк, фермер, земноводный, паук, маг.");
         def("invalid-level", "%prefix%&cУровень должен быть от 1 до 3.");
         def("set-ok", "%prefix%&aИгроку &f%player% &aназначена причуда &d%quirk% &a(ур. &d%level%&a).");
         def("removed", "%prefix%&aПричуда игрока &f%player% &aснята.");
@@ -124,6 +124,7 @@ public final class Msg {
         def("magic-learned", "&dСтихия отозвалась! %emoji% &f%element% &dстала твоей. &7ПКМ — каст, Q/F — смена, Shift+F — меню.");
         def("magic-already-element", "&7Твоя душа уже слушает: &f%element%&7. Смена — только зельем переквалификации.");
         def("magic-need-four-books", "&cСвет и тьма смиряются только теми, кто держит &f4 книги&c других стихий.");
+        def("mage-need-quirk", "%prefix%&cВыбирать магию в менюшке умеет только причуда «Маг» (/mage).");
         def("magic-book-weak", "&cЭта книга слишком сильна для тебя. Нужен уровень магии %min%+.");
         def("magic-level-up", "&b✦ Уровень магии: &f%level%&b!");
         def("magic-spell-locked", "&8Заклинание &7%spell% &8откроется на %level% уровне магии.");
