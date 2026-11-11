@@ -48,8 +48,6 @@ public final class Msg {
         def("engineer-golem-set-mine", "%prefix%&6✦ Голем прошит: теперь он добывает руду рядом и несёт находки тебе.");
         def("engineer-golem-set-kill", "%prefix%&c✦ Голем прошит: теперь он бьёт враждебных мобов рядом.");
         def("engineer-golem-gone", "%prefix%&7Голем куда-то делся…");
-        def("demon-summon-ok", "%prefix%&5&lДемон азарта&r &7(заглушка) призван в &f~%dist%&7 блоках — иди посмотри, пока не растаял.");
-        def("demon-summon-fail", "%prefix%&cНе вышло призвать демона — попробуй ещё раз.");
         def("axe-rage-cooldown", "&cЯрость остывает: &f%time%&c.");
         def("axe-teleport-cooldown", "&cРывок ещё остывает: &f%time% с.");
         def("axe-teleport-fail", "&cНекуда телепортироваться.");

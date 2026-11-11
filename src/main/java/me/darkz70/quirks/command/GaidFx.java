@@ -16,6 +16,7 @@ import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -62,7 +63,7 @@ public final class GaidFx implements Listener {
 
     public void open(Player player) {
         Inventory inv = Bukkit.createInventory(new Holder(), 54,
-                Msg.color("&5Эффекты (на месте админа) — 24 штуки"));
+                Msg.color("&5Эффекты (на месте админа + 2 глобальных режима неба)"));
         // — ряд 1: классика —
         fx(inv, 11, Material.MAGMA_BLOCK, "&c&lАдские разломы",
                 "&7Магма-подложка, 4 трещины растут по 9 блоков с искрами,",
@@ -79,6 +80,11 @@ public final class GaidFx implements Listener {
         fx(inv, 15, Material.LAVA_BUCKET, "&6&lЛавовый гейзер",
                 "&7Столб раскалённых брызг на 25 блоков вверх,",
                 "&7остаётся обожжённое кольцо магмы вокруг.");
+        fx(inv, 16, Material.CRIMSON_FUNGUS, "&c&lАдский сад",
+                "&7Нейлиевая площадка (криммзон/ворп — наугад) с грибными",
+                "&7«деревьями» и светящимися грибами растёт &lНАВСЕГДА&7 на",
+                "&7твоём месте (как скалк-остров), затем из портальной",
+                "&7дымки появляется горстка адских тварей-охранителей.");
         // — ряд 2: разрывы миров —
         fx(inv, 20, Material.MAGMA_CREAM, "&c&lДвойной разлом",
                 "&7Две анимированные трещины врозь под ±30°, по 14 блоков,",
@@ -98,7 +104,8 @@ public final class GaidFx implements Listener {
         // — ряд 3: стихии неба и глубины —
         fx(inv, 29, Material.LIGHTNING_ROD, "&e&lГром и молния",
                 "&7Вспышка и рёв перед грозой; 3 удара в твою точку,",
-                "&7молнии по кругу с магмой/чернокамнем/огнём, 3 мини-кратера.");
+                "&714 молний по кругу с магмой/чернокамнем/огнём,",
+                "&73 мини-кратера, тряска вокруг.");
         fx(inv, 30, Material.BLAZE_ROD, "&6&lМолния в небо",
                 "&7Обратный разряд: белый столб END-частиц уходит вверх,",
                 "&7вспышка и сухой щелчок грома.");
@@ -110,6 +117,9 @@ public final class GaidFx implements Listener {
         fx(inv, 33, Material.SCULK_SHRIEKER, "&5&lПульс пустоты",
                 "&7Кольцо SCULK-заряда расходится по земле,",
                 "&7соник-бум вардена слышен в 60 блоках.");
+        fx(inv, 34, Material.NETHERITE_SCRAP, "&e&lШторм молний",
+                "&7То же самое, что «Гром и молния», но &lв 5 РАЗ&7 больше",
+                "&7ударов и кратеров, вдвое шире площадь и слышимость.");
         // — ряд 4: атмосфера и бури —
         fx(inv, 38, Material.GUNPOWDER, "&7&lПепельная буря",
                 "&710 секунд идёт пепел в 25 блоках — как после пожара миров.");
@@ -145,8 +155,9 @@ public final class GaidFx implements Listener {
         fx(inv, 2, Material.WITHER_SKELETON_SKULL,
                 "&4&lПризвать демона &8(заглушка)",
                 "&7Фигура демона (голова — скин-заглушка из ресурспака,",
-                "&7тёмная ряса) появится не ближе &f20&7 блоков от тебя,",
+                "&7тёмная ряса) появится &fРОВНО НА ТВОЁМ МЕСТЕ&7,",
                 "&7в тёмных и адских частицах. Живёт ~25 секунд.",
+                "&7Никаких сообщений в чат — ни успех, ни неудача.",
                 "&8Превью будущего «Демона азарта» — настоящий босс скоро.");
         fx(inv, 3, demonOn ? Material.REDSTONE_TORCH : Material.DEAD_BUSH,
                 demonOn ? "&5&lДемон азарта: &aВКЛ" : "&5&lДемон азарта: &cВЫКЛ",
@@ -157,6 +168,19 @@ public final class GaidFx implements Listener {
                 "&5&lИнтервал демона: &f" + demonInt + " мин",
                 "&7Клик — цикл: 5 → 10 → 15 → 20 → 30 → 60 минут.",
                 "&7Новый интервал применяется сразу.");
+        // режимы неба: ГЛОБАЛЬНЫЕ переключатели на весь сервер (слоты 0 и 1)
+        boolean eyesOn = plugin.skyEffects().eyesEnabled();
+        boolean redOn = plugin.skyEffects().redEnabled();
+        fx(inv, 0, eyesOn ? Material.ENDER_EYE : Material.GLASS_BOTTLE,
+                eyesOn ? "&4&l9 глаз в небе: &aВКЛ" : "&4&l9 глаз в небе: &cВЫКЛ",
+                "&7ГЛОБАЛЬНО для ВСЕХ игроков — 9 гигантских красных глаз",
+                "&7вместо звёзд, всегда смотрят прямо на игрока.",
+                "&7Работает, пока не выключишь. Клик — переключить.");
+        fx(inv, 1, redOn ? Material.RED_STAINED_GLASS : Material.GLASS,
+                redOn ? "&c&lКрасное небо: &aВКЛ" : "&c&lКрасное небо: &cВЫКЛ",
+                "&7ГЛОБАЛЬНО для ВСЕХ игроков — багровое зарево в небе",
+                "&7над головой + медленный красный пепельный дождь.",
+                "&7Работает, пока не выключишь. Клик — переключить.");
         inv.setItem(4, btn(Material.ARROW, "&7&lНазад"));
         player.openInventory(inv);
     }
@@ -224,6 +248,8 @@ public final class GaidFx implements Listener {
                 Bukkit.getScheduler().runTask(plugin, () -> player.performCommand("gaid"));
                 return;
             }
+            case 0 -> plugin.skyEffects().setEyesEnabled(!plugin.skyEffects().eyesEnabled()); // 9 глаз: вкл/выкл
+            case 1 -> plugin.skyEffects().setRedEnabled(!plugin.skyEffects().redEnabled()); // красное небо: вкл/выкл
             case 2 -> plugin.demonWatcher().summonManual(player); // демон: ручной призыв (заглушка)
             case 3 -> { // демон: вкл/выкл
                 boolean now = !plugin.getConfig().getBoolean("demon.enabled", true);
@@ -241,6 +267,7 @@ public final class GaidFx implements Listener {
             case 13 -> openHell(player);
             case 14 -> portalHum(player);
             case 15 -> lavaGeyser(player);
+            case 16 -> hellGarden(player);
             case 20 -> doubleRift(player);
             case 21 -> voidWell(player);
             case 22 -> phaseScar(player);
@@ -251,6 +278,7 @@ public final class GaidFx implements Listener {
             case 31 -> fear(player, 60);
             case 32 -> fear(player, 300);
             case 33 -> voidPulse(player);
+            case 34 -> lightningStorm5x(player);
             case 38 -> ashStorm(player);
             case 39 -> ghastBurst(player);
             case 40 -> fireDome(player);
@@ -413,6 +441,21 @@ public final class GaidFx implements Listener {
     // ---------- гром и молния ----------
 
     private void thunder(Player admin) {
+        lightningStorm(admin, 1.0);
+    }
+
+    /** Шторм молний: ×5 ударов, ×2 площадь и слышимость «Грома и молнии». */
+    private void lightningStorm5x(Player admin) {
+        lightningStorm(admin, 5.0);
+    }
+
+    /**
+     * Гром и молния со шкалой: scale=1 — «Гром и молния» (перезаписана заново,
+     * крепче прежней: больше вспышек на вступлении, плотнее интервалы между
+     * ударами), scale=5 — «Шторм молний» (в 5 раз больше ударов и кратеров,
+     * вдвое шире площадь и слышимость).
+     */
+    private void lightningStorm(Player admin, double scale) {
         Location at = admin.getLocation();
         World world = at.getWorld();
         if (world == null) return;
@@ -420,23 +463,32 @@ public final class GaidFx implements Listener {
         int by = at.getBlockY() - 1;
         int bz = at.getBlockZ();
 
-        // удар 0-й: вспышка неба и низкий гул перед грозой
+        int centerStrikes = (int) Math.round(3 * scale);
+        int randomStrikes = (int) Math.round(14 * scale);
+        int craterStrikes = (int) Math.round(3 * scale);
+        double radius = Math.min(60, 20 * scale);
+        double soundRadius = Math.min(400, 90 * scale);
+
+        // вступление: вспышка и низкий гул перед грозой (на x5 — с доп. раскатом)
         world.spawnParticle(Particle.FLASH, at.clone().add(0, 2, 0), 1, 0, 0, 0, 0);
-        for (Player nearby : playersIn(at, 90)) {
+        for (Player nearby : playersIn(at, soundRadius)) {
             nearby.playSound(at, Sound.ENTITY_WITHER_SPAWN, SoundCategory.WEATHER, 0.5f, 0.5f);
+            if (scale > 1) {
+                nearby.playSound(at, Sound.ENTITY_ENDER_DRAGON_GROWL, SoundCategory.WEATHER, 0.4f, 0.4f);
+            }
         }
 
-        // три удара прямо в админа — с растущей силой звука
-        for (int i = 0; i < 3; i++) {
-            final float pitch = 0.7f + i * 0.1f;
+        // центральные удары прямо в админа — с растущей силой звука
+        for (int i = 0; i < centerStrikes; i++) {
+            final float pitch = 0.7f + (i % 5) * 0.1f;
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 world.strikeLightningEffect(at);
                 lightningParticles(world, at);
-                for (Player nearby : playersIn(at, 90)) {
+                for (Player nearby : playersIn(at, soundRadius)) {
                     nearby.playSound(at, Sound.ENTITY_LIGHTNING_BOLT_THUNDER,
                             SoundCategory.WEATHER, 3f, pitch);
                 }
-            }, 10L + i * 10L);
+            }, 10L + i * 8L);
         }
         Block base = world.getBlockAt(bx, by, bz);
         if (canTurn(base)) {
@@ -445,12 +497,12 @@ public final class GaidFx implements Listener {
             if (above.getType().isAir()) above.setType(Material.FIRE);
         }
 
-        // 14 ударов по случайным точкам в 20 блоках, вразнобой
-        for (int i = 0; i < 14; i++) {
-            int ticks = 40 + i * 4 + ThreadLocalRandom.current().nextInt(0, 3);
+        // удары по случайным точкам вокруг, вразнобой
+        for (int i = 0; i < randomStrikes; i++) {
+            int ticks = 40 + i * 3 + ThreadLocalRandom.current().nextInt(0, 3);
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 double a = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
-                double r = ThreadLocalRandom.current().nextDouble(3, 20);
+                double r = ThreadLocalRandom.current().nextDouble(3, radius);
                 int px = bx + (int) Math.round(Math.cos(a) * r);
                 int pz = bz + (int) Math.round(Math.sin(a) * r);
                 int py = world.getHighestBlockYAt(px, pz) + 1;
@@ -465,22 +517,22 @@ public final class GaidFx implements Listener {
                             && ThreadLocalRandom.current().nextBoolean()) flame.setType(Material.FIRE);
                 }
                 lightningParticles(world, strike);
-                thunderSounds(strike, 90);
+                thunderSounds(strike, soundRadius);
             }, ticks);
         }
-        // три «входящих» удара выбивают маленькие кратеры
-        for (int i = 0; i < 3; i++) {
+        // «входящие» удары выбивают маленькие кратеры
+        for (int i = 0; i < craterStrikes; i++) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 double a = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
-                double r = ThreadLocalRandom.current().nextDouble(6, 16);
+                double r = ThreadLocalRandom.current().nextDouble(6, Math.max(7, radius * 0.8));
                 int px = bx + (int) Math.round(Math.cos(a) * r);
                 int pz = bz + (int) Math.round(Math.sin(a) * r);
                 int py = world.getHighestBlockYAt(px, pz);
                 world.strikeLightningEffect(new Location(world, px + 0.5, py + 1, pz + 0.5));
                 crater(world, new Location(world, px, py, pz), 2);
-            }, 60L + i * 10L);
+            }, 60L + i * 8L);
         }
-        shakeNearby(at, 90, 4);
+        shakeNearby(at, soundRadius, (int) Math.round(4 * Math.min(3, scale)));
     }
 
     /** Белые частицы, идущие зигзагом вверх — «силуэт молнии». */
@@ -1450,6 +1502,143 @@ public final class GaidFx implements Listener {
                     2, 0.1, 0.15, 0.1, 0.005);
             world.spawnParticle(Particle.ASH, at.clone().add(Math.cos(a) * 2.2, 0.8, Math.sin(a) * 2.2),
                     1, 0.1, 0.2, 0.1, 0.005);
+        }
+    }
+
+    // ---------- адский сад: постоянная площадка ----------
+
+    /**
+     * Адский сад: нейлиевое пятно (криммзон или ворп — выбирается случайно) с
+     * грибными «деревьями» и светящимися грибами вырастает ПОСТОЯННО на месте
+     * админа (как скалк-остров — не исчезает), затем из портальной дымки
+     * появляется горстка адских тварей, охраняющих сад.
+     */
+    private void hellGarden(Player admin) {
+        Location at = admin.getLocation();
+        World world = at.getWorld();
+        if (world == null) return;
+        int cx = at.getBlockX();
+        int cz = at.getBlockZ();
+        int radius = 14;
+
+        boolean crimson = ThreadLocalRandom.current().nextBoolean();
+        Material nylium = crimson ? Material.CRIMSON_NYLIUM : Material.WARPED_NYLIUM;
+        Material stem = crimson ? Material.CRIMSON_STEM : Material.WARPED_STEM;
+        Material wart = crimson ? Material.NETHER_WART_BLOCK : Material.WARPED_WART_BLOCK;
+        Material fungus = crimson ? Material.CRIMSON_FUNGUS : Material.WARPED_FUNGUS;
+        Material roots = crimson ? Material.CRIMSON_ROOTS : Material.WARPED_ROOTS;
+
+        shakeNearby(at, radius * 3.0, 3);
+        world.playSound(at, Sound.ENTITY_HOGLIN_AMBIENT, SoundCategory.HOSTILE, 1.2f, 0.7f);
+        world.playSound(at, Sound.ITEM_NETHER_WART_PLANT, SoundCategory.BLOCKS, 1f, 0.6f);
+        world.spawnParticle(Particle.SOUL, at.clone().add(0, 1, 0), 30, 2, 1, 2, 0.02);
+
+        // пятно нейлия с неровным краем — растёт от центра наружу
+        List<int[]> patch = new ArrayList<>();
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                double noise = ThreadLocalRandom.current().nextDouble(-1.5, 1.5);
+                double d = Math.sqrt(dx * dx + dz * dz) + noise * 0.5;
+                if (d > radius) continue;
+                patch.add(new int[]{dx, dz});
+            }
+        }
+        patch.sort((a, b) -> Integer.compare(a[0] * a[0] + a[1] * a[1], b[0] * b[0] + b[1] * b[1]));
+        int batch = Math.max(1, patch.size() / 30);
+        for (int i = 0; i < patch.size(); i += batch) {
+            int from = i;
+            int to = Math.min(patch.size(), i + batch);
+            int ticks = 5 + i / batch;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                for (int k = from; k < to; k++) {
+                    int[] col = patch.get(k);
+                    int gx = cx + col[0];
+                    int gz = cz + col[1];
+                    int gy = world.getHighestBlockYAt(gx, gz) - 1;
+                    Block ground = world.getBlockAt(gx, gy, gz);
+                    if (canBuildOn(ground) && !ground.getType().isAir()) {
+                        ground.setType(nylium);
+                    }
+                    Block above = ground.getRelative(0, 1, 0);
+                    if (above.getType().isAir() && ThreadLocalRandom.current().nextInt(4) == 0) {
+                        above.setType(roots);
+                    }
+                }
+            }, ticks);
+        }
+
+        // грибные деревья, светящиеся грибы и финальный спавн охранителей сада
+        int finishTicks = 5 + patch.size() / batch + 10;
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            int trees = 5 + ThreadLocalRandom.current().nextInt(4);
+            for (int t = 0; t < trees; t++) {
+                double a = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
+                double d = ThreadLocalRandom.current().nextDouble(0, radius * 0.7);
+                int tx = cx + (int) Math.round(Math.cos(a) * d);
+                int tz = cz + (int) Math.round(Math.sin(a) * d);
+                int ty = world.getHighestBlockYAt(tx, tz);
+                hellFungusTree(world, tx, ty, tz, stem, wart, fungus);
+            }
+            for (int i = 0; i < 6; i++) {
+                double a = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
+                double d = ThreadLocalRandom.current().nextDouble(0, radius * 0.9);
+                int sx = cx + (int) Math.round(Math.cos(a) * d);
+                int sz = cz + (int) Math.round(Math.sin(a) * d);
+                int sy = world.getHighestBlockYAt(sx, sz);
+                Block b = world.getBlockAt(sx, sy, sz);
+                if (b.getType().isAir()) b.setType(Material.SHROOMLIGHT);
+            }
+            world.spawnParticle(Particle.SOUL_FIRE_FLAME, at.clone().add(0, 1, 0),
+                    40, radius * 0.5, 2, radius * 0.5, 0.02);
+            world.playSound(at, Sound.ENTITY_HOGLIN_ANGRY, SoundCategory.HOSTILE, 1.5f, 0.8f);
+            spawnHellMobs(world, at, radius);
+        }, finishTicks);
+    }
+
+    /** Грибное «дерево» адского сада: стебель + шапка варт-блоков, на верхушке — фунгус. */
+    private void hellFungusTree(World world, int x, int groundY, int z,
+            Material stem, Material wart, Material fungus) {
+        int height = 3 + ThreadLocalRandom.current().nextInt(4);
+        for (int i = 1; i <= height; i++) {
+            Block b = world.getBlockAt(x, groundY + i, z);
+            if (canBuildOn(b)) b.setType(stem);
+        }
+        int topY = groundY + height;
+        int[][] offsets = {{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}};
+        for (int[] off : offsets) {
+            for (int dy = 0; dy <= 1; dy++) {
+                Block b = world.getBlockAt(x + off[0], topY + dy, z + off[1]);
+                boolean center = Math.abs(off[0]) + Math.abs(off[1]) <= 1;
+                if (b.getType().isAir() && (center || ThreadLocalRandom.current().nextBoolean())) {
+                    b.setType(wart);
+                }
+            }
+        }
+        Block capTop = world.getBlockAt(x, topY + 2, z);
+        if (capTop.getType().isAir()) capTop.setType(fungus);
+        world.spawnParticle(Particle.CRIMSON_SPORE, new Location(world, x + 0.5, topY + 1, z + 0.5),
+                10, 1, 1, 1, 0.01);
+    }
+
+    /** Охранители сада: пяток-другой типичных адских тварей по краю площадки. */
+    private void spawnHellMobs(World world, Location at, int radius) {
+        EntityType[] mobs = {EntityType.ZOMBIFIED_PIGLIN, EntityType.MAGMA_CUBE, EntityType.WITHER_SKELETON,
+                EntityType.BLAZE, EntityType.HOGLIN, EntityType.PIGLIN_BRUTE};
+        int count = 4 + ThreadLocalRandom.current().nextInt(3);
+        for (int i = 0; i < count; i++) {
+            double a = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
+            double d = ThreadLocalRandom.current().nextDouble(radius * 0.3, radius * 0.95);
+            int mx = at.getBlockX() + (int) Math.round(Math.cos(a) * d);
+            int mz = at.getBlockZ() + (int) Math.round(Math.sin(a) * d);
+            int my = world.getHighestBlockYAt(mx, mz);
+            Location spot = new Location(world, mx + 0.5, my + 1, mz + 0.5);
+            EntityType type = mobs[ThreadLocalRandom.current().nextInt(mobs.length)];
+            try {
+                world.spawnEntity(spot, type);
+                world.spawnParticle(Particle.FLAME, spot, 10, 0.3, 0.5, 0.3, 0.01);
+            } catch (IllegalArgumentException ignored) {
+                // мир/чанк не позволил заспавнить именно этот тип — пропускаем
+            }
         }
     }
 }

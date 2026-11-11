@@ -156,6 +156,9 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         // demon.interval-minutes из конфига (5/10/15/20/30/60 мин)
         demonWatcher = new DemonWatcherTask(this);
         demonWatcher.runTaskTimer(this, 40L, 10L);
+        // Глобальные режимы неба (9 глаз / красное небо) — тик раз в 3 сек на игрока
+        skyEffects = new me.darkz70.quirks.task.SkyEffectsTask(this);
+        skyEffects.runTaskTimer(this, 40L, 60L);
         zayceTask.runTaskTimer(this, 200L, 200L);
 
         long autosave = Math.max(1, getConfig().getLong("tasks.autosave-minutes", 5)) * 60L * 20L;
@@ -167,6 +170,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         if (storage != null) storage.save();
+        if (skyEffects != null) skyEffects.shutdown();
     }
 
     /**
@@ -241,9 +245,14 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     private me.darkz70.quirks.command.ZayceMobMenu zayceMobMenu;
     private DemonWatcherTask demonWatcher;
     private me.darkz70.quirks.command.MageMenu mageMenu;
+    private me.darkz70.quirks.task.SkyEffectsTask skyEffects;
 
     public me.darkz70.quirks.command.MageMenu mageMenu() {
         return mageMenu;
+    }
+
+    public me.darkz70.quirks.task.SkyEffectsTask skyEffects() {
+        return skyEffects;
     }
 
     public DemonWatcherTask demonWatcher() {

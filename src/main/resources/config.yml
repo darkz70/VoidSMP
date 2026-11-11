@@ -412,6 +412,13 @@ demon:
   max-lifetime-seconds: 10
   manual-lifetime-seconds: 25 # сколько живёт демон, вызванный вручную кнопкой у админа
 
+# Глобальные режимы неба — на весь сервер (переключаются в /gaid → Эффекты, слоты 0/1)
+sky:
+  eyes:
+    enabled: false   # 9 гигантских красных глаз вместо звёзд (ItemDisplay, видно всем игрокам)
+  red:
+    enabled: false   # багровое небо + редкий красный пепел (BlockDisplay, видно всем игрокам)
+
 cooldowns:
   spells-scale: 0.34
   potions-scale: 0.34

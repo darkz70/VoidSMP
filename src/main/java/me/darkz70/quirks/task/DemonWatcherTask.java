@@ -5,7 +5,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import me.darkz70.quirks.VoidQuirksPlugin;
-import me.darkz70.quirks.util.Msg;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -35,6 +34,8 @@ import org.bukkit.util.EulerAngle;
  *
  * Админ может вызвать появление вручную — кнопка «Призвать демона» в
  * /gaid → Эффекты, рядом с переключателями демона (см. {@link #summonManual}).
+ * Ручной вызов — ровно на месте админа, без ограничения по дистанции и без
+ * сообщений в чат (ни об успехе, ни о неудаче).
  */
 public final class DemonWatcherTask extends BukkitRunnable {
 
@@ -95,20 +96,22 @@ public final class DemonWatcherTask extends BukkitRunnable {
     }
 
     /**
-     * Ручной вызов демона админом (кнопка в /gaid → Эффекты). Появляется у самого
-     * админа, но не ближе HARD_MIN_DISTANCE блоков — живёт дольше обычного
-     * пассивного появления, чтобы было время подойти и рассмотреть.
+     * Ручной вызов демона админом (кнопка в /gaid → Эффекты). В отличие от пассивного
+     * появления (не ближе HARD_MIN_DISTANCE от игроков), тут фигура встаёт РОВНО на
+     * месте самого админа — дистанция не применяется. Живёт дольше обычного пассивного
+     * появления, чтобы было время рассмотреть. Никаких сообщений в чат — ни об успехе,
+     * ни о неудаче: появление должно быть тихим и незаметным по тексту.
      */
     public void summonManual(Player admin) {
         var cfg = plugin.getConfig();
         long life = cfg.getInt("demon.manual-lifetime-seconds", 25) * 1000L;
-        Location spot = spawnAround(admin, System.currentTimeMillis(), life, true);
-        if (spot != null) {
-            double dist = spot.distance(admin.getLocation());
-            Msg.send(admin, "demon-summon-ok", "%dist%", String.valueOf(Math.round(dist)));
-        } else {
-            Msg.send(admin, "demon-summon-fail");
-        }
+        Location spot = admin.getLocation().clone();
+        ArmorStand stand = spawnFigure(spot);
+        if (stand == null) return;
+        active.put(UUID.randomUUID(), new Silhouette(spot, stand, System.currentTimeMillis() + life));
+        spot.getWorld().playSound(spot, Sound.ENTITY_WITHER_AMBIENT, 0.6f, 0.6f);
+        spot.getWorld().playSound(spot, Sound.ENTITY_PIGLIN_BRUTE_ANGRY, 0.5f, 0.5f);
+        spot.getWorld().playSound(spot, Sound.BLOCK_PORTAL_AMBIENT, 0.7f, 0.5f);
     }
 
     /** Создаёт фигуру в случайной стороне от игрока, не ближе HARD_MIN_DISTANCE. Возвращает точку появления. */
