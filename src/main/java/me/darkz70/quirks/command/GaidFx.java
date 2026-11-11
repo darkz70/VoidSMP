@@ -103,9 +103,9 @@ public final class GaidFx implements Listener {
                 "&7тройной вал душ скалка по земле.");
         // — ряд 3: стихии неба и глубины —
         fx(inv, 29, Material.LIGHTNING_ROD, "&e&lГром и молния",
-                "&7Вспышка и рёв перед грозой; 3 удара в твою точку,",
-                "&714 молний по кругу с магмой/чернокамнем/огнём,",
-                "&73 мини-кратера, тряска вокруг.");
+                "&7Первый удар — настоящая молния рядом с тобой МГНОВЕННО,",
+                "&7дальше 3 удара по кругу, 14 молний с магмой/чернокамнем/огнём,",
+                "&73 мини-кратера, тряска вокруг. У тебя огнестойкость на 4 с.");
         fx(inv, 30, Material.BLAZE_ROD, "&6&lМолния в небо",
                 "&7Обратный разряд: белый столб END-частиц уходит вверх,",
                 "&7вспышка и сухой щелчок грома.");
@@ -450,89 +450,114 @@ public final class GaidFx implements Listener {
     }
 
     /**
-     * Гром и молния со шкалой: scale=1 — «Гром и молния» (перезаписана заново,
-     * крепче прежней: больше вспышек на вступлении, плотнее интервалы между
-     * ударами), scale=5 — «Шторм молний» (в 5 раз больше ударов и кратеров,
-     * вдвое шире площадь и слышимость).
+     * Гром и молния со шкалой: scale=1 — «Гром и молния», scale=5 — «Шторм
+     * молний» (в 5 раз больше ударов и кратеров, вдвое шире площадь и
+     * слышимость). Первый удар — настоящая, НАСТОЯЩАЯ ванильная молния
+     * {@code World#strikeLightning}, бьёт СИНХРОННО в момент клика (без
+     * runTaskLater) прямо рядом с админом — гарантированный мгновенный
+     * видимый и слышимый результат, не зависящий от таймингов шедулера.
+     * Остальные удары (не ближе 2 блоков от самого админа, чтобы не поджигать
+     * его под ногами) идут уже как безопасный эффект без урона.
      */
     private void lightningStorm(Player admin, double scale) {
-        Location at = admin.getLocation();
-        World world = at.getWorld();
-        if (world == null) return;
-        int bx = at.getBlockX();
-        int by = at.getBlockY() - 1;
-        int bz = at.getBlockZ();
+        try {
+            Location at = admin.getLocation();
+            World world = at.getWorld();
+            if (world == null) return;
+            int bx = at.getBlockX();
+            int by = at.getBlockY() - 1;
+            int bz = at.getBlockZ();
 
-        int centerStrikes = (int) Math.round(3 * scale);
-        int randomStrikes = (int) Math.round(14 * scale);
-        int craterStrikes = (int) Math.round(3 * scale);
-        double radius = Math.min(60, 20 * scale);
-        double soundRadius = Math.min(400, 90 * scale);
+            int centerStrikes = (int) Math.round(3 * scale);
+            int randomStrikes = (int) Math.round(14 * scale);
+            int craterStrikes = (int) Math.round(3 * scale);
+            double radius = Math.min(60, 20 * scale);
+            double soundRadius = Math.min(400, 90 * scale);
 
-        // вступление: вспышка и низкий гул перед грозой (на x5 — с доп. раскатом)
-        world.spawnParticle(Particle.FLASH, at.clone().add(0, 2, 0), 1, 0, 0, 0, 0);
-        for (Player nearby : playersIn(at, soundRadius)) {
-            nearby.playSound(at, Sound.ENTITY_WITHER_SPAWN, SoundCategory.WEATHER, 0.5f, 0.5f);
-            if (scale > 1) {
-                nearby.playSound(at, Sound.ENTITY_ENDER_DRAGON_GROWL, SoundCategory.WEATHER, 0.4f, 0.4f);
+            // 0) НАСТОЯЩИЙ удар молнии СИНХРОННО, в 2 блоках от админа (не точно
+            // под ногами — чтобы не поджечь его самого) — гарантированный мгновенный
+            // видимый+слышимый отклик на клик, без зависимости от шедулера/тиков.
+            double a0 = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
+            Location firstStrike = at.clone().add(Math.cos(a0) * 2.2, 0, Math.sin(a0) * 2.2);
+            world.strikeLightning(firstStrike);
+            world.spawnParticle(Particle.FLASH, at.clone().add(0, 2, 0), 1, 0, 0, 0, 0);
+            for (Player nearby : playersIn(at, soundRadius)) {
+                nearby.playSound(at, Sound.ENTITY_WITHER_SPAWN, SoundCategory.WEATHER, 0.5f, 0.5f);
+                if (scale > 1) {
+                    nearby.playSound(at, Sound.ENTITY_ENDER_DRAGON_GROWL, SoundCategory.WEATHER, 0.4f, 0.4f);
+                }
             }
-        }
+            // даём админу 4 сек огнестойкости — его собственный эффект не должен
+            // поджечь/ослепить (экран краснеет от огня) его самого
+            admin.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 80, 0, true, false, false));
 
-        // центральные удары прямо в админа — с растущей силой звука
-        for (int i = 0; i < centerStrikes; i++) {
-            final float pitch = 0.7f + (i % 5) * 0.1f;
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                world.strikeLightningEffect(at);
-                lightningParticles(world, at);
-                for (Player nearby : playersIn(at, soundRadius)) {
-                    nearby.playSound(at, Sound.ENTITY_LIGHTNING_BOLT_THUNDER,
-                            SoundCategory.WEATHER, 3f, pitch);
+            // центральные удары по кольцу ВОКРУГ админа (не точно под ногами) — с растущей силой звука
+            for (int i = 0; i < centerStrikes; i++) {
+                final float pitch = 0.7f + (i % 5) * 0.1f;
+                final int fi = i;
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    double ang = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
+                    double dist = 2.0 + fi * 0.6;
+                    Location strike = at.clone().add(Math.cos(ang) * dist, 0, Math.sin(ang) * dist);
+                    strike.setY(world.getHighestBlockYAt(strike) + 1.0);
+                    world.strikeLightningEffect(strike);
+                    lightningParticles(world, strike);
+                    for (Player nearby : playersIn(at, soundRadius)) {
+                        nearby.playSound(at, Sound.ENTITY_LIGHTNING_BOLT_THUNDER,
+                                SoundCategory.WEATHER, 3f, pitch);
+                    }
+                }, 6L + i * 8L);
+            }
+            // оплавленное кольцо земли ВОКРУГ эпицентра (радиус 2-4) — не под ногами самого админа
+            for (int dx = -4; dx <= 4; dx++) {
+                for (int dz = -4; dz <= 4; dz++) {
+                    double d = Math.sqrt(dx * dx + dz * dz);
+                    if (d < 2.0 || d > 4.0) continue;
+                    Block block = world.getBlockAt(bx + dx, by, bz + dz);
+                    if (canTurn(block)) block.setType(Material.MAGMA_BLOCK);
                 }
-            }, 10L + i * 8L);
-        }
-        Block base = world.getBlockAt(bx, by, bz);
-        if (canTurn(base)) {
-            base.setType(Material.MAGMA_BLOCK);
-            Block above = base.getRelative(0, 1, 0);
-            if (above.getType().isAir()) above.setType(Material.FIRE);
-        }
+            }
 
-        // удары по случайным точкам вокруг, вразнобой
-        for (int i = 0; i < randomStrikes; i++) {
-            int ticks = 40 + i * 3 + ThreadLocalRandom.current().nextInt(0, 3);
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                double a = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
-                double r = ThreadLocalRandom.current().nextDouble(3, radius);
-                int px = bx + (int) Math.round(Math.cos(a) * r);
-                int pz = bz + (int) Math.round(Math.sin(a) * r);
-                int py = world.getHighestBlockYAt(px, pz) + 1;
-                Location strike = new Location(world, px + 0.5, py, pz + 0.5);
-                world.strikeLightningEffect(strike);
-                Block floor = world.getBlockAt(px, py - 1, pz);
-                if (canTurn(floor)) {
-                    floor.setType(ThreadLocalRandom.current().nextInt(3) == 0
-                            ? Material.BLACKSTONE : Material.MAGMA_BLOCK);
-                    Block flame = floor.getRelative(0, 1, 0);
-                    if (flame.getType().isAir()
-                            && ThreadLocalRandom.current().nextBoolean()) flame.setType(Material.FIRE);
-                }
-                lightningParticles(world, strike);
-                thunderSounds(strike, soundRadius);
-            }, ticks);
+            // удары по случайным точкам вокруг, вразнобой
+            for (int i = 0; i < randomStrikes; i++) {
+                int ticks = 20 + i * 3 + ThreadLocalRandom.current().nextInt(0, 3);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    double a = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
+                    double r = ThreadLocalRandom.current().nextDouble(3, radius);
+                    int px = bx + (int) Math.round(Math.cos(a) * r);
+                    int pz = bz + (int) Math.round(Math.sin(a) * r);
+                    int py = world.getHighestBlockYAt(px, pz) + 1;
+                    Location strike = new Location(world, px + 0.5, py, pz + 0.5);
+                    world.strikeLightningEffect(strike);
+                    Block floor = world.getBlockAt(px, py - 1, pz);
+                    if (canTurn(floor)) {
+                        floor.setType(ThreadLocalRandom.current().nextInt(3) == 0
+                                ? Material.BLACKSTONE : Material.MAGMA_BLOCK);
+                        Block flame = floor.getRelative(0, 1, 0);
+                        if (flame.getType().isAir()
+                                && ThreadLocalRandom.current().nextBoolean()) flame.setType(Material.FIRE);
+                    }
+                    lightningParticles(world, strike);
+                    thunderSounds(strike, soundRadius);
+                }, ticks);
+            }
+            // «входящие» удары выбивают маленькие кратеры
+            for (int i = 0; i < craterStrikes; i++) {
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    double a = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
+                    double r = ThreadLocalRandom.current().nextDouble(6, Math.max(7, radius * 0.8));
+                    int px = bx + (int) Math.round(Math.cos(a) * r);
+                    int pz = bz + (int) Math.round(Math.sin(a) * r);
+                    int py = world.getHighestBlockYAt(px, pz);
+                    world.strikeLightningEffect(new Location(world, px + 0.5, py + 1, pz + 0.5));
+                    crater(world, new Location(world, px, py, pz), 2);
+                }, 40L + i * 8L);
+            }
+            shakeNearby(at, soundRadius, (int) Math.round(4 * Math.min(3, scale)));
+        } catch (Exception ex) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                    "Эффект «Гром и молния»/«Шторм молний» упал с исключением", ex);
         }
-        // «входящие» удары выбивают маленькие кратеры
-        for (int i = 0; i < craterStrikes; i++) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                double a = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
-                double r = ThreadLocalRandom.current().nextDouble(6, Math.max(7, radius * 0.8));
-                int px = bx + (int) Math.round(Math.cos(a) * r);
-                int pz = bz + (int) Math.round(Math.sin(a) * r);
-                int py = world.getHighestBlockYAt(px, pz);
-                world.strikeLightningEffect(new Location(world, px + 0.5, py + 1, pz + 0.5));
-                crater(world, new Location(world, px, py, pz), 2);
-            }, 60L + i * 8L);
-        }
-        shakeNearby(at, soundRadius, (int) Math.round(4 * Math.min(3, scale)));
     }
 
     /** Белые частицы, идущие зигзагом вверх — «силуэт молнии». */
