@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - arena/01a0f83b-voidsmp
+      - 'arena/*'
+  pull_request:
+    branches:
+      - arena/01a0f83b-voidsmp
   workflow_dispatch:
 
 permissions:
@@ -34,7 +38,7 @@ jobs:
           gradle build --no-daemon --console=plain 2>&1 | tee /tmp/build.log
 
       - name: Report build failure to issue
-        if: failure()
+        if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/arena/01a0f83b-voidsmp'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -99,7 +103,7 @@ jobs:
           gradle build --no-daemon --console=plain 2>&1 | tee /tmp/build-fabric.log
 
       - name: Report Fabric build failure to issue
-        if: failure()
+        if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/arena/01a0f83b-voidsmp'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -122,3 +126,61 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ci-build fabric-mod/build/libs/*.jar --clobber
+
+  build-minekilld-plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: current
+
+      - name: Build MinekilldEvents plugin
+        working-directory: minekilld-plugin
+        run: |
+          set -o pipefail
+          gradle build --no-daemon --console=plain 2>&1 | tee /tmp/build-minekilld.log
+
+      - name: Report MinekilldEvents build failure to issue
+        if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/arena/01a0f83b-voidsmp'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE=$(gh issue list --state open --search '"CI failure log" in:title' --limit 1 --json number --jq '.[0].number' 2>/dev/null || true)
+          if [ -z "$ISSUE" ] || [ "$ISSUE" = "null" ]; then
+            ISSUE=$(gh issue create --title "CI failure log" --body "Сюда CI пишет логи упавших сборок (автоматически)." | grep -oE '[0-9]+$')
+          fi
+          { echo "### MinekilldEvents: сборка упала, run ${{ github.run_id }}, коммит ${{ github.sha }}"; echo '```'; tail -c 5500 /tmp/build-minekilld.log | sed 's/```/`​``/g'; echo '```'; } | gh issue comment "$ISSUE" --body-file -
+
+      - name: Upload MinekilldEvents jar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MinekilldEvents-jar
+          path: minekilld-plugin/build/libs/*.jar
+          retention-days: 14
+
+  attach-minekilld-release:
+    needs: [build, build-fabric-mod, build-minekilld-plugin]
+    if: always() && needs.build.result == 'success' && needs.build-minekilld-plugin.result == 'success' && github.event_name == 'push' && github.ref == 'refs/heads/arena/01a0f83b-voidsmp'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download MinekilldEvents jar
+        uses: actions/download-artifact@v4
+        with:
+          name: MinekilldEvents-jar
+          path: dist
+
+      - name: Attach MinekilldEvents to CI release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ci-build dist/*.jar --clobber

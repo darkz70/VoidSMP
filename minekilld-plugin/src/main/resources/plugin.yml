@@ -1,0 +1,16 @@
+name: MinekilldEvents
+version: ${version}
+main: me.darkz70.minekilld.MinekilldPlugin
+api-version: '26.2'
+authors: [darkz70, ArenaAgent]
+description: Яйцо дракона (рандомные эффекты и частицы) и часовые обсидиановые монолиты для Minekilld.
+commands:
+  minekilld:
+    description: Управление и проверка ивентов MinekilldEvents (админ)
+    aliases: [mk]
+    usage: /minekilld <status|eggtrigger|eggparticles|monolith|reload>
+    permission: minekilld.admin
+permissions:
+  minekilld.admin:
+    description: Управление плагином MinekilldEvents
+    default: op

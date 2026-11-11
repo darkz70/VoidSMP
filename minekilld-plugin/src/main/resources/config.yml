@@ -1,0 +1,57 @@
+# Конфигурация плагина MinekilldEvents (Paper 26.2)
+
+egg:
+  enabled: true
+  # Радиус действия от поставленного/лежащего яйца (в блоках)
+  radius: 20.0
+  # Интервал выдачи случайного эффекта (в секундах; 600 = 10 минут)
+  effect-interval-seconds: 600
+  # Длительность эффекта (в секундах)
+  effect-duration-seconds: 10
+  # Диапазон уровней эффекта (от 1 до 10 включительно)
+  min-level: 1
+  max-level: 10
+  # Интервал появления случайных частиц вокруг яйца (в секундах)
+  particle-interval-seconds: 10
+  # Количество частиц за одно появление вокруг яйца
+  particle-count: 24
+  # Проверять только руки (основная + вторая) или весь инвентарь игрока
+  check-full-inventory: false
+  # Если игрок держит яйцо, получают ли эффект и другие игроки в радиусе от него
+  held-affects-nearby: true
+  # Считать ли выброшенное на землю яйцо (предмет) за активное яйцо
+  include-dropped-items: true
+  # Игнорировать ли игроков в режиме наблюдателя (SPECTATOR)
+  ignore-spectator: true
+  # Показывать ли игроку сообщение в actionbar при выдаче эффекта
+  actionbar-notify: true
+  # Список исключённых эффектов по ключу (например: ["instant_damage", "wither"]).
+  # Пусто — разрешены вообще все эффекты зелий из игры.
+  excluded-effects: []
+  # Частицы, которые не стоит спавнить (ELDER_GUARDIAN — скример на весь экран, BLOCK_MARKER — невидимый маркер)
+  excluded-particles:
+    - ELDER_GUARDIAN
+    - BLOCK_MARKER
+
+monolith:
+  enabled: true
+  # Интервал появления нового монолита (в минутах; 60 = 1 час)
+  interval-minutes: 60
+  # Расстояние от случайного онлайн-игрока (в районе 120 блоков)
+  min-distance: 100
+  max-distance: 140
+  # Высота монолита (в блоках)
+  min-height: 10
+  max-height: 14
+  # Разрешённые измерения (NORMAL = обычный мир, NETHER, THE_END)
+  allowed-environments:
+    - NORMAL
+  # Шанс вкрапления плачущего обсидиана (0.0 — полностью из обычного обсидиана)
+  crying-obsidian-chance: 0.0
+  # Делать ли объявление в чат при появлении (false — тихое появление)
+  announce: false
+  announce-message: "&5✦ Где-то в мире пробудился обсидиановый монолит..."
+  # Тихие атмосферные частицы вокруг стоящих монолитов, когда игрок рядом
+  ambient-particles: true
+  ambient-particle-radius: 48.0
+  ambient-particle-interval-seconds: 5
