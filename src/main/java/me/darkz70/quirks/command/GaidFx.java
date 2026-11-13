@@ -7,8 +7,12 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import me.darkz70.quirks.VoidQuirksPlugin;
 import me.darkz70.quirks.util.Msg;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -16,8 +20,10 @@ import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -29,6 +35,9 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Transformation;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
 
 /**
@@ -120,6 +129,12 @@ public final class GaidFx implements Listener {
         fx(inv, 34, Material.NETHERITE_SCRAP, "&e&lШторм молний",
                 "&7То же самое, что «Гром и молния», но &lв 5 РАЗ&7 больше",
                 "&7ударов и кратеров, вдвое шире площадь и слышимость.");
+        String skyPhraseText = plugin.getConfig().getString("sky-phrase.last-text", "ОНИ СМОТРЯТ");
+        fx(inv, 35, Material.NAME_TAG, "&5&lНебесное послание",
+                "&7Гигантская фраза из вечно скачущих рун жителей высоко",
+                "&7в небе + подпись обычным текстом ниже, видно всем рядом.",
+                "&7Задать текст: &f/gaid phrase <текст>",
+                "&7Сейчас: &f" + skyPhraseText);
         // — ряд 4: атмосфера и бури —
         fx(inv, 38, Material.GUNPOWDER, "&7&lПепельная буря",
                 "&710 секунд идёт пепел в 25 блоках — как после пожара миров.");
@@ -172,8 +187,9 @@ public final class GaidFx implements Listener {
         boolean eyesOn = plugin.skyEffects().eyesEnabled();
         boolean redOn = plugin.skyEffects().redEnabled();
         fx(inv, 0, eyesOn ? Material.ENDER_EYE : Material.GLASS_BOTTLE,
-                eyesOn ? "&4&l9 глаз в небе: &aВКЛ" : "&4&l9 глаз в небе: &cВЫКЛ",
+                eyesOn ? "&4&l9+1 глаз в небе: &aВКЛ" : "&4&l9+1 глаз в небе: &cВЫКЛ",
                 "&7ГЛОБАЛЬНО для ВСЕХ игроков — 9 гигантских красных глаз",
+                "&7по кругу + 1 ЕЩЁ БОЛЬШЕ строго по центру над головой,",
                 "&7вместо звёзд, всегда смотрят прямо на игрока.",
                 "&7Работает, пока не выключишь. Клик — переключить.");
         fx(inv, 1, redOn ? Material.RED_STAINED_GLASS : Material.GLASS,
@@ -279,6 +295,7 @@ public final class GaidFx implements Listener {
             case 32 -> fear(player, 300);
             case 33 -> voidPulse(player);
             case 34 -> lightningStorm5x(player);
+            case 35 -> skyPhrase(player, null);
             case 38 -> ashStorm(player);
             case 39 -> ghastBurst(player);
             case 40 -> fireDome(player);
@@ -577,6 +594,98 @@ public final class GaidFx implements Listener {
         for (Player player : playersIn(at, radius)) {
             player.playSound(at, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.WEATHER, 3f, 0.7f);
         }
+    }
+
+    // ---------- небесное послание (TextDisplay-фраза высоко в небе) ----------
+
+    private static final int SKY_PHRASE_MAX_LEN = 48;
+
+    /**
+     * Пишет фразу высоко в небе над админом: основная строка — гигантские
+     * вечно «скачущие» символы (шрифт жителей {@code minecraft:illageralt} +
+     * обфускация — глифы случайно подменяются каждый тик независимо от того,
+     * поддерживает ли сам шрифт кириллицу, т.к. обфускация просто берёт
+     * случайный символ ИЗ ТОГО ЖЕ шрифта, а не рендерит исходные буквы), ниже —
+     * подпись тем же текстом обычным читаемым шрифтом. Не требует ресурспака:
+     * {@code illageralt} — ванильный шрифт, встроен в клиент.
+     * {@code text == null} или пустая строка — используется последняя
+     * сохранённая фраза ({@code sky-phrase.last-text} в config.yml).
+     */
+    private void skyPhrase(Player admin, String text) {
+        try {
+            String phrase = (text == null ? "" : text.trim())
+                    .replace('&', ' ').replace('§', ' ');
+            if (phrase.isEmpty()) {
+                phrase = plugin.getConfig().getString("sky-phrase.last-text", "ОНИ СМОТРЯТ");
+            }
+            if (phrase.isBlank()) phrase = "ОНИ СМОТРЯТ";
+            if (phrase.length() > SKY_PHRASE_MAX_LEN) phrase = phrase.substring(0, SKY_PHRASE_MAX_LEN);
+            plugin.getConfig().set("sky-phrase.last-text", phrase);
+            plugin.saveConfig();
+
+            Location at = admin.getLocation();
+            World world = at.getWorld();
+            if (world == null) return;
+            double soundRadius = 150;
+
+            world.spawnParticle(Particle.FLASH, at.clone().add(0, 2, 0), 1, 0, 0, 0, 0);
+            for (Player nearby : playersIn(at, soundRadius)) {
+                nearby.playSound(at, Sound.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.AMBIENT, 1f, 0.6f);
+                nearby.playSound(at, Sound.BLOCK_END_PORTAL_SPAWN, SoundCategory.AMBIENT, 0.6f, 0.5f);
+            }
+
+            final String finalPhrase = phrase;
+            Location runeSpot = at.clone().add(0, 90, 0);
+            TextDisplay runes = world.spawn(runeSpot, TextDisplay.class, d -> {
+                d.text(Component.text(finalPhrase, NamedTextColor.DARK_RED)
+                        .decorate(TextDecoration.BOLD, TextDecoration.OBFUSCATED)
+                        .font(Key.key("minecraft", "illageralt")));
+                d.setBillboard(Display.Billboard.CENTER);
+                d.setBrightness(new Display.Brightness(15, 15));
+                d.setShadowRadius(0f);
+                d.setAlignment(TextDisplay.TextAlignment.CENTER);
+                d.setSeeThrough(false);
+                d.setDefaultBackground(false);
+                d.setGlowing(true);
+                d.setGlowColorOverride(Color.fromRGB(140, 0, 0));
+                d.setPersistent(false);
+                d.setInvulnerable(true);
+                d.setTransformation(new Transformation(
+                        new Vector3f(0f, 0f, 0f), new AxisAngle4f(),
+                        new Vector3f(9f, 9f, 9f), new AxisAngle4f()));
+            });
+            Location captionSpot = runeSpot.clone().add(0, -9, 0);
+            TextDisplay caption = world.spawn(captionSpot, TextDisplay.class, d -> {
+                d.text(Component.text(finalPhrase, NamedTextColor.WHITE).decorate(TextDecoration.BOLD));
+                d.setBillboard(Display.Billboard.CENTER);
+                d.setBrightness(new Display.Brightness(15, 15));
+                d.setShadowRadius(0f);
+                d.setAlignment(TextDisplay.TextAlignment.CENTER);
+                d.setSeeThrough(false);
+                d.setDefaultBackground(false);
+                d.setPersistent(false);
+                d.setInvulnerable(true);
+                d.setTransformation(new Transformation(
+                        new Vector3f(0f, 0f, 0f), new AxisAngle4f(),
+                        new Vector3f(3f, 3f, 3f), new AxisAngle4f()));
+            });
+
+            int lifetimeTicks = Math.max(60, plugin.getConfig().getInt("sky-phrase.lifetime-seconds", 14) * 20);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                if (runes.isValid()) runes.remove();
+                if (caption.isValid()) caption.remove();
+            }, lifetimeTicks);
+
+            shakeNearby(at, soundRadius, 2);
+        } catch (Exception ex) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                    "Эффект «Небесное послание» упал с исключением", ex);
+        }
+    }
+
+    /** Вызов из команды {@code /gaid phrase <текст>} — публичный вход для GaidCommand. */
+    public void skyPhraseFromCommand(Player admin, String text) {
+        skyPhrase(admin, text);
     }
 
     // ---------- страх / глобальный страх ----------

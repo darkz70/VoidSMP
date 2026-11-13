@@ -25,6 +25,17 @@ public final class GaidCommand implements CommandExecutor {
             me.darkz70.quirks.util.Msg.send(player, "no-permission");
             return true;
         }
+        if (args.length >= 1 && args[0].equalsIgnoreCase("phrase")) {
+            String text = args.length >= 2
+                    ? String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length))
+                    : "";
+            plugin.gaidFx().skyPhraseFromCommand(player, text);
+            player.sendMessage(me.darkz70.quirks.util.Msg.color(
+                    text.isBlank()
+                            ? "&5Небесное послание: повтор последней фразы."
+                            : "&5Небесное послание: &f" + text));
+            return true;
+        }
         plugin.gaidMenus().openRoot(player);
         return true;
     }

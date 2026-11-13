@@ -18,7 +18,7 @@ commands:
     permission: quirks.user
   gaid:
     description: Книга-гайд по механикам VoidSMP (админ)
-    usage: /gaid
+    usage: /gaid [phrase <текст>]
   mage:
     description: Причуда «Маг» — меню прямого выбора стихии магии
     aliases: [маг]

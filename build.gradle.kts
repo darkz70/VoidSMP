@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "me.darkz70"
-version = "1.7.84"
+version = "1.7.85"
 
 java {
     toolchain {

@@ -31,10 +31,12 @@ import org.joml.Vector3f;
  * Два ГЛОБАЛЬНЫХ режима «страшного неба» (переключаются в /gaid → Эффекты,
  * слоты 0/1 — действуют на ВСЕХ игроков сервера, пока админ не выключит):
  * <p>
- * - {@code sky.eyes.enabled} — 9 гигантских красных глаз вместо звёзд. Технически
- *   это {@link ItemDisplay} с кастомной текстурой (void_eye, оверрайд на
- *   обычную бумагу по custom model data) и {@link Display.Billboard#CENTER} —
- *   глаз всегда развёрнут на игрока, куда бы тот ни посмотрел.
+ * - {@code sky.eyes.enabled} — 9 гигантских красных глаз вместо звёзд по кругу
+ *   полусферы + 1 ещё больший глаз строго в зените (по центру, над головой).
+ *   Технически это {@link ItemDisplay} с кастомной текстурой (void_eye,
+ *   оверрайд на обычную бумагу по custom model data) и
+ *   {@link Display.Billboard#CENTER} — глаз всегда развёрнут на игрока,
+ *   куда бы тот ни посмотрел.
  * <p>
  * - {@code sky.red.enabled} — багровое небо. Технически гигантская тонкая
  *   светящаяся «крыша» из красного стекла ({@link BlockDisplay}) высоко над
@@ -50,6 +52,9 @@ public final class SkyEffectsTask extends BukkitRunnable implements Listener {
     private static final int EYE_COUNT = 9;
     private static final double EYE_RADIUS = 220;
     private static final float EYE_SCALE = 38f;
+    /** Большой центральный глаз в зените полусферы (10-й, самый заметный). */
+    private static final float CENTER_EYE_SCALE = 70f;
+    private static final int TOTAL_EYE_COUNT = EYE_COUNT + 1;
     private static final double PLANE_Y_OFFSET = 170;
     private static final float PLANE_SIZE = 650f;
     /** Если игрок отошёл от последнего "якоря" дальше этого — переставляем декорации. */
@@ -124,7 +129,7 @@ public final class SkyEffectsTask extends BukkitRunnable implements Listener {
         UUID id = player.getUniqueId();
         Location anchor = eyeAnchor.get(id);
         List<ItemDisplay> list = eyes.get(id);
-        boolean valid = list != null && list.size() == EYE_COUNT
+        boolean valid = list != null && list.size() == TOTAL_EYE_COUNT
                 && list.stream().allMatch(d -> d != null && d.isValid() && d.getWorld().equals(player.getWorld()));
         if (valid && anchor != null && anchor.getWorld().equals(player.getWorld())
                 && anchor.distanceSquared(player.getLocation()) < REANCHOR_DISTANCE * REANCHOR_DISTANCE) {
@@ -132,23 +137,27 @@ public final class SkyEffectsTask extends BukkitRunnable implements Listener {
         }
         despawnEyes(id);
         Location base = player.getLocation();
-        List<ItemDisplay> fresh = new ArrayList<>(EYE_COUNT);
+        List<ItemDisplay> fresh = new ArrayList<>(TOTAL_EYE_COUNT);
         for (int i = 0; i < EYE_COUNT; i++) {
             double az = Math.toRadians(i * (360.0 / EYE_COUNT) + ThreadLocalRandom.current().nextDouble(-10, 10));
             double elev = Math.toRadians(ThreadLocalRandom.current().nextDouble(35, 75));
             double horiz = EYE_RADIUS * Math.cos(elev);
             double y = EYE_RADIUS * Math.sin(elev);
             Location spot = base.clone().add(horiz * Math.cos(az), y, horiz * Math.sin(az));
-            ItemDisplay display = spawnEye(spot);
+            ItemDisplay display = spawnEye(spot, EYE_SCALE);
             if (display != null) fresh.add(display);
         }
+        // 10-й глаз — большой, в самом зените полусферы (прямо над игроком).
+        Location zenith = base.clone().add(0, EYE_RADIUS, 0);
+        ItemDisplay center = spawnEye(zenith, CENTER_EYE_SCALE);
+        if (center != null) fresh.add(center);
         if (!fresh.isEmpty()) {
             eyes.put(id, fresh);
             eyeAnchor.put(id, base);
         }
     }
 
-    private ItemDisplay spawnEye(Location spot) {
+    private ItemDisplay spawnEye(Location spot, float scale) {
         try {
             ItemStack stack = new ItemStack(Material.PAPER);
             stack.editMeta(meta -> {
@@ -168,7 +177,7 @@ public final class SkyEffectsTask extends BukkitRunnable implements Listener {
                 display.setTransformation(new Transformation(
                         new Vector3f(0f, 0f, 0f),
                         new AxisAngle4f(),
-                        new Vector3f(EYE_SCALE, EYE_SCALE, EYE_SCALE),
+                        new Vector3f(scale, scale, scale),
                         new AxisAngle4f()));
             });
         } catch (IllegalArgumentException | IllegalStateException ex) {
