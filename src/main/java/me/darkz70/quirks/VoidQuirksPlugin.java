@@ -37,6 +37,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     private me.darkz70.quirks.command.GaidMenus gaidMenus;
     private me.darkz70.quirks.command.AdminMenu adminMenu;
     private me.darkz70.quirks.labyrinth.LabyrinthManager labyrinth;
+    private me.darkz70.quirks.arena.ArenaManager arena;
     private me.darkz70.quirks.mechanic.customblock.CustomBlockService customBlocks;
     private me.darkz70.quirks.mechanic.SculkDomeManager domes;
 
@@ -56,6 +57,8 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         magic = new MagicSystem(this);
         labyrinth = new me.darkz70.quirks.labyrinth.LabyrinthManager(this);
         labyrinth.loadIfExists();
+        arena = new me.darkz70.quirks.arena.ArenaManager(this);
+        arena.loadIfExists();
         customBlocks = new me.darkz70.quirks.mechanic.customblock.CustomBlockService(this);
         domes = new me.darkz70.quirks.mechanic.SculkDomeManager(this);
         domes.loadIfExists();
@@ -303,6 +306,10 @@ public final class VoidQuirksPlugin extends JavaPlugin {
 
     public me.darkz70.quirks.labyrinth.LabyrinthManager labyrinth() {
         return labyrinth;
+    }
+
+    public me.darkz70.quirks.arena.ArenaManager arena() {
+        return arena;
     }
 
     public me.darkz70.quirks.mechanic.SculkDomeManager domes() {

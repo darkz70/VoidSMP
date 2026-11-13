@@ -98,6 +98,11 @@ public final class Msg {
         def("lab-back", "%prefix%&6Возврат из недр завершён. Добро пожаловать наверх!");
         def("lab-no-world", "%prefix%&cЛабиринт ещё не создан. Сначала /quirk lab create");
         def("lab-tp", "%prefix%&dТы входишь в лабиринт душ…");
+        def("arena-created", "%prefix%&bОбычный мир '%world%' создан, граница %size%×%size% блоков. Телепорт: /quirk arena tp");
+        def("arena-exists", "%prefix%&eМир арены уже создан. Телепорт: /quirk arena tp");
+        def("arena-no-world", "%prefix%&cАрена ещё не создана. Сначала /quirk arena create");
+        def("arena-tp", "%prefix%&bТы входишь в арену…");
+        def("arena-back", "%prefix%&bВозврат из арены завершён.");
         def("title-engineer-redstone", "&cРедстоуна поблизости: &f%count%");
         def("title-engineer-tnt", "&4ТНТ рядом: &c%count%");
         def("title-cat-water", "&bВоды поблизости: &f%count%");

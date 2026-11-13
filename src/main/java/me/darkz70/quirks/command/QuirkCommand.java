@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 /** /quirk — управление причудами. Причуд можно несколько на одного игрока. */
 public final class QuirkCommand implements CommandExecutor, TabCompleter {
 
-    private static final List<String> SUBS = List.of("set", "remove", "remove_admin", "remove_tmp", "info", "list", "reload", "notify", "item", "pack", "lab", "zayce", "dome", "block");
+    private static final List<String> SUBS = List.of("set", "remove", "remove_admin", "remove_tmp", "info", "list", "reload", "notify", "item", "pack", "lab", "arena", "zayce", "dome", "block");
     private static final List<String> QUIRKS = List.of(
             "инженер", "кот", "бедрок", "топор", "скалк", "фермер", "земноводный", "паук",
             "engineer", "cat", "bedrock", "axe", "sculk", "farmer", "amphibian", "spider",
@@ -64,6 +64,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             case "item", "shard" -> handleItem(sender, args);
             case "pack", "resourcepack" -> handlePack(sender, args);
             case "lab", "labyrinth" -> handleLab(sender, args);
+            case "arena" -> handleArena(sender, args);
             case "zayce" -> handleZayce(sender, args);
             case "dome" -> handleDome(sender, args);
             case "block" -> handleBlock(sender, args);
@@ -425,6 +426,41 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    /** /quirk arena <create|tp|back> — отдельный обычный мир 256×256 с границей и синим порталом. */
+    private void handleArena(CommandSender sender, String[] args) {
+        if (!admin(sender)) return;
+        if (args.length < 2) {
+            Msg.send(sender, "usage");
+            return;
+        }
+        switch (args[1].toLowerCase(Locale.ROOT)) {
+            case "create" -> plugin.arena().create(sender);
+            case "tp" -> {
+                Player target;
+                if (args.length >= 3) {
+                    target = Bukkit.getPlayerExact(args[2]);
+                } else if (sender instanceof Player player) {
+                    target = player;
+                } else {
+                    target = null;
+                }
+                plugin.arena().teleport(sender, target);
+            }
+            case "back" -> {
+                Player target;
+                if (args.length >= 3) {
+                    target = Bukkit.getPlayerExact(args[2]);
+                } else if (sender instanceof Player player) {
+                    target = player;
+                } else {
+                    target = null;
+                }
+                plugin.arena().back(sender, target);
+            }
+            default -> Msg.send(sender, "usage");
+        }
+    }
+
     /**
      * /quirk dome create <имя> <x1> <z1> <x2> <z2> <высота> — скалк-купол: стена по периметру
      *   прямоугольника (X/Z), высотой от текущего Y отправителя. Проходим насквозь, не ломается,
@@ -549,6 +585,13 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             if ("tp".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("tp");
             if ("back".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("back");
         } else if (args.length == 3 && args[0].equalsIgnoreCase("lab")
+                && (args[1].equalsIgnoreCase("tp") || args[1].equalsIgnoreCase("back"))) {
+            addPlayers(out, args[2]);
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("arena")) {
+            if ("create".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("create");
+            if ("tp".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("tp");
+            if ("back".startsWith(args[1].toLowerCase(Locale.ROOT))) out.add("back");
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("arena")
                 && (args[1].equalsIgnoreCase("tp") || args[1].equalsIgnoreCase("back"))) {
             addPlayers(out, args[2]);
         } else if (args.length == 2 && args[0].equalsIgnoreCase("pack")) {

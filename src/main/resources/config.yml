@@ -161,6 +161,13 @@ labyrinth:
   floor-block: OBSIDIAN
   ceiling-block: OBSIDIAN     # потолок над всем лабиринтом (на высоте стен)
 
+# Арена: ОТДЕЛЬНЫЙ от лабиринта обычный мир (ванильный рельеф/небо, НЕ void),
+# жёстко ограниченный WorldBorder 256×256 по центру (0;0) — за границей ничего
+# не генерируется, фактически пустота. Команды: /quirk arena create|tp|back.
+arena:
+  world: void_arena
+  border-size: 256
+
 zaycekrol:
   # Зайцекролы — ОТДЕЛЬНЫЙ моб: ванильных кроликов не трогаем, колонии спавнятся сами
   farmer-home-radius: 30      # фермер не уходит от дома дальше
@@ -246,6 +253,11 @@ messages:
   lab-prebuilt: "%prefix%&6Готовый мир принят: лабиринт не строим, используем ваш."
   lab-back: "&6Возврат из недр завершён. Добро пожаловать наверх!"
   lab-tp: "%prefix%&dТы входишь в лабиринт душ…"
+  arena-created: "%prefix%&bОбычный мир '%world%' создан, граница %size%×%size% блоков. Телепорт: /quirk arena tp"
+  arena-exists: "%prefix%&eМир арены уже создан. Телепорт: /quirk arena tp"
+  arena-no-world: "%prefix%&cАрена ещё не создана. Сначала /quirk arena create"
+  arena-tp: "%prefix%&bТы входишь в арену…"
+  arena-back: "%prefix%&bВозврат из арены завершён."
   antidote-cured: "%prefix%&2Антидот жжёт вены… чужеродное покидает твоё тело!"
   antidote-none: "%prefix%&7Горьковато. Но и изгонять нечего."
   farmer-raw-denied: "&eСырое! Это нужно пожарить."
