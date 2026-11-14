@@ -26,6 +26,9 @@ public final class PlayerData {
     private String tmpQuirks = null;
     private long tmpUntil = 0;
 
+    /** Ник, назначенный админом через /gaid nick; null — ника нет (настоящее имя). */
+    private String nickname = null;
+
     public boolean has(Quirk quirk) {
         return quirks.containsKey(quirk);
     }
@@ -134,5 +137,16 @@ public final class PlayerData {
 
     public void tmpUntil(long until) {
         this.tmpUntil = until;
+    }
+
+    // ---------- ник ----------
+
+    @org.jetbrains.annotations.Nullable
+    public String nickname() {
+        return nickname;
+    }
+
+    public void nickname(@org.jetbrains.annotations.Nullable String nickname) {
+        this.nickname = nickname;
     }
 }

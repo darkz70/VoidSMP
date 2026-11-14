@@ -83,6 +83,8 @@ public final class QuirkStorage {
                 data.selectedSpell(section.getInt("magic.spell", 0));
                 data.tmpQuirks(section.getString("tmpquirks", null));
                 data.tmpUntil(section.getLong("tmpuntil", 0));
+                String nick = section.getString("nickname", null);
+                if (nick != null && !nick.isBlank()) data.nickname(nick);
 
                 ConfigurationSection cds = section.getConfigurationSection("cooldowns");
                 if (cds != null) {
@@ -120,6 +122,7 @@ public final class QuirkStorage {
             yaml.set(path + ".magic.spell", data.selectedSpell());
             if (data.tmpQuirks() != null) yaml.set(path + ".tmpquirks", data.tmpQuirks());
             yaml.set(path + ".tmpuntil", data.tmpUntil());
+            if (data.nickname() != null) yaml.set(path + ".nickname", data.nickname());
             for (Map.Entry<String, Long> cd : data.cooldowns().entrySet()) {
                 yaml.set(path + ".cooldowns." + cd.getKey(), cd.getValue());
             }

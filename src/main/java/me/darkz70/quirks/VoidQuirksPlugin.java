@@ -38,6 +38,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     private me.darkz70.quirks.command.AdminMenu adminMenu;
     private me.darkz70.quirks.labyrinth.LabyrinthManager labyrinth;
     private me.darkz70.quirks.arena.ArenaManager arena;
+    private me.darkz70.quirks.nickname.NicknameManager nicknames;
     private me.darkz70.quirks.mechanic.customblock.CustomBlockService customBlocks;
     private me.darkz70.quirks.mechanic.SculkDomeManager domes;
 
@@ -59,6 +60,8 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         labyrinth.loadIfExists();
         arena = new me.darkz70.quirks.arena.ArenaManager(this);
         arena.loadIfExists();
+        nicknames = new me.darkz70.quirks.nickname.NicknameManager(this);
+        Bukkit.getPluginManager().registerEvents(nicknames, this);
         customBlocks = new me.darkz70.quirks.mechanic.customblock.CustomBlockService(this);
         domes = new me.darkz70.quirks.mechanic.SculkDomeManager(this);
         domes.loadIfExists();
@@ -137,6 +140,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         PluginCommand gaid = getCommand("gaid");
         if (gaid != null) {
             gaid.setExecutor(gaidCommand);
+            gaid.setTabCompleter(gaidCommand);
         }
 
         PluginCommand mage = getCommand("mage");
@@ -310,6 +314,10 @@ public final class VoidQuirksPlugin extends JavaPlugin {
 
     public me.darkz70.quirks.arena.ArenaManager arena() {
         return arena;
+    }
+
+    public me.darkz70.quirks.nickname.NicknameManager nicknames() {
+        return nicknames;
     }
 
     public me.darkz70.quirks.mechanic.SculkDomeManager domes() {
