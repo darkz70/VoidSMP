@@ -36,6 +36,8 @@ public final class SessionListener implements Listener {
             }
         }, 20L);
 
+        plugin.loreTab().apply(player); // «Лор»-баннер в табе (если включён глобально)
+
         PlayerData data = plugin.storage().get(player.getUniqueId());
         if (data == null) return;
         Bukkit.getScheduler().runTaskLater(plugin, () -> {

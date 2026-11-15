@@ -44,8 +44,33 @@ public final class GaidCommand implements CommandExecutor, TabCompleter {
             handleNick(player, args);
             return true;
         }
+        if (args.length >= 1 && args[0].equalsIgnoreCase("lore")) {
+            handleLore(player, args);
+            return true;
+        }
         plugin.gaidMenus().openRoot(player);
         return true;
+    }
+
+    /** /gaid lore [on|off] — глобальный таб-баннер «VOID SMP» на время ролевого Лора. */
+    private void handleLore(Player admin, String[] args) {
+        boolean next;
+        if (args.length >= 2) {
+            if (args[1].equalsIgnoreCase("on")) {
+                next = true;
+            } else if (args[1].equalsIgnoreCase("off")) {
+                next = false;
+            } else {
+                admin.sendMessage(me.darkz70.quirks.util.Msg.color("&e/gaid lore &8| &e/gaid lore on &8| &e/gaid lore off"));
+                return;
+            }
+        } else {
+            next = !plugin.loreTab().enabled();
+        }
+        plugin.loreTab().setEnabled(next);
+        admin.sendMessage(me.darkz70.quirks.util.Msg.color(
+                next ? "&5✦ Лор-таб &aВКЛ&5: у всех в таб-листе баннер «VOID SMP»."
+                        : "&5✦ Лор-таб &cВЫКЛ&5: таб-лист вернулся к обычному виду."));
     }
 
     private void handleNick(Player admin, String[] args) {
@@ -89,7 +114,7 @@ public final class GaidCommand implements CommandExecutor, TabCompleter {
         if (!sender.hasPermission("quirks.admin")) return List.of();
         List<String> out = new ArrayList<>();
         if (args.length == 1) {
-            for (String sub : new String[]{"phrase", "nick"}) {
+            for (String sub : new String[]{"phrase", "nick", "lore"}) {
                 if (sub.startsWith(args[0].toLowerCase())) out.add(sub);
             }
             return out;
@@ -102,6 +127,12 @@ public final class GaidCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("nick")) {
             if ("reset".startsWith(args[2].toLowerCase())) out.add("reset");
+            return out;
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("lore")) {
+            for (String sub : new String[]{"on", "off"}) {
+                if (sub.startsWith(args[1].toLowerCase())) out.add(sub);
+            }
             return out;
         }
         return out;
