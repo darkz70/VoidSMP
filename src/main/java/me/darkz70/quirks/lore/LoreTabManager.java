@@ -4,24 +4,22 @@ import me.darkz70.quirks.VoidQuirksPlugin;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 /**
  * Глобальный переключатель «Лор»: /gaid lore on|off.
- * Подменяет ШАПКУ И ПОДВАЛ таб-листа (НЕ ник игрока!) на РЕАЛЬНОЕ лого
- * VOID SMP (присланную картинку), вырезанное на две части — «VOID» (шапка)
- * и «SMP» (подвал) — и зашитое кастомным битмап-шрифтом ресурспака
- * (assets/voidquirks/font/logo.json, символы \uF001/\uF002). Игроку нужен
- * ресурспак сервера — он и так раздаётся автоматически при входе
+ * Подменяет ШАПКУ таб-листа (НЕ ник игрока!) на РЕАЛЬНОЕ присланное лого
+ * VOID SMP — одним целым изображением (не разрезанным), зашитым кастомным
+ * битмап-шрифтом ресурспака (assets/voidquirks/font/logo.json, символ
+ * \uF001, текстура textures/font/logo.png). Игроку нужен ресурспак
+ * сервера — он и так раздаётся автоматически при входе
  * (см. {@link me.darkz70.quirks.mechanic.ResourcePackServer}).
  */
 public final class LoreTabManager {
 
     private static final Key LOGO_FONT = Key.key("voidquirks", "logo");
-    private static final String VOID_GLYPH = "\uF001";
-    private static final String SMP_GLYPH = "\uF002";
+    private static final String LOGO_GLYPH = "\uF001";
 
     private final VoidQuirksPlugin plugin;
 
@@ -45,20 +43,13 @@ public final class LoreTabManager {
     /** Применить (или снять) баннер конкретному игроку — используется и при входе на сервер. */
     public void apply(Player player) {
         if (enabled()) {
-            player.sendPlayerListHeaderAndFooter(header(), footer());
+            player.sendPlayerListHeaderAndFooter(header(), Component.empty());
         } else {
             player.sendPlayerListHeaderAndFooter(Component.empty(), Component.empty());
         }
     }
 
     private Component header() {
-        return Component.text(VOID_GLYPH, NamedTextColor.WHITE)
-                .font(LOGO_FONT)
-                .append(Component.text("\n"))
-                .append(Component.text("Лор активен", NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
-    }
-
-    private Component footer() {
-        return Component.text(SMP_GLYPH, NamedTextColor.WHITE).font(LOGO_FONT);
+        return Component.text(LOGO_GLYPH, NamedTextColor.WHITE).font(LOGO_FONT);
     }
 }
