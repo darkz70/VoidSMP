@@ -190,6 +190,7 @@ public final class Msg {
         def("potion-demagic", "&5Волна притупления расходится от тебя…");
         def("potion-demagic-hit", "&5Твой уровень магии осыпался на единицу.");
         def("potion-grandsam", "&6Великий самогон вскипает в жилах!");
+        def("sleep-locked", "%prefix%&5Что-то могущественное не даёт вам уснуть.");
         def("gaid-given", "&aКнига-гайд открыта. Приятного чтения.");
         def("gaid-player-only", "&cТолько из игры.");
     }

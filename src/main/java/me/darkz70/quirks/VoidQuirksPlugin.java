@@ -18,6 +18,7 @@ import me.darkz70.quirks.listener.EngineerListener;
 import me.darkz70.quirks.listener.FarmerListener;
 import me.darkz70.quirks.listener.SculkListener;
 import me.darkz70.quirks.listener.SessionListener;
+import me.darkz70.quirks.listener.SleepLockListener;
 import me.darkz70.quirks.listener.SpiderListener;
 import me.darkz70.quirks.mechanic.BedrockLogic;
 import me.darkz70.quirks.task.DemonWatcherTask;
@@ -78,6 +79,8 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new AxeListener(this), this);
         Bukkit.getPluginManager().registerEvents(new SculkListener(this), this);
         Bukkit.getPluginManager().registerEvents(new SessionListener(this), this);
+        sleepLock = new SleepLockListener(this);
+        Bukkit.getPluginManager().registerEvents(sleepLock, this);
         Bukkit.getPluginManager().registerEvents(new me.darkz70.quirks.listener.SoulShardListener(this), this);
         Bukkit.getPluginManager().registerEvents(new CraftListener(this), this);
         Bukkit.getPluginManager().registerEvents(new FarmerListener(this), this);
@@ -253,6 +256,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     private DemonWatcherTask demonWatcher;
     private me.darkz70.quirks.command.MageMenu mageMenu;
     private me.darkz70.quirks.task.SkyEffectsTask skyEffects;
+    private SleepLockListener sleepLock;
 
     public me.darkz70.quirks.command.MageMenu mageMenu() {
         return mageMenu;
@@ -260,6 +264,10 @@ public final class VoidQuirksPlugin extends JavaPlugin {
 
     public me.darkz70.quirks.task.SkyEffectsTask skyEffects() {
         return skyEffects;
+    }
+
+    public SleepLockListener sleepLock() {
+        return sleepLock;
     }
 
     public DemonWatcherTask demonWatcher() {

@@ -1,11 +1,15 @@
 package me.darkz70.quirks.command;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Consumer;
 import me.darkz70.quirks.VoidQuirksPlugin;
+import me.darkz70.quirks.magic.Element;
 import me.darkz70.quirks.util.Msg;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -36,6 +40,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Transformation;
+import org.jetbrains.annotations.Nullable;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
@@ -50,11 +55,48 @@ public final class GaidFx implements Listener {
 
     private final VoidQuirksPlugin plugin;
 
-    private record Holder() implements InventoryHolder {
+    /** Корень «Эффектов»: выбор категории по стихии + «Переключатели» + «Абсолютная». */
+    private record CategoryHolder() implements InventoryHolder {
         @Override
         public Inventory getInventory() {
             return Bukkit.createInventory(this, 27, Component.empty());
         }
+    }
+
+    /** Глобальные переключатели (9 глаз / красное небо / демон / сон). */
+    private record TogglesHolder() implements InventoryHolder {
+        @Override
+        public Inventory getInventory() {
+            return Bukkit.createInventory(this, 27, Component.empty());
+        }
+    }
+
+    /** Список эффектов одной категории (стихия или «Абсолютная») со страницами. */
+    private static final class EffectsHolder implements InventoryHolder {
+        final List<FxEntry> entries;
+        final int page;
+        final int pages;
+        @Nullable
+        final me.darkz70.quirks.magic.Element category;
+        Inventory inv;
+
+        EffectsHolder(List<FxEntry> entries, int page, int pages, @Nullable me.darkz70.quirks.magic.Element category) {
+            this.entries = entries;
+            this.page = page;
+            this.pages = pages;
+            this.category = category;
+        }
+
+        @Override
+        public Inventory getInventory() {
+            return inv;
+        }
+    }
+
+    /** Одна карточка эффекта: иконка/название/лор, стихии-теги и само действие. */
+    private record FxEntry(Material icon, String name, List<String> lore,
+            java.util.Set<me.darkz70.quirks.magic.Element> elements,
+            java.util.function.Consumer<Player> action) {
     }
 
     /** Отдельная вкладка «Скалк острова» — своё меню, своя клавиатура кликов. */
@@ -70,136 +112,141 @@ public final class GaidFx implements Listener {
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
+    // =====================================================================
+    //  КАТЕГОРИИ ЭФФЕКТОВ ПО СТИХИЯМ
+    //  Каждый эффект размечен набором стихий (Element); если эффект
+    //  относится сразу к нескольким — он показывается в КАЖДОЙ из них.
+    //  «Абсолютная» категория — это вообще все эффекты разом.
+    // =====================================================================
+
+    private static final int FX_PER_PAGE = 45;
+
+    /** Корень «Эффектов»: выбор категории. */
     public void open(Player player) {
-        Inventory inv = Bukkit.createInventory(new Holder(), 54,
-                Msg.color("&5Эффекты (на месте админа + 2 глобальных режима неба)"));
-        // — ряд 1: классика —
-        fx(inv, 11, Material.MAGMA_BLOCK, "&c&lАдские разломы",
-                "&7Магма-подложка, 4 трещины растут по 9 блоков с искрами,",
-                "&7дымом и потрескиванием; бульканье магмы, тряска 60 блоков.");
-        fx(inv, 12, Material.DEEPSLATE_TILES, "&4&lБольшой разлом",
-                "&7То же, но ×5: длинные трещины, кратеры на концах,",
-                "&7кратер под эпицентром, тряска 300 блоков.");
-        fx(inv, 13, Material.END_PORTAL_FRAME, "&4&lОткрытие ада",
-                "&7Тряска 12 сек, молнии, скачки дня/ночи, затем вертикальный",
-                "&7круг магмы с окантовкой ад-микса и порталом + кратер.");
-        fx(inv, 14, Material.ENDER_PEARL, "&5&lПортальный гул",
-                "&7Гул стыков миров во все 120 блоков,",
-                "&7столб портальных частиц 15 блоков вверх.");
-        fx(inv, 15, Material.LAVA_BUCKET, "&6&lЛавовый гейзер",
-                "&7Столб раскалённых брызг на 25 блоков вверх,",
-                "&7остаётся обожжённое кольцо магмы вокруг.");
-        fx(inv, 16, Material.CRIMSON_FUNGUS, "&c&lАдский сад",
-                "&7Нейлиевая площадка (криммзон/ворп — наугад) с грибными",
-                "&7«деревьями» и светящимися грибами растёт &lНАВСЕГДА&7 на",
-                "&7твоём месте (как скалк-остров), затем из портальной",
-                "&7дымки появляется горстка адских тварей-охранителей.");
-        // — ряд 2: разрывы миров —
-        fx(inv, 20, Material.MAGMA_CREAM, "&c&lДвойной разлом",
-                "&7Две анимированные трещины врозь под ±30°, по 14 блоков,",
-                "&7каждый шов трещит и искрит.");
-        fx(inv, 21, Material.ECHO_SHARD, "&3&lКолодец пустоты",
-                "&7Вертикальный провал-крест глубиной 6 блоков с окантовкой",
-                "&7плачущим обсидианом и лучом END-частиц вверх.");
-        fx(inv, 22, Material.PRISMARINE_SHARD, "&9&lСтолб разлома",
-                "&7Вертикальный шов магмы/чернокамня вверх на 8 блоков —",
-                "&7мир трещит в небо, слышно по шагу.");
-        fx(inv, 23, Material.SOUL_TORCH, "&5&lВарп-искажение",
-                "&7Все в 30 блоках плывут (тошнота 5 с), кольца портальной",
-                "&7карусели частиц вокруг эпицентра.");
-        fx(inv, 24, Material.WITHER_ROSE, "&8&lЦунами тьмы",
-                "&8Тьма накрывает 50 блоков на 8 секунд,",
-                "&7тройной вал душ скалка по земле.");
-        // — ряд 3: стихии неба и глубины —
-        fx(inv, 29, Material.LIGHTNING_ROD, "&e&lГром и молния",
-                "&7Первый удар — настоящая молния рядом с тобой МГНОВЕННО,",
-                "&7дальше 3 удара по кругу, 14 молний с магмой/чернокамнем/огнём,",
-                "&73 мини-кратера, тряска вокруг. У тебя огнестойкость на 4 с.");
-        fx(inv, 30, Material.BLAZE_ROD, "&6&lМолния в небо",
-                "&7Обратный разряд: белый столб END-частиц уходит вверх,",
-                "&7вспышка и сухой щелчок грома.");
-        fx(inv, 31, Material.SOUL_LANTERN, "&b&lСтрах",
-                "&7Тьма в 60 блоках, шквал вардена, скрипка от игрока.",
-                "&74 волны душ скалка на каждого, шаги под ногами.");
-        fx(inv, 32, Material.DRAGON_HEAD, "&5&lГлобальный страх",
-                "&7То же, но на 300 блоков.");
-        fx(inv, 33, Material.SCULK_SHRIEKER, "&5&lПульс пустоты",
-                "&7Кольцо SCULK-заряда расходится по земле,",
-                "&7соник-бум вардена слышен в 60 блоках.");
-        fx(inv, 34, Material.NETHERITE_SCRAP, "&e&lШторм молний",
-                "&7То же самое, что «Гром и молния», но &lв 5 РАЗ&7 больше",
-                "&7ударов и кратеров, вдвое шире площадь и слышимость.");
-        String skyPhraseText = plugin.getConfig().getString("sky-phrase.last-text", "ОНИ СМОТРЯТ");
-        fx(inv, 35, Material.NAME_TAG, "&5&lНебесное послание",
-                "&7Гигантская фраза из вечно скачущих рун жителей высоко",
-                "&7в небе + подпись обычным текстом ниже, видно всем рядом.",
-                "&7Задать текст: &f/gaid phrase <текст>",
-                "&7Сейчас: &f" + skyPhraseText);
-        // — ряд 4: атмосфера и бури —
-        fx(inv, 38, Material.GUNPOWDER, "&7&lПепельная буря",
-                "&710 секунд идёт пепел в 25 блоках — как после пожара миров.");
-        fx(inv, 39, Material.GHAST_TEAR, "&f&lПорыв гаста",
-                "&7Крик гаста у всех в 60 блоках, огненный след по кругу,",
-                "&7один хлопок взрыва сверху.");
-        fx(inv, 40, Material.BLAZE_POWDER, "&6&lОгненный купол",
-                "&7Полусфера пламени-душ радиусом 4 вокруг точки,",
-                "&58 секунд дышит (только частицы, без блоков).");
-        fx(inv, 41, Material.WHITE_DYE, "&f&lДымовая завеса",
-                "&7Столб дыма высотой 12 на 10 секунд — тонкий,",
-                "&7плотный, виден издалека.");
-        fx(inv, 42, Material.FIREWORK_STAR, "&e&lИскровой ливень",
-                "&78 секунд с неба сыплются искры пламени в 15 блоках.");
-        // — ряд 5: финалы —
-        fx(inv, 47, Material.FLINT_AND_STEEL, "&6&lОгненное кольцо",
-                "&7Три расширяющихся кольца пламени по земле,",
-                "&7свист огня на каждой волне.");
-        fx(inv, 48, Material.REDSTONE, "&c&lКровавый дождь",
-                "&78 секунд тёплых капель лавы с неба в 15 блоках.");
-        fx(inv, 49, Material.GRAVEL, "&8&lЗемлетрясение",
-                "&7Шесть ударов тряски экрана подряд, грохот гравия",
-                "&7ходит волнами кругом 40 блоков.");
-        fx(inv, 50, Material.ENDER_EYE, "&a&lХор эндерменов",
-                "&7Шесть телепортов-хора по кругу вокруг точки,",
-                "&7фиолетовые шлейфы между ними.");
-        fx(inv, 51, Material.FIRE_CHARGE, "&4&lВспышка-разряд",
-                "&7Мгновенная вспышка неба, глухой удар грома,",
-                "&7магма-пыль расходится от твоих ног.");
-        // демон азарта: вкл/выкл (слот 3) и интервал (слот 5)
+        Inventory inv = Bukkit.createInventory(new CategoryHolder(), 27,
+                Msg.color("&5Эффекты — выбери категорию"));
+        inv.setItem(10, btn(Material.MAGMA_CREAM, "&c&lОгонь / Ад",
+                "&7Разломы, лава, адские явления.",
+                "&7Эффектов: &f" + countFor(Element.FIRE)));
+        inv.setItem(11, btn(Material.PRISMARINE_CRYSTALS, "&b&lВода",
+                "&7Приливы, дожди, глубинные явления.",
+                "&7Эффектов: &f" + countFor(Element.WATER)));
+        inv.setItem(12, btn(Material.PHANTOM_MEMBRANE, "&f&lВетер / Гроза",
+                "&7Молнии, шторм, порывы ветра.",
+                "&7Эффектов: &f" + countFor(Element.WIND)));
+        inv.setItem(13, btn(Material.COBBLED_DEEPSLATE, "&6&lЗемля",
+                "&7Землетрясения, камень, разломы почвы.",
+                "&7Эффектов: &f" + countFor(Element.EARTH)));
+        inv.setItem(14, btn(Material.SCULK, "&5&lТьма",
+                "&7Страх, пустота, скалк-явления.",
+                "&7Эффектов: &f" + countFor(Element.DARK)));
+        inv.setItem(15, btn(Material.GLOWSTONE, "&e&lСвет",
+                "&7Сияние, небесные послания, благословения.",
+                "&7Эффектов: &f" + countFor(Element.LIGHT)));
+        inv.setItem(20, btn(Material.NETHER_STAR, "&d&l✦ Абсолютная ✦",
+                "&7ВООБЩЕ ВСЕ эффекты из ВСЕХ категорий разом,",
+                "&7без разбора по стихиям.",
+                "&7Эффектов: &f" + allEntries().size()));
+        inv.setItem(22, btn(Material.LEVER, "&a&lПереключатели",
+                "&79 глаз / красное небо / демон азарта / сон —",
+                "&7глобальные режимы на весь сервер.",
+                "&7Открыть отдельным меню."));
+        inv.setItem(4, btn(Material.ARROW, "&7&lНазад"));
+        player.openInventory(inv);
+    }
+
+    private int countFor(Element element) {
+        int n = 0;
+        for (FxEntry entry : allEntries()) {
+            if (entry.elements().contains(element)) n++;
+        }
+        return n;
+    }
+
+    /** Глобальные переключатели: 9 глаз / красное небо / демон / сон. */
+    public void openToggles(Player player) {
+        Inventory inv = Bukkit.createInventory(new TogglesHolder(), 27,
+                Msg.color("&5Эффекты: переключатели (глобально, весь сервер)"));
         boolean demonOn = plugin.getConfig().getBoolean("demon.enabled", true);
         int demonInt = plugin.getConfig().getInt("demon.interval-minutes", 10);
-        fx(inv, 2, Material.WITHER_SKELETON_SKULL,
-                "&4&lПризвать демона &8(заглушка)",
-                "&7Фигура демона (чёрный череп + тёмная ряса, светится",
-                "&7контуром) появится в 2.5 блоках &fПЕРЕД ТОБОЙ&7 — не в",
-                "&7упор, чтобы было видно, — в тёмных и адских частицах.",
-                "&7Живёт ~60 секунд. Никаких сообщений в чат.",
-                "&8Превью будущего «Демона азарта» — настоящий босс скоро.");
-        fx(inv, 3, demonOn ? Material.REDSTONE_TORCH : Material.DEAD_BUSH,
-                demonOn ? "&5&lДемон азарта: &aВКЛ" : "&5&lДемон азарта: &cВЫКЛ",
-                "&7Пассивный силуэт не ближе 20 блоков от игроков,",
-                "&7тёмные+адские частицы (без скалка), без чата.",
-                "&7Клик — переключить.");
-        fx(inv, 5, Material.CLOCK,
-                "&5&lИнтервал демона: &f" + demonInt + " мин",
-                "&7Клик — цикл: 5 → 10 → 15 → 20 → 30 → 60 минут.",
-                "&7Новый интервал применяется сразу.");
-        // режимы неба: ГЛОБАЛЬНЫЕ переключатели на весь сервер (слоты 0 и 1)
         boolean eyesOn = plugin.skyEffects().eyesEnabled();
         boolean redOn = plugin.skyEffects().redEnabled();
-        fx(inv, 0, eyesOn ? Material.ENDER_EYE : Material.GLASS_BOTTLE,
+        boolean sleepLocked = plugin.sleepLock().sleepDisabled();
+        fx(inv, 10, eyesOn ? Material.ENDER_EYE : Material.GLASS_BOTTLE,
                 eyesOn ? "&4&l9+1 глаз в небе: &aВКЛ" : "&4&l9+1 глаз в небе: &cВЫКЛ",
                 "&7ГЛОБАЛЬНО для ВСЕХ игроков — 9 гигантских красных глаз",
                 "&7по кругу + 1 ЕЩЁ БОЛЬШЕ строго по центру над головой,",
                 "&7вместо звёзд, всегда смотрят прямо на игрока.",
                 "&7Работает, пока не выключишь. Клик — переключить.");
-        fx(inv, 1, redOn ? Material.RED_STAINED_GLASS : Material.GLASS,
+        fx(inv, 11, redOn ? Material.RED_STAINED_GLASS : Material.GLASS,
                 redOn ? "&c&lКрасное небо: &aВКЛ" : "&c&lКрасное небо: &cВЫКЛ",
                 "&7ГЛОБАЛЬНО для ВСЕХ игроков — багровое зарево в небе",
                 "&7над головой + медленный красный пепельный дождь.",
                 "&7Работает, пока не выключишь. Клик — переключить.");
+        fx(inv, 12, Material.WITHER_SKELETON_SKULL,
+                "&4&lПризвать демона &8(заглушка)",
+                "&7Фигура демона (чёрный череп + тёмная ряса, светится",
+                "&7контуром) появится в 2.5 блоках &fПЕРЕД ТОБОЙ&7 — не в",
+                "&7упор, чтобы было видно, — в тёмных и адских частицах.",
+                "&7Живёт ~60 секунд. Никаких сообщений в чат.");
+        fx(inv, 13, demonOn ? Material.REDSTONE_TORCH : Material.DEAD_BUSH,
+                demonOn ? "&5&lДемон азарта: &aВКЛ" : "&5&lДемон азарта: &cВЫКЛ",
+                "&7Пассивный силуэт не ближе 20 блоков от игроков,",
+                "&7тёмные+адские частицы (без скалка), без чата.",
+                "&7Клик — переключить.");
+        fx(inv, 14, Material.CLOCK,
+                "&5&lИнтервал демона: &f" + demonInt + " мин",
+                "&7Клик — цикл: 5 → 10 → 15 → 20 → 30 → 60 минут.",
+                "&7Новый интервал применяется сразу.");
+        fx(inv, 15, sleepLocked ? Material.RED_BED : Material.WHITE_BED,
+                sleepLocked ? "&c&lМожно спать: &cВЫКЛ" : "&a&lМожно спать: &aВКЛ",
+                "&7ГЛОБАЛЬНО для ВСЕХ игроков — пока выключено,",
+                "&7никто не ляжет спать: кровать отклонит попытку",
+                "&7с сообщением «Что-то могущественное не даёт вам уснуть».",
+                "&7Клик — переключить.");
         inv.setItem(4, btn(Material.ARROW, "&7&lНазад"));
         player.openInventory(inv);
     }
+
+    /** Открыть список эффектов категории (null — «Абсолютная», все эффекты). */
+    public void openCategory(Player player, @Nullable Element category) {
+        openCategoryPage(player, category, 0);
+    }
+
+    private void openCategoryPage(Player player, @Nullable Element category, int page) {
+        List<FxEntry> filtered = new ArrayList<>();
+        for (FxEntry entry : allEntries()) {
+            if (category == null || entry.elements().contains(category)) filtered.add(entry);
+        }
+        int pages = Math.max(1, (filtered.size() + FX_PER_PAGE - 1) / FX_PER_PAGE);
+        page = Math.max(0, Math.min(page, pages - 1));
+        EffectsHolder holder = new EffectsHolder(filtered, page, pages, category);
+        String title = category == null ? "&d✦ Абсолютная ✦" : categoryTitle(category);
+        Inventory inv = Bukkit.createInventory(holder, 54,
+                Msg.color(title + " &8(&e" + (page + 1) + "&7/&e" + pages + "&8)"));
+        holder.inv = inv;
+        int start = page * FX_PER_PAGE;
+        for (int slot = 0; slot < FX_PER_PAGE && start + slot < filtered.size(); slot++) {
+            FxEntry entry = filtered.get(start + slot);
+            inv.setItem(slot, btn(entry.icon(), entry.name(), entry.lore().toArray(new String[0])));
+        }
+        if (page > 0) inv.setItem(45, btn(Material.ARROW, "&7← страница " + page));
+        inv.setItem(49, btn(Material.BARRIER, "&7← к категориям"));
+        if (page < pages - 1) inv.setItem(53, btn(Material.ARROW, "&7страница " + (page + 2) + " →"));
+        player.openInventory(inv);
+    }
+
+    private String categoryTitle(Element element) {
+        return switch (element) {
+            case FIRE -> "&c&lОгонь / Ад";
+            case WATER -> "&b&lВода";
+            case WIND -> "&f&lВетер / Гроза";
+            case EARTH -> "&6&lЗемля";
+            case DARK -> "&5&lТьма";
+            case LIGHT -> "&e&lСвет";
+        };
+    }
+
 
     // ---------- отдельная вкладка: скалк острова ----------
 
@@ -254,8 +301,30 @@ public final class GaidFx implements Listener {
     }
 
     @EventHandler(ignoreCancelled = false)
-    public void onClick(InventoryClickEvent event) {
-        if (!(event.getInventory().getHolder() instanceof Holder)) return;
+    public void onCategoryClick(InventoryClickEvent event) {
+        if (!(event.getInventory().getHolder() instanceof CategoryHolder)) return;
+        event.setCancelled(true);
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        switch (event.getRawSlot()) {
+            case 4 -> {
+                player.closeInventory();
+                Bukkit.getScheduler().runTask(plugin, () -> player.performCommand("gaid"));
+            }
+            case 10 -> openCategory(player, Element.FIRE);
+            case 11 -> openCategory(player, Element.WATER);
+            case 12 -> openCategory(player, Element.WIND);
+            case 13 -> openCategory(player, Element.EARTH);
+            case 14 -> openCategory(player, Element.DARK);
+            case 15 -> openCategory(player, Element.LIGHT);
+            case 20 -> openCategory(player, null);
+            case 22 -> openToggles(player);
+            default -> { }
+        }
+    }
+
+    @EventHandler(ignoreCancelled = false)
+    public void onTogglesClick(InventoryClickEvent event) {
+        if (!(event.getInventory().getHolder() instanceof TogglesHolder)) return;
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) return;
         switch (event.getRawSlot()) {
@@ -264,55 +333,602 @@ public final class GaidFx implements Listener {
                 Bukkit.getScheduler().runTask(plugin, () -> player.performCommand("gaid"));
                 return;
             }
-            case 0 -> plugin.skyEffects().setEyesEnabled(!plugin.skyEffects().eyesEnabled()); // 9 глаз: вкл/выкл
-            case 1 -> plugin.skyEffects().setRedEnabled(!plugin.skyEffects().redEnabled()); // красное небо: вкл/выкл
-            case 2 -> plugin.demonWatcher().summonManual(player); // демон: ручной призыв (заглушка)
-            case 3 -> { // демон: вкл/выкл
+            case 10 -> plugin.skyEffects().setEyesEnabled(!plugin.skyEffects().eyesEnabled()); // 9 глаз: вкл/выкл
+            case 11 -> plugin.skyEffects().setRedEnabled(!plugin.skyEffects().redEnabled()); // красное небо: вкл/выкл
+            case 12 -> plugin.demonWatcher().summonManual(player); // демон: ручной призыв (заглушка)
+            case 13 -> { // демон: вкл/выкл
                 boolean now = !plugin.getConfig().getBoolean("demon.enabled", true);
                 plugin.getConfig().set("demon.enabled", now);
                 plugin.saveConfig();
             }
-            case 5 -> { // демон: цикл интервала 5/10/15/20/30/60 мин
+            case 14 -> { // демон: цикл интервала 5/10/15/20/30/60 мин
                 int cur = plugin.getConfig().getInt("demon.interval-minutes", 10);
                 int nxt = me.darkz70.quirks.task.DemonWatcherTask.nextInterval(cur);
                 plugin.getConfig().set("demon.interval-minutes", nxt);
                 plugin.saveConfig();
             }
-            case 11 -> hellRift(player);
-            case 12 -> hellRift(player, 5.0, 4);
-            case 13 -> openHell(player);
-            case 14 -> portalHum(player);
-            case 15 -> lavaGeyser(player);
-            case 16 -> hellGarden(player);
-            case 20 -> doubleRift(player);
-            case 21 -> voidWell(player);
-            case 22 -> phaseScar(player);
-            case 23 -> warpDistortion(player);
-            case 24 -> darknessTsunami(player);
-            case 29 -> thunder(player);
-            case 30 -> skyBolt(player);
-            case 31 -> fear(player, 60);
-            case 32 -> fear(player, 300);
-            case 33 -> voidPulse(player);
-            case 34 -> lightningStorm5x(player);
-            case 35 -> skyPhrase(player, null);
-            case 38 -> ashStorm(player);
-            case 39 -> ghastBurst(player);
-            case 40 -> fireDome(player);
-            case 41 -> smokeVeil(player);
-            case 42 -> sparkRain(player);
-            case 47 -> fireRing(player);
-            case 48 -> lavaRain(player);
-            case 49 -> quake(player);
-            case 50 -> enderChoir(player);
-            case 51 -> flashDischarge(player);
+            case 15 -> plugin.sleepLock().setSleepDisabled(!plugin.sleepLock().sleepDisabled()); // можно спать: вкл/выкл
             default -> { return; }
         }
-        // эффект запущен — меню остаётся открытым (переоткрываем, чтобы сбросить курсор/слот)
+        // переключатель применён — меню остаётся открытым (переоткрываем, чтобы сбросить курсор/слот)
         Bukkit.getScheduler().runTask(plugin, () -> {
-            if (player.isOnline()) open(player);
+            if (player.isOnline()) openToggles(player);
         });
     }
+
+    @EventHandler(ignoreCancelled = false)
+    public void onEffectsClick(InventoryClickEvent event) {
+        if (!(event.getInventory().getHolder() instanceof EffectsHolder holder)) return;
+        event.setCancelled(true);
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        int slot = event.getRawSlot();
+        if (slot == 49) {
+            open(player);
+            return;
+        }
+        if (slot == 45 && holder.page > 0) {
+            openCategoryPage(player, holder.category, holder.page - 1);
+            return;
+        }
+        if (slot == 53 && holder.page < holder.pages - 1) {
+            openCategoryPage(player, holder.category, holder.page + 1);
+            return;
+        }
+        int index = holder.page * FX_PER_PAGE + slot;
+        if (slot < 0 || slot >= FX_PER_PAGE || index >= holder.entries.size()) return;
+        FxEntry entry = holder.entries.get(index);
+        entry.action().accept(player);
+        // эффект запущен — страница остаётся открытой (переоткрываем, чтобы сбросить курсор/слот)
+        int page = holder.page;
+        Element category = holder.category;
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (player.isOnline()) openCategoryPage(player, category, page);
+        });
+    }
+
+
+    // ---------- сводный список эффектов (легаси + новые комбо-эффекты) ----------
+
+    private List<FxEntry> allEntries() {
+        List<FxEntry> list = new ArrayList<>(legacyEntries());
+        list.addAll(comboEntries());
+        return list;
+    }
+
+    private FxEntry entry(Material icon, String name, List<String> lore, Set<Element> elements, Consumer<Player> action) {
+        return new FxEntry(icon, name, lore, elements, action);
+    }
+
+    /** 27 уже существовавших сценических эффектов, размеченных стихиями (могут принадлежать нескольким). */
+    private List<FxEntry> legacyEntries() {
+        List<FxEntry> list = new ArrayList<>();
+        list.add(entry(Material.MAGMA_BLOCK, "&c&lАдские разломы", List.of(
+                "&7Магма-подложка, 4 трещины растут по 9 блоков с искрами,",
+                "&7дымом и потрескиванием; бульканье магмы, тряска 60 блоков."),
+                EnumSet.of(Element.FIRE), p -> hellRift(p)));
+        list.add(entry(Material.DEEPSLATE_TILES, "&4&lБольшой разлом", List.of(
+                "&7То же, но ×5: длинные трещины, кратеры на концах,",
+                "&7кратер под эпицентром, тряска 300 блоков."),
+                EnumSet.of(Element.FIRE, Element.EARTH), p -> hellRift(p, 5.0, 4)));
+        list.add(entry(Material.END_PORTAL_FRAME, "&4&lОткрытие ада", List.of(
+                "&7Тряска 12 сек, молнии, скачки дня/ночи, затем вертикальный",
+                "&7круг магмы с окантовкой ад-микса и порталом + кратер."),
+                EnumSet.of(Element.FIRE, Element.DARK), p -> openHell(p)));
+        list.add(entry(Material.ENDER_PEARL, "&5&lПортальный гул", List.of(
+                "&7Гул стыков миров во все 120 блоков,",
+                "&7столб портальных частиц 15 блоков вверх."),
+                EnumSet.of(Element.DARK), p -> portalHum(p)));
+        list.add(entry(Material.LAVA_BUCKET, "&6&lЛавовый гейзер", List.of(
+                "&7Столб раскалённых брызг на 25 блоков вверх,",
+                "&7остаётся обожжённое кольцо магмы вокруг."),
+                EnumSet.of(Element.FIRE), p -> lavaGeyser(p)));
+        list.add(entry(Material.CRIMSON_FUNGUS, "&c&lАдский сад", List.of(
+                "&7Нейлиевая площадка (криммзон/ворп — наугад) с грибными",
+                "&7«деревьями» и светящимися грибами растёт &lНАВСЕГДА&7 на",
+                "&7твоём месте (как скалк-остров), затем из портальной",
+                "&7дымки появляется горстка адских тварей-охранителей."),
+                EnumSet.of(Element.FIRE), p -> hellGarden(p)));
+        list.add(entry(Material.MAGMA_CREAM, "&c&lДвойной разлом", List.of(
+                "&7Две анимированные трещины врозь под ±30°, по 14 блоков,",
+                "&7каждый шов трещит и искрит."),
+                EnumSet.of(Element.FIRE, Element.EARTH), p -> doubleRift(p)));
+        list.add(entry(Material.ECHO_SHARD, "&3&lКолодец пустоты", List.of(
+                "&7Вертикальный провал-крест глубиной 6 блоков с окантовкой",
+                "&7плачущим обсидианом и лучом END-частиц вверх."),
+                EnumSet.of(Element.DARK), p -> voidWell(p)));
+        list.add(entry(Material.PRISMARINE_SHARD, "&9&lСтолб разлома", List.of(
+                "&7Вертикальный шов магмы/чернокамня вверх на 8 блоков —",
+                "&7мир трещит в небо, слышно по шагу."),
+                EnumSet.of(Element.FIRE, Element.EARTH), p -> phaseScar(p)));
+        list.add(entry(Material.SOUL_TORCH, "&5&lВарп-искажение", List.of(
+                "&7Все в 30 блоках плывут (тошнота 5 с), кольца портальной",
+                "&7карусели частиц вокруг эпицентра."),
+                EnumSet.of(Element.DARK), p -> warpDistortion(p)));
+        list.add(entry(Material.WITHER_ROSE, "&8&lЦунами тьмы", List.of(
+                "&8Тьма накрывает 50 блоков на 8 секунд,",
+                "&7тройной вал душ скалка по земле."),
+                EnumSet.of(Element.DARK), p -> darknessTsunami(p)));
+        list.add(entry(Material.LIGHTNING_ROD, "&e&lГром и молния", List.of(
+                "&7Первый удар — настоящая молния рядом с тобой МГНОВЕННО,",
+                "&7дальше 3 удара по кругу, 14 молний с магмой/чернокамнем/огнём,",
+                "&73 мини-кратера, тряска вокруг. У тебя огнестойкость на 4 с."),
+                EnumSet.of(Element.WIND), p -> thunder(p)));
+        list.add(entry(Material.BLAZE_ROD, "&6&lМолния в небо", List.of(
+                "&7Обратный разряд: белый столб END-частиц уходит вверх,",
+                "&7вспышка и сухой щелчок грома."),
+                EnumSet.of(Element.WIND, Element.LIGHT), p -> skyBolt(p)));
+        list.add(entry(Material.SOUL_LANTERN, "&b&lСтрах", List.of(
+                "&7Тьма в 60 блоках, шквал вардена, скрипка от игрока.",
+                "&74 волны душ скалка на каждого, шаги под ногами."),
+                EnumSet.of(Element.DARK), p -> fear(p, 60)));
+        list.add(entry(Material.DRAGON_HEAD, "&5&lГлобальный страх", List.of(
+                "&7То же, но на 300 блоков."),
+                EnumSet.of(Element.DARK), p -> fear(p, 300)));
+        list.add(entry(Material.SCULK_SHRIEKER, "&5&lПульс пустоты", List.of(
+                "&7Кольцо SCULK-заряда расходится по земле,",
+                "&7соник-бум вардена слышен в 60 блоках."),
+                EnumSet.of(Element.DARK), p -> voidPulse(p)));
+        list.add(entry(Material.NETHERITE_SCRAP, "&e&lШторм молний", List.of(
+                "&7То же самое, что «Гром и молния», но &lв 5 РАЗ&7 больше",
+                "&7ударов и кратеров, вдвое шире площадь и слышимость."),
+                EnumSet.of(Element.WIND), p -> lightningStorm5x(p)));
+        list.add(entry(Material.NAME_TAG, "&5&lНебесное послание", List.of(
+                "&7Гигантская фраза из вечно скачущих рун жителей высоко",
+                "&7в небе + подпись обычным текстом ниже, видно всем рядом.",
+                "&7Задать текст: &f/gaid phrase <текст>"),
+                EnumSet.of(Element.LIGHT), p -> skyPhrase(p, null)));
+        list.add(entry(Material.GUNPOWDER, "&7&lПепельная буря", List.of(
+                "&710 секунд идёт пепел в 25 блоках — как после пожара миров."),
+                EnumSet.of(Element.FIRE, Element.WIND), p -> ashStorm(p)));
+        list.add(entry(Material.GHAST_TEAR, "&f&lПорыв гаста", List.of(
+                "&7Крик гаста у всех в 60 блоках, огненный след по кругу,",
+                "&7один хлопок взрыва сверху."),
+                EnumSet.of(Element.FIRE, Element.WIND), p -> ghastBurst(p)));
+        list.add(entry(Material.BLAZE_POWDER, "&6&lОгненный купол", List.of(
+                "&7Полусфера пламени-душ радиусом 4 вокруг точки,",
+                "&58 секунд дышит (только частицы, без блоков)."),
+                EnumSet.of(Element.FIRE), p -> fireDome(p)));
+        list.add(entry(Material.WHITE_DYE, "&f&lДымовая завеса", List.of(
+                "&7Столб дыма высотой 12 на 10 секунд — тонкий,",
+                "&7плотный, виден издалека."),
+                EnumSet.of(Element.WIND, Element.DARK), p -> smokeVeil(p)));
+        list.add(entry(Material.FIREWORK_STAR, "&e&lИскровой ливень", List.of(
+                "&78 секунд с неба сыплются искры пламени в 15 блоках."),
+                EnumSet.of(Element.FIRE, Element.LIGHT), p -> sparkRain(p)));
+        list.add(entry(Material.FLINT_AND_STEEL, "&6&lОгненное кольцо", List.of(
+                "&7Три расширяющихся кольца пламени по земле,",
+                "&7свист огня на каждой волне."),
+                EnumSet.of(Element.FIRE), p -> fireRing(p)));
+        list.add(entry(Material.REDSTONE, "&c&lКровавый дождь", List.of(
+                "&78 секунд тёплых капель лавы с неба в 15 блоках."),
+                EnumSet.of(Element.FIRE, Element.DARK), p -> lavaRain(p)));
+        list.add(entry(Material.GRAVEL, "&8&lЗемлетрясение", List.of(
+                "&7Шесть ударов тряски экрана подряд, грохот гравия",
+                "&7ходит волнами кругом 40 блоков."),
+                EnumSet.of(Element.EARTH), p -> quake(p)));
+        list.add(entry(Material.ENDER_EYE, "&a&lХор эндерменов", List.of(
+                "&7Шесть телепортов-хора по кругу вокруг точки,",
+                "&7фиолетовые шлейфы между ними."),
+                EnumSet.of(Element.DARK), p -> enderChoir(p)));
+        list.add(entry(Material.FIRE_CHARGE, "&4&lВспышка-разряд", List.of(
+                "&7Мгновенная вспышка неба, глухой удар грома,",
+                "&7магма-пыль расходится от твоих ног."),
+                EnumSet.of(Element.WIND, Element.FIRE), p -> flashDischarge(p)));
+        return list;
+    }
+
+    // =====================================================================
+    //  НОВЫЕ КОМБО-ЭФФЕКТЫ: по 10 штук на каждую стихию (всего 60).
+    //  Каждый — комбинация узора частиц + 1-2 эффектов на игроков рядом
+    //  (в радиусе действия) + 1-2 звуков. Узор и состав генерируются
+    //  общим движком playCombo()/patternPoints() по описанию ComboSpec.
+    // =====================================================================
+
+    private enum FxPattern { RING, SPHERE, COLUMN, SPIRAL, RAIN, AURA, ORBIT, BURST, WAVE, CROSS }
+
+    private record ComboSpec(Element element, Material icon, String name,
+            Particle particle, @Nullable Color color, float dustSize,
+            int count, double radius, FxPattern pattern, double effectRadius,
+            Sound sound1, @Nullable Sound sound2, List<PotionEffect> potions) {
+    }
+
+    private List<FxEntry> comboEntries() {
+        List<FxEntry> list = new ArrayList<>();
+        for (ComboSpec spec : comboSpecs()) {
+            list.add(entry(spec.icon(), "&f&l" + spec.name(), comboLore(spec),
+                    EnumSet.of(spec.element()), p -> playCombo(p, spec)));
+        }
+        return list;
+    }
+
+    private List<String> comboLore(ComboSpec spec) {
+        List<String> lore = new ArrayList<>();
+        lore.add("&7Стихия: &f" + spec.element().display());
+        lore.add("&7Частицы вокруг тебя + эффекты/звук на игроков");
+        lore.add("&7в радиусе &f" + (int) spec.effectRadius() + " &7блоков.");
+        return lore;
+    }
+
+    private ComboSpec combo(Element element, Material icon, String name,
+            Particle particle, @Nullable Color color, float dustSize,
+            int count, double radius, FxPattern pattern, double effectRadius,
+            Sound sound1, @Nullable Sound sound2, PotionEffect... potions) {
+        return new ComboSpec(element, icon, name, particle, color, dustSize, count, radius,
+                pattern, effectRadius, sound1, sound2, List.of(potions));
+    }
+
+    private List<ComboSpec> comboSpecs() {
+        List<ComboSpec> list = new ArrayList<>();
+        // ---------- ОГОНЬ (10) ----------
+        list.add(combo(Element.FIRE, Material.BLAZE_POWDER, "Огненная аура",
+                Particle.FLAME, null, 0, 24, 0, FxPattern.AURA, 10,
+                Sound.ENTITY_BLAZE_AMBIENT, Sound.BLOCK_FIRE_AMBIENT,
+                new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 200, 0, true, true)));
+        list.add(combo(Element.FIRE, Material.MAGMA_CREAM, "Лавовое кольцо",
+                Particle.LAVA, null, 0, 30, 3.5, FxPattern.RING, 12,
+                Sound.BLOCK_LAVA_POP, Sound.BLOCK_LAVA_AMBIENT,
+                new PotionEffect(PotionEffectType.SLOWNESS, 100, 1, true, true)));
+        list.add(combo(Element.FIRE, Material.FIRE_CHARGE, "Огненный столб",
+                Particle.FLAME, null, 0, 40, 3, FxPattern.SPIRAL, 10,
+                Sound.ENTITY_BLAZE_SHOOT, Sound.BLOCK_FIRE_AMBIENT,
+                new PotionEffect(PotionEffectType.STRENGTH, 200, 0, true, true)));
+        list.add(combo(Element.FIRE, Material.CAMPFIRE, "Пепельный ливень",
+                Particle.LARGE_SMOKE, null, 0, 35, 6, FxPattern.RAIN, 14,
+                Sound.ITEM_FIRECHARGE_USE, Sound.BLOCK_FIRE_AMBIENT,
+                new PotionEffect(PotionEffectType.NAUSEA, 100, 0, true, true)));
+        list.add(combo(Element.FIRE, Material.BLAZE_ROD, "Магма-шар",
+                Particle.DUST, Color.fromRGB(255, 110, 0), 2.4f, 50, 2.5, FxPattern.SPHERE, 10,
+                Sound.ENTITY_GHAST_SHOOT, Sound.BLOCK_LAVA_AMBIENT,
+                new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 200, 0, true, true),
+                new PotionEffect(PotionEffectType.WEAKNESS, 100, 0, true, true)));
+        list.add(combo(Element.FIRE, Material.MAGMA_BLOCK, "Огненная колонна",
+                Particle.FLAME, null, 0, 20, 6, FxPattern.COLUMN, 8,
+                Sound.ENTITY_BLAZE_BURN, Sound.ENTITY_GHAST_WARN,
+                new PotionEffect(PotionEffectType.JUMP_BOOST, 100, 1, true, true)));
+        list.add(combo(Element.FIRE, Material.TORCH, "Орбита угольков",
+                Particle.LAVA, null, 0, 16, 2, FxPattern.ORBIT, 10,
+                Sound.BLOCK_LAVA_POP, Sound.ENTITY_BLAZE_AMBIENT,
+                new PotionEffect(PotionEffectType.GLOWING, 200, 0, true, true),
+                new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 200, 0, true, true)));
+        list.add(combo(Element.FIRE, Material.LAVA_BUCKET, "Вулканический всплеск",
+                Particle.EXPLOSION_EMITTER, null, 0, 6, 0, FxPattern.BURST, 12,
+                Sound.ENTITY_GENERIC_EXPLODE, Sound.BLOCK_FIRE_AMBIENT,
+                new PotionEffect(PotionEffectType.WEAKNESS, 100, 0, true, true),
+                new PotionEffect(PotionEffectType.SLOWNESS, 100, 0, true, true)));
+        list.add(combo(Element.FIRE, Material.NETHER_STAR, "Волна пекла",
+                Particle.FLAME, null, 0, 24, 0, FxPattern.WAVE, 10,
+                Sound.ENTITY_BLAZE_SHOOT, Sound.ENTITY_GHAST_WARN,
+                new PotionEffect(PotionEffectType.STRENGTH, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 150, 0, true, true)));
+        list.add(combo(Element.FIRE, Material.TORCH, "Клеймо пламени",
+                Particle.SOUL_FIRE_FLAME, null, 0, 10, 0, FxPattern.CROSS, 10,
+                Sound.BLOCK_FIRE_AMBIENT, Sound.ENTITY_BLAZE_AMBIENT,
+                new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.GLOWING, 150, 0, true, true)));
+        // ---------- ВОДА (10) ----------
+        list.add(combo(Element.WATER, Material.PRISMARINE_CRYSTALS, "Водяной кокон",
+                Particle.DRIPPING_WATER, null, 0, 24, 0, FxPattern.AURA, 10,
+                Sound.BLOCK_WATER_AMBIENT, Sound.ENTITY_PLAYER_SPLASH,
+                new PotionEffect(PotionEffectType.WATER_BREATHING, 400, 0, true, true)));
+        list.add(combo(Element.WATER, Material.HEART_OF_THE_SEA, "Кольцо прибоя",
+                Particle.SPLASH, null, 0, 30, 4, FxPattern.RING, 12,
+                Sound.ENTITY_PLAYER_SPLASH, Sound.BLOCK_WATER_AMBIENT,
+                new PotionEffect(PotionEffectType.SLOWNESS, 100, 1, true, true)));
+        list.add(combo(Element.WATER, Material.TRIDENT, "Водоворот",
+                Particle.DRIPPING_WATER, null, 0, 36, 3, FxPattern.SPIRAL, 10,
+                Sound.BLOCK_WATER_AMBIENT, Sound.ENTITY_GUARDIAN_ATTACK,
+                new PotionEffect(PotionEffectType.DOLPHINS_GRACE, 200, 0, true, true)));
+        list.add(combo(Element.WATER, Material.KELP, "Ливень",
+                Particle.FALLING_WATER, null, 0, 40, 6, FxPattern.RAIN, 14,
+                Sound.ENTITY_PLAYER_SPLASH, Sound.BLOCK_WATER_AMBIENT,
+                new PotionEffect(PotionEffectType.SLOW_FALLING, 100, 0, true, true)));
+        list.add(combo(Element.WATER, Material.NAUTILUS_SHELL, "Пузырьковый купол",
+                Particle.DOLPHIN, null, 0, 45, 2.5, FxPattern.SPHERE, 10,
+                Sound.ENTITY_GUARDIAN_ATTACK, Sound.BLOCK_WATER_AMBIENT,
+                new PotionEffect(PotionEffectType.CONDUIT_POWER, 200, 0, true, true)));
+        list.add(combo(Element.WATER, Material.ICE, "Столб прилива",
+                Particle.FALLING_WATER, null, 0, 18, 6, FxPattern.COLUMN, 8,
+                Sound.BLOCK_WATER_AMBIENT, Sound.ENTITY_PLAYER_SPLASH,
+                new PotionEffect(PotionEffectType.SLOW_FALLING, 80, 0, true, true),
+                new PotionEffect(PotionEffectType.LEVITATION, 40, 0, true, true)));
+        list.add(combo(Element.WATER, Material.BLUE_ICE, "Жемчужная орбита",
+                Particle.DRIPPING_DRIPSTONE_WATER, null, 0, 16, 2, FxPattern.ORBIT, 10,
+                Sound.BLOCK_WATER_AMBIENT, Sound.ENTITY_GUARDIAN_ATTACK,
+                new PotionEffect(PotionEffectType.WATER_BREATHING, 200, 0, true, true),
+                new PotionEffect(PotionEffectType.DOLPHINS_GRACE, 200, 0, true, true)));
+        list.add(combo(Element.WATER, Material.SEAGRASS, "Гейзер всплеска",
+                Particle.SPLASH, null, 0, 20, 0, FxPattern.BURST, 10,
+                Sound.ENTITY_PLAYER_SPLASH, Sound.BLOCK_WATER_AMBIENT,
+                new PotionEffect(PotionEffectType.SLOWNESS, 60, 0, true, true),
+                new PotionEffect(PotionEffectType.WATER_BREATHING, 200, 0, true, true)));
+        list.add(combo(Element.WATER, Material.PRISMARINE_SHARD, "Волна прибоя",
+                Particle.FALLING_WATER, null, 0, 24, 0, FxPattern.WAVE, 10,
+                Sound.BLOCK_WATER_AMBIENT, Sound.ENTITY_GUARDIAN_ATTACK,
+                new PotionEffect(PotionEffectType.DOLPHINS_GRACE, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.SLOW_FALLING, 150, 0, true, true)));
+        list.add(combo(Element.WATER, Material.CONDUIT, "Печать глубин",
+                Particle.DRIPPING_WATER, null, 0, 10, 0, FxPattern.CROSS, 10,
+                Sound.BLOCK_WATER_AMBIENT, Sound.ENTITY_PLAYER_SPLASH,
+                new PotionEffect(PotionEffectType.WATER_BREATHING, 200, 0, true, true),
+                new PotionEffect(PotionEffectType.CONDUIT_POWER, 200, 0, true, true)));
+        // ---------- ВЕТЕР / ГРОЗА (10) ----------
+        list.add(combo(Element.WIND, Material.PHANTOM_MEMBRANE, "Ветряной плащ",
+                Particle.CLOUD, null, 0, 24, 0, FxPattern.AURA, 10,
+                Sound.ENTITY_LIGHTNING_BOLT_THUNDER, Sound.ENTITY_ENDER_DRAGON_FLAP,
+                new PotionEffect(PotionEffectType.SPEED, 200, 1, true, true)));
+        list.add(combo(Element.WIND, Material.FEATHER, "Кольцо смерча",
+                Particle.CLOUD, null, 0, 32, 4, FxPattern.RING, 12,
+                Sound.ENTITY_LIGHTNING_BOLT_THUNDER, Sound.ITEM_ELYTRA_FLYING,
+                new PotionEffect(PotionEffectType.SLOWNESS, 80, 1, true, true)));
+        list.add(combo(Element.WIND, Material.ELYTRA, "Вихрь",
+                Particle.SWEEP_ATTACK, null, 0, 30, 3, FxPattern.SPIRAL, 10,
+                Sound.ITEM_ELYTRA_FLYING, Sound.ENTITY_ENDER_DRAGON_FLAP,
+                new PotionEffect(PotionEffectType.JUMP_BOOST, 100, 2, true, true)));
+        list.add(combo(Element.WIND, Material.STRING, "Шквал",
+                Particle.CLOUD, null, 0, 40, 7, FxPattern.RAIN, 14,
+                Sound.ENTITY_LIGHTNING_BOLT_THUNDER, Sound.ENTITY_GHAST_WARN,
+                new PotionEffect(PotionEffectType.BLINDNESS, 60, 0, true, true)));
+        list.add(combo(Element.WIND, Material.WHITE_WOOL, "Грозовой шар",
+                Particle.WHITE_SMOKE, null, 0, 45, 2.5, FxPattern.SPHERE, 10,
+                Sound.ENTITY_ENDER_DRAGON_FLAP, Sound.ITEM_ELYTRA_FLYING,
+                new PotionEffect(PotionEffectType.SLOW_FALLING, 100, 0, true, true)));
+        list.add(combo(Element.WIND, Material.GHAST_TEAR, "Торнадо",
+                Particle.CLOUD, null, 0, 20, 7, FxPattern.COLUMN, 8,
+                Sound.ITEM_ELYTRA_FLYING, Sound.ENTITY_LIGHTNING_BOLT_THUNDER,
+                new PotionEffect(PotionEffectType.LEVITATION, 40, 0, true, true),
+                new PotionEffect(PotionEffectType.JUMP_BOOST, 100, 1, true, true)));
+        list.add(combo(Element.WIND, Material.FIREWORK_ROCKET, "Электрический вихрь",
+                Particle.FLASH, null, 0, 12, 2.5, FxPattern.ORBIT, 10,
+                Sound.ENTITY_LIGHTNING_BOLT_THUNDER, Sound.ENTITY_ENDER_DRAGON_GROWL,
+                new PotionEffect(PotionEffectType.GLOWING, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.SPEED, 150, 0, true, true)));
+        list.add(combo(Element.WIND, Material.SNOWBALL, "Громовой удар",
+                Particle.FLASH, null, 0, 10, 0, FxPattern.BURST, 12,
+                Sound.ENTITY_LIGHTNING_BOLT_THUNDER, Sound.ENTITY_ENDER_DRAGON_GROWL,
+                new PotionEffect(PotionEffectType.WEAKNESS, 80, 0, true, true),
+                new PotionEffect(PotionEffectType.SLOWNESS, 80, 0, true, true)));
+        list.add(combo(Element.WIND, Material.GLASS_PANE, "Порыв",
+                Particle.SWEEP_ATTACK, null, 0, 20, 0, FxPattern.WAVE, 10,
+                Sound.ITEM_ELYTRA_FLYING, Sound.ENTITY_PLAYER_ATTACK_SWEEP,
+                new PotionEffect(PotionEffectType.SPEED, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.JUMP_BOOST, 150, 0, true, true)));
+        list.add(combo(Element.WIND, Material.PAPER, "Клеймо бури",
+                Particle.CLOUD, null, 0, 10, 0, FxPattern.CROSS, 10,
+                Sound.ENTITY_LIGHTNING_BOLT_THUNDER, Sound.ITEM_ELYTRA_FLYING,
+                new PotionEffect(PotionEffectType.SLOW_FALLING, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.SPEED, 150, 0, true, true)));
+        // ---------- ЗЕМЛЯ (10) ----------
+        list.add(combo(Element.EARTH, Material.COBBLED_DEEPSLATE, "Каменная аура",
+                Particle.DUST, Color.fromRGB(120, 120, 120), 2.0f, 24, 0, FxPattern.AURA, 10,
+                Sound.BLOCK_STONE_BREAK, Sound.BLOCK_GRAVEL_STEP,
+                new PotionEffect(PotionEffectType.RESISTANCE, 200, 1, true, true)));
+        list.add(combo(Element.EARTH, Material.STONE, "Каменное кольцо",
+                Particle.CRIT, null, 0, 30, 4, FxPattern.RING, 12,
+                Sound.BLOCK_GRAVEL_BREAK, Sound.BLOCK_STONE_BREAK,
+                new PotionEffect(PotionEffectType.SLOWNESS, 100, 1, true, true)));
+        list.add(combo(Element.EARTH, Material.DIRT, "Земляной столб",
+                Particle.DUST, Color.fromRGB(110, 80, 40), 2.0f, 36, 3, FxPattern.SPIRAL, 10,
+                Sound.BLOCK_GRAVEL_STEP, Sound.BLOCK_STONE_BREAK,
+                new PotionEffect(PotionEffectType.STRENGTH, 200, 1, true, true)));
+        list.add(combo(Element.EARTH, Material.GRAVEL, "Каменный дождь",
+                Particle.CRIT, null, 0, 40, 6, FxPattern.RAIN, 14,
+                Sound.BLOCK_GRAVEL_BREAK, Sound.BLOCK_STONE_BREAK,
+                new PotionEffect(PotionEffectType.MINING_FATIGUE, 80, 0, true, true)));
+        list.add(combo(Element.EARTH, Material.CLAY_BALL, "Каменный купол",
+                Particle.DUST, Color.fromRGB(150, 150, 150), 2.2f, 45, 2.5, FxPattern.SPHERE, 10,
+                Sound.BLOCK_STONE_BREAK, Sound.BLOCK_BASALT_BREAK,
+                new PotionEffect(PotionEffectType.RESISTANCE, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.SLOWNESS, 80, 0, true, true)));
+        list.add(combo(Element.EARTH, Material.DEEPSLATE, "Скальный столб",
+                Particle.CRIT, null, 0, 20, 6, FxPattern.COLUMN, 8,
+                Sound.BLOCK_BASALT_BREAK, Sound.BLOCK_STONE_BREAK,
+                new PotionEffect(PotionEffectType.JUMP_BOOST, 100, 1, true, true)));
+        list.add(combo(Element.EARTH, Material.MOSS_BLOCK, "Орбита осколков",
+                Particle.MYCELIUM, null, 0, 16, 2, FxPattern.ORBIT, 10,
+                Sound.BLOCK_GRAVEL_STEP, Sound.ENTITY_IRON_GOLEM_ATTACK,
+                new PotionEffect(PotionEffectType.HASTE, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.RESISTANCE, 150, 0, true, true)));
+        list.add(combo(Element.EARTH, Material.FLINT, "Подземный толчок",
+                Particle.COMPOSTER, null, 0, 20, 0, FxPattern.BURST, 12,
+                Sound.ENTITY_IRON_GOLEM_ATTACK, Sound.BLOCK_STONE_BREAK,
+                new PotionEffect(PotionEffectType.SLOWNESS, 80, 0, true, true),
+                new PotionEffect(PotionEffectType.WEAKNESS, 80, 0, true, true)));
+        list.add(combo(Element.EARTH, Material.BRICK, "Волна камня",
+                Particle.DUST, Color.fromRGB(100, 70, 50), 2.0f, 24, 0, FxPattern.WAVE, 10,
+                Sound.BLOCK_GRAVEL_STEP, Sound.BLOCK_BASALT_BREAK,
+                new PotionEffect(PotionEffectType.STRENGTH, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.RESISTANCE, 150, 0, true, true)));
+        list.add(combo(Element.EARTH, Material.ROOTED_DIRT, "Печать недр",
+                Particle.CRIT, null, 0, 10, 0, FxPattern.CROSS, 10,
+                Sound.BLOCK_STONE_BREAK, Sound.ENTITY_IRON_GOLEM_REPAIR,
+                new PotionEffect(PotionEffectType.RESISTANCE, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.HASTE, 150, 0, true, true)));
+        // ---------- ТЬМА (10) ----------
+        list.add(combo(Element.DARK, Material.SCULK, "Покров тьмы",
+                Particle.SCULK_SOUL, null, 0, 24, 0, FxPattern.AURA, 10,
+                Sound.ENTITY_WARDEN_HEARTBEAT, Sound.ENTITY_WARDEN_LISTENING_ANGRY,
+                new PotionEffect(PotionEffectType.DARKNESS, 150, 0, true, true)));
+        list.add(combo(Element.DARK, Material.SCULK_SENSOR, "Кольцо бездны",
+                Particle.SOUL, null, 0, 30, 4, FxPattern.RING, 12,
+                Sound.ENTITY_WARDEN_SNIFF, Sound.BLOCK_SCULK_SHRIEKER_SHRIEK,
+                new PotionEffect(PotionEffectType.BLINDNESS, 100, 0, true, true)));
+        list.add(combo(Element.DARK, Material.ECHO_SHARD, "Искажение",
+                Particle.PORTAL, null, 0, 40, 3, FxPattern.SPIRAL, 10,
+                Sound.BLOCK_PORTAL_AMBIENT, Sound.ENTITY_ENDERMAN_TELEPORT,
+                new PotionEffect(PotionEffectType.NAUSEA, 120, 0, true, true)));
+        list.add(combo(Element.DARK, Material.WITHER_ROSE, "Чернильный ливень",
+                Particle.SQUID_INK, null, 0, 35, 6, FxPattern.RAIN, 14,
+                Sound.ENTITY_WITHER_AMBIENT, Sound.PARTICLE_SOUL_ESCAPE,
+                new PotionEffect(PotionEffectType.WEAKNESS, 150, 1, true, true)));
+        list.add(combo(Element.DARK, Material.SOUL_SAND, "Мрачный купол",
+                Particle.WITCH, null, 0, 45, 2.5, FxPattern.SPHERE, 10,
+                Sound.ENTITY_WARDEN_ROAR, Sound.BLOCK_SCULK_CATALYST_BLOOM,
+                new PotionEffect(PotionEffectType.INVISIBILITY, 80, 0, true, true)));
+        list.add(combo(Element.DARK, Material.CRYING_OBSIDIAN, "Разлом бездны",
+                Particle.REVERSE_PORTAL, null, 0, 20, 6, FxPattern.COLUMN, 8,
+                Sound.ENTITY_WITHER_SPAWN, Sound.BLOCK_PORTAL_AMBIENT,
+                new PotionEffect(PotionEffectType.WITHER, 60, 0, true, true)));
+        list.add(combo(Element.DARK, Material.SOUL_LANTERN, "Орбита душ",
+                Particle.SOUL, null, 0, 16, 2, FxPattern.ORBIT, 10,
+                Sound.PARTICLE_SOUL_ESCAPE, Sound.ENTITY_WARDEN_SNIFF,
+                new PotionEffect(PotionEffectType.DARKNESS, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.WEAKNESS, 150, 0, true, true)));
+        list.add(combo(Element.DARK, Material.SCULK_SHRIEKER, "Шёпот из бездны",
+                Particle.SCULK_CHARGE_POP, null, 0, 20, 0, FxPattern.BURST, 12,
+                Sound.ENTITY_WARDEN_SONIC_BOOM, Sound.BLOCK_SCULK_SHRIEKER_SHRIEK,
+                new PotionEffect(PotionEffectType.BLINDNESS, 80, 0, true, true),
+                new PotionEffect(PotionEffectType.NAUSEA, 80, 0, true, true)));
+        list.add(combo(Element.DARK, Material.NETHERITE_SCRAP, "Волна теней",
+                Particle.SCULK_SOUL, null, 0, 24, 0, FxPattern.WAVE, 10,
+                Sound.ENTITY_WARDEN_STEP, Sound.ENTITY_WARDEN_ANGRY,
+                new PotionEffect(PotionEffectType.WEAKNESS, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.DARKNESS, 150, 0, true, true)));
+        list.add(combo(Element.DARK, Material.SOUL_TORCH, "Печать тьмы",
+                Particle.SOUL, null, 0, 10, 0, FxPattern.CROSS, 10,
+                Sound.BLOCK_PORTAL_AMBIENT, Sound.ENTITY_ENDERMAN_TELEPORT,
+                new PotionEffect(PotionEffectType.DARKNESS, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.INVISIBILITY, 150, 0, true, true)));
+        // ---------- СВЕТ (10) ----------
+        list.add(combo(Element.LIGHT, Material.GLOWSTONE, "Нимб",
+                Particle.END_ROD, null, 0, 24, 0, FxPattern.AURA, 10,
+                Sound.ENTITY_PLAYER_LEVELUP, Sound.BLOCK_AMETHYST_BLOCK_CHIME,
+                new PotionEffect(PotionEffectType.GLOWING, 200, 0, true, true)));
+        list.add(combo(Element.LIGHT, Material.END_ROD, "Кольцо рассвета",
+                Particle.FIREWORK, null, 0, 30, 4, FxPattern.RING, 12,
+                Sound.BLOCK_BEACON_ACTIVATE, Sound.BLOCK_AMETHYST_BLOCK_CHIME,
+                new PotionEffect(PotionEffectType.SPEED, 150, 1, true, true)));
+        list.add(combo(Element.LIGHT, Material.GLOW_BERRIES, "Восходящий свет",
+                Particle.GLOW, null, 0, 36, 3, FxPattern.SPIRAL, 10,
+                Sound.BLOCK_BEACON_AMBIENT, Sound.ENTITY_PLAYER_LEVELUP,
+                new PotionEffect(PotionEffectType.JUMP_BOOST, 150, 1, true, true)));
+        list.add(combo(Element.LIGHT, Material.FIREWORK_STAR, "Звёздный дождь",
+                Particle.FIREWORK, null, 0, 40, 6, FxPattern.RAIN, 14,
+                Sound.ITEM_TOTEM_USE, Sound.BLOCK_AMETHYST_BLOCK_CHIME,
+                new PotionEffect(PotionEffectType.REGENERATION, 100, 0, true, true)));
+        list.add(combo(Element.LIGHT, Material.SEA_LANTERN, "Сфера благодати",
+                Particle.END_ROD, null, 0, 45, 2.5, FxPattern.SPHERE, 10,
+                Sound.BLOCK_BEACON_POWER_SELECT, Sound.ENTITY_PLAYER_LEVELUP,
+                new PotionEffect(PotionEffectType.ABSORPTION, 200, 0, true, true)));
+        list.add(combo(Element.LIGHT, Material.BEACON, "Столб рассвета",
+                Particle.GLOW, null, 0, 20, 6, FxPattern.COLUMN, 8,
+                Sound.BLOCK_BEACON_AMBIENT, Sound.BLOCK_AMETHYST_BLOCK_CHIME,
+                new PotionEffect(PotionEffectType.RESISTANCE, 150, 0, true, true)));
+        list.add(combo(Element.LIGHT, Material.AMETHYST_SHARD, "Звёздная орбита",
+                Particle.END_ROD, null, 0, 16, 2, FxPattern.ORBIT, 10,
+                Sound.ITEM_TOTEM_USE, Sound.BLOCK_AMETHYST_BLOCK_CHIME,
+                new PotionEffect(PotionEffectType.GLOWING, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.SATURATION, 20, 0, true, true)));
+        list.add(combo(Element.LIGHT, Material.TOTEM_OF_UNDYING, "Благословение",
+                Particle.TOTEM_OF_UNDYING, null, 0, 12, 0, FxPattern.BURST, 12,
+                Sound.ITEM_TOTEM_USE, Sound.ENTITY_PLAYER_LEVELUP,
+                new PotionEffect(PotionEffectType.REGENERATION, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.ABSORPTION, 150, 0, true, true)));
+        list.add(combo(Element.LIGHT, Material.GLOW_INK_SAC, "Волна света",
+                Particle.GLOW, null, 0, 24, 0, FxPattern.WAVE, 10,
+                Sound.BLOCK_BEACON_ACTIVATE, Sound.BLOCK_AMETHYST_BLOCK_CHIME,
+                new PotionEffect(PotionEffectType.SPEED, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.GLOWING, 150, 0, true, true)));
+        list.add(combo(Element.LIGHT, Material.SUNFLOWER, "Печать света",
+                Particle.END_ROD, null, 0, 10, 0, FxPattern.CROSS, 10,
+                Sound.BLOCK_BEACON_AMBIENT, Sound.ITEM_TOTEM_USE,
+                new PotionEffect(PotionEffectType.RESISTANCE, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.REGENERATION, 150, 0, true, true)));
+        return list;
+    }
+
+    /** Общий движок: рисует узор частиц у игрока + даёт эффекты/звуки всем рядом. */
+    private void playCombo(Player admin, ComboSpec spec) {
+        World world = admin.getWorld();
+        Location at = admin.getLocation();
+        for (Location point : patternPoints(at, spec)) {
+            if (spec.color() != null) {
+                world.spawnParticle(spec.particle(), point, 1, 0, 0, 0, 0,
+                        new Particle.DustOptions(spec.color(), spec.dustSize()));
+            } else {
+                world.spawnParticle(spec.particle(), point, 1, 0.05, 0.05, 0.05, 0.01);
+            }
+        }
+        for (Player target : playersIn(at, spec.effectRadius())) {
+            for (PotionEffect pe : spec.potions()) target.addPotionEffect(pe);
+            target.playSound(at, spec.sound1(), SoundCategory.PLAYERS, 1f, 1f);
+            if (spec.sound2() != null) target.playSound(at, spec.sound2(), SoundCategory.AMBIENT, 0.8f, 0.9f);
+        }
+    }
+
+    private List<Location> patternPoints(Location at, ComboSpec spec) {
+        List<Location> out = new ArrayList<>();
+        var rnd = ThreadLocalRandom.current();
+        switch (spec.pattern()) {
+            case RING -> {
+                for (int i = 0; i < spec.count(); i++) {
+                    double a = Math.PI * 2 * i / spec.count();
+                    out.add(at.clone().add(Math.cos(a) * spec.radius(), 0.15, Math.sin(a) * spec.radius()));
+                }
+            }
+            case SPHERE -> {
+                for (int i = 0; i < spec.count(); i++) {
+                    double theta = rnd.nextDouble(0, Math.PI * 2);
+                    double phi = rnd.nextDouble(0, Math.PI);
+                    double x = spec.radius() * Math.sin(phi) * Math.cos(theta);
+                    double y = spec.radius() * Math.cos(phi);
+                    double z = spec.radius() * Math.sin(phi) * Math.sin(theta);
+                    out.add(at.clone().add(x, 1.2 + y, z));
+                }
+            }
+            case COLUMN -> {
+                int count = Math.max(1, spec.count());
+                for (int i = 0; i < count; i++) {
+                    out.add(at.clone().add(0, i * (spec.radius() / count), 0));
+                }
+            }
+            case SPIRAL -> {
+                int count = Math.max(1, spec.count());
+                for (int i = 0; i < count; i++) {
+                    double t = i * 0.5;
+                    double shrink = 1.0 - (double) i / count;
+                    out.add(at.clone().add(Math.cos(t) * spec.radius() * shrink,
+                            (double) i / count * spec.radius(), Math.sin(t) * spec.radius() * shrink));
+                }
+            }
+            case RAIN -> {
+                for (int i = 0; i < spec.count(); i++) {
+                    out.add(at.clone().add(rnd.nextDouble(-spec.radius(), spec.radius()),
+                            3 + rnd.nextDouble(0, 4), rnd.nextDouble(-spec.radius(), spec.radius())));
+                }
+            }
+            case AURA -> {
+                for (int i = 0; i < spec.count(); i++) {
+                    double a = Math.PI * 2 * i / spec.count();
+                    out.add(at.clone().add(Math.cos(a) * 0.7, 1 + Math.sin(a * 2) * 0.4, Math.sin(a) * 0.7));
+                }
+            }
+            case ORBIT -> {
+                for (int i = 0; i < spec.count(); i++) {
+                    double a = Math.PI * 2 * i / spec.count();
+                    out.add(at.clone().add(Math.cos(a) * spec.radius(), 2.2, Math.sin(a) * spec.radius()));
+                }
+            }
+            case BURST -> {
+                for (int i = 0; i < spec.count(); i++) out.add(at.clone().add(0, 1.2, 0));
+            }
+            case WAVE -> {
+                for (int i = 0; i < spec.count(); i++) {
+                    double x = (i - spec.count() / 2.0) * 0.35;
+                    double y = 1.2 + Math.sin(i * 0.6) * 0.7;
+                    out.add(at.clone().add(x, y, 0));
+                }
+            }
+            case CROSS -> {
+                int half = Math.max(1, spec.count()) / 2;
+                for (int i = -half; i <= half; i++) {
+                    out.add(at.clone().add(i * 0.4, 1.2, 0));
+                    out.add(at.clone().add(0, 1.2, i * 0.4));
+                }
+            }
+        }
+        return out;
+    }
+
 
     // ---------- адские разломы ----------
 
