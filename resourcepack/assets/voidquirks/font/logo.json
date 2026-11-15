@@ -1,0 +1,18 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "voidquirks:font/void_logo.png",
+      "height": 40,
+      "ascent": 40,
+      "chars": ["\uF001"]
+    },
+    {
+      "type": "bitmap",
+      "file": "voidquirks:font/smp_logo.png",
+      "height": 22,
+      "ascent": 22,
+      "chars": ["\uF002"]
+    }
+  ]
+}

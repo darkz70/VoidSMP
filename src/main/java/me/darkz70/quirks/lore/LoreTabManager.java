@@ -1,6 +1,7 @@
 package me.darkz70.quirks.lore;
 
 import me.darkz70.quirks.VoidQuirksPlugin;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -9,12 +10,18 @@ import org.bukkit.entity.Player;
 
 /**
  * Глобальный переключатель «Лор»: /gaid lore on|off.
- * Подменяет ШАПКУ И ПОДВАЛ таб-листа (НЕ ник игрока!) на стилизованный
- * баннер «VOID SMP» — часть текста магическая (&k), поэтому клиент сам
- * хаотично «глючит» символами — без ресурспака и без повторной отправки
- * пакетов с сервера.
+ * Подменяет ШАПКУ И ПОДВАЛ таб-листа (НЕ ник игрока!) на РЕАЛЬНОЕ лого
+ * VOID SMP (присланную картинку), вырезанное на две части — «VOID» (шапка)
+ * и «SMP» (подвал) — и зашитое кастомным битмап-шрифтом ресурспака
+ * (assets/voidquirks/font/logo.json, символы \uF001/\uF002). Игроку нужен
+ * ресурспак сервера — он и так раздаётся автоматически при входе
+ * (см. {@link me.darkz70.quirks.mechanic.ResourcePackServer}).
  */
 public final class LoreTabManager {
+
+    private static final Key LOGO_FONT = Key.key("voidquirks", "logo");
+    private static final String VOID_GLYPH = "\uF001";
+    private static final String SMP_GLYPH = "\uF002";
 
     private final VoidQuirksPlugin plugin;
 
@@ -44,31 +51,14 @@ public final class LoreTabManager {
         }
     }
 
-    private Component glitch(String text, NamedTextColor color) {
-        return Component.text(text, color).decorate(TextDecoration.OBFUSCATED);
-    }
-
     private Component header() {
-        return Component.empty()
-                .append(Component.text("▓▓▓ ", NamedTextColor.DARK_RED))
-                .append(glitch("#", NamedTextColor.LIGHT_PURPLE))
-                .append(Component.text(" V", NamedTextColor.LIGHT_PURPLE).decorate(TextDecoration.BOLD))
-                .append(Component.text("O", NamedTextColor.DARK_PURPLE).decorate(TextDecoration.BOLD))
-                .append(Component.text("I", NamedTextColor.LIGHT_PURPLE).decorate(TextDecoration.BOLD))
-                .append(Component.text("D", NamedTextColor.DARK_PURPLE).decorate(TextDecoration.BOLD))
-                .append(Component.text(" ", NamedTextColor.WHITE))
-                .append(glitch("#", NamedTextColor.LIGHT_PURPLE))
-                .append(Component.text(" ▓▓▓", NamedTextColor.DARK_RED))
+        return Component.text(VOID_GLYPH, NamedTextColor.WHITE)
+                .font(LOGO_FONT)
                 .append(Component.text("\n"))
                 .append(Component.text("Лор активен", NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
     }
 
     private Component footer() {
-        return Component.empty()
-                .append(Component.text("[", NamedTextColor.DARK_PURPLE).decorate(TextDecoration.BOLD))
-                .append(Component.text("S", NamedTextColor.LIGHT_PURPLE).decorate(TextDecoration.BOLD))
-                .append(Component.text("M", NamedTextColor.DARK_PURPLE).decorate(TextDecoration.BOLD))
-                .append(Component.text("P", NamedTextColor.LIGHT_PURPLE).decorate(TextDecoration.BOLD))
-                .append(Component.text("]", NamedTextColor.DARK_PURPLE).decorate(TextDecoration.BOLD));
+        return Component.text(SMP_GLYPH, NamedTextColor.WHITE).font(LOGO_FONT);
     }
 }
