@@ -3,8 +3,8 @@
     {
       "type": "bitmap",
       "file": "voidquirks:font/logo.png",
-      "height": 90,
-      "ascent": 90,
+      "height": 48,
+      "ascent": 38,
       "chars": ["\uF001"]
     }
   ]
