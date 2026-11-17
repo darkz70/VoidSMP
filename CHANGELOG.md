@@ -18,6 +18,31 @@
 
 ---
 
+## [1.7.93] — /gaid lore: найдена настоящая причина (TAB блокирует header/footer)
+
+### Важно
+- Официальная wiki плагина TAB (NEZNAMY) прямо говорит: «Header/Footer is
+  a feature that cannot be handled by multiple plugins at once. TAB will
+  block header/footer coming from all other plugins if this feature is
+  enabled» — то есть пока на сервере включён TAB с `header-footer.enabled:
+  true`, он **намеренно блокирует** `sendPlayerListHeaderAndFooter(...)`
+  от ЛЮБОГО другого плагина, включая VoidQuirks. Это и есть причина, по
+  которой `/gaid lore` «не работал у всех» — не баг плагина и не размер
+  текстуры, а штатное (документированное) поведение TAB.
+- Правильное решение — прописать баннер напрямую в конфиге TAB
+  (`plugins/TAB/config.yml` → `header-footer` → `header`), а не через
+  `/gaid lore`. Проверенный по wiki TAB синтаксис (обязательно в ДВОЙНЫХ
+  кавычках — тогда YAML сам раскодирует `\uF001` в нужный символ, без
+  риска побитой кодировки при копипасте):
+  `- "<font:voidquirks:logo>\uF001</font>"`, затем `/tab reload`.
+
+### Добавлено
+- `/gaid lore on` теперь сам проверяет, установлен ли и включён ли TAB —
+  и если да, сразу предупреждает админа в чате, что команда скорее всего
+  не подействует, и показывает точную строку для конфига TAB.
+
+---
+
 ## [1.7.92] — /gaid lore: исправлена причина, почему лого не грузилось
 
 ### Исправлено

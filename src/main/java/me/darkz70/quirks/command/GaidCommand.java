@@ -71,6 +71,26 @@ public final class GaidCommand implements CommandExecutor, TabCompleter {
         admin.sendMessage(me.darkz70.quirks.util.Msg.color(
                 next ? "&5✦ Лор-таб &aВКЛ&5: у всех в таб-листе баннер «VOID SMP»."
                         : "&5✦ Лор-таб &cВЫКЛ&5: таб-лист вернулся к обычному виду."));
+        if (next && isTabPluginBlockingHeaderFooter()) {
+            admin.sendMessage(me.darkz70.quirks.util.Msg.color(
+                    "&c⚠ На сервере обнаружен плагин TAB (NEZNAMY) с включённым header-footer."));
+            admin.sendMessage(me.darkz70.quirks.util.Msg.color(
+                    "&cОн &nблокирует&c header/footer от ВСЕХ других плагинов (так задумано самим TAB,"));
+            admin.sendMessage(me.darkz70.quirks.util.Msg.color(
+                    "&cсм. его wiki), поэтому баннер этой командой скорее всего &nне появится&c."));
+            admin.sendMessage(me.darkz70.quirks.util.Msg.color(
+                    "&7Пропиши баннер прямо в plugins/TAB/config.yml → header-footer → header, строкой:"));
+            admin.sendMessage(me.darkz70.quirks.util.Msg.color(
+                    "&f  - \"<font:voidquirks:logo>\\uF001</font>\"  &7(именно в двойных кавычках!)"));
+            admin.sendMessage(me.darkz70.quirks.util.Msg.color(
+                    "&7после этого — &f/tab reload &7(перезапуск сервера не нужен)."));
+        }
+    }
+
+    /** TAB (NEZNAMY) с включённым header-footer молча блокирует sendPlayerListHeaderAndFooter() от других плагинов. */
+    private boolean isTabPluginBlockingHeaderFooter() {
+        org.bukkit.plugin.Plugin tab = Bukkit.getPluginManager().getPlugin("TAB");
+        return tab != null && tab.isEnabled();
     }
 
     private void handleNick(Player admin, String[] args) {
