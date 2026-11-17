@@ -68,7 +68,9 @@ public final class IventCommand implements CommandExecutor, TabCompleter {
                 Player target = require(sender, args);
                 if (target == null) return true;
                 sabers.reset(target);
-                sender.sendMessage(Msg.color("&dИгрок &f" + target.getName() + " &dобнулён: клинок забран, сторона снята."));
+                plugin.saberProgression().reset(target);
+                sender.sendMessage(Msg.color("&dИгрок &f" + target.getName()
+                        + " &dобнулён: клинок забран, сторона снята, дерево прокачки сброшено."));
             }
             case "status" -> {
                 Player target;
@@ -87,6 +89,12 @@ public final class IventCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage(Msg.color("&d" + target.getName() + "&7: сторона = &f"
                         + (side.isEmpty() ? "не выбрана" : side.equals("dark") ? "тёмная" : "светлая")
                         + "&7, конец ивента: &f" + sabers.untilDateText()));
+                var prog = plugin.saberProgression();
+                sender.sendMessage(Msg.color("&7Прокачка: &fСила " + (prog.hasForceNode(target) ? "✔" : "✘")
+                        + " &7| Защитник &f" + prog.levelOf(target, me.darkz70.quirks.mechanic.SaberProgression.Path.DEFENDER) + "/4"
+                        + " &7| Сила &f" + prog.levelOf(target, me.darkz70.quirks.mechanic.SaberProgression.Path.POWER) + "/4"
+                        + " &7| Дуэлянт &f" + prog.levelOf(target, me.darkz70.quirks.mechanic.SaberProgression.Path.DUELIST) + "/4"
+                        + " &7| Сторона &f" + prog.levelOf(target, me.darkz70.quirks.mechanic.SaberProgression.Path.SIDE) + "/4"));
             }
             default -> sender.sendMessage(Msg.color("&7Неизвестно. Просто /ivent для помощи."));
         }

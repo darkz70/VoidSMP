@@ -513,11 +513,13 @@ public final class CraftListener implements Listener {
         player.getWorld().playSound(clicked.getLocation(), Sound.ITEM_BONE_MEAL_USE, 1.0f, 1.2f);
     }
 
-    /** 20% шанс конфетки с любого убитого игроком моба. */
+    /** 20% шанс конфетки с любого убитого игроком моба (+ бонусы от веток дерева прокачки мечей). */
     @EventHandler(ignoreCancelled = true)
     public void onMobDeath(org.bukkit.event.entity.EntityDeathEvent event) {
-        if (event.getEntity().getKiller() == null) return;
-        if (Math.random() >= 0.20) return;
+        Player killer = event.getEntity().getKiller();
+        if (killer == null) return;
+        double chance = 0.20 + plugin.saberProgression().candyDropBonus(killer);
+        if (Math.random() >= chance) return;
         event.getDrops().add(makeCandy());
     }
 }

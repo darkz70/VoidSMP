@@ -105,6 +105,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         toggleMenu = new me.darkz70.quirks.command.ToggleMenu(this);
         Bukkit.getPluginManager().registerEvents(toggleMenu, this);
         sabers = new me.darkz70.quirks.mechanic.SaberSystem(this); // световые мечи (регистрируется сам)
+        saberProgression = new me.darkz70.quirks.mechanic.SaberProgression(this, sabers); // дерево прокачки мечей (Q/Shift+Q)
         sculkLeader = new me.darkz70.quirks.listener.SculkLeaderListener(this);
         Bukkit.getPluginManager().registerEvents(sculkLeader, this);
         new me.darkz70.quirks.listener.XyzPossessionListener(this); // причуда XYZ: ОП вселяется в мобов
@@ -250,6 +251,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     private me.darkz70.quirks.task.ZayceKrolTask zayceTask;
     private me.darkz70.quirks.command.ToggleMenu toggleMenu;
     private me.darkz70.quirks.mechanic.SaberSystem sabers;
+    private me.darkz70.quirks.mechanic.SaberProgression saberProgression;
     private me.darkz70.quirks.listener.SculkLeaderListener sculkLeader;
     private me.darkz70.quirks.mechanic.PoliticsStore politics;
     private me.darkz70.quirks.command.PoliticsMenu gaipolitics;
@@ -293,6 +295,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     }
 
     public me.darkz70.quirks.mechanic.SaberSystem sabers() { return sabers; }
+    public me.darkz70.quirks.mechanic.SaberProgression saberProgression() { return saberProgression; }
 
     public me.darkz70.quirks.command.ToggleMenu toggleMenu() {
         return toggleMenu;

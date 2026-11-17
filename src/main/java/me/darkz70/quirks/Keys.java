@@ -46,6 +46,11 @@ public final class Keys {
     public static NamespacedKey golemJob;          // медный голем-работник: "mine" / "kill"
     public static NamespacedKey amphibTrident;     // земноводный: метка усиленного трезубца
     public static NamespacedKey amphibTridentDamage; // земноводный: модификатор урона трезубца
+    public static NamespacedKey saberForceNode;     // световой меч: центральный узел «Чувствительность силы» куплен (0/1)
+    public static NamespacedKey saberPathDefender;  // световой меч: уровень ветки «Путь Защитника» (0-4)
+    public static NamespacedKey saberPathPower;     // световой меч: уровень ветки «Путь Силы» (0-4)
+    public static NamespacedKey saberPathDuelist;   // световой меч: уровень ветки «Путь Дуэлянта» (0-4)
+    public static NamespacedKey saberPathSide;      // световой меч: уровень ветки «Путь Стороны» (Джедай/Ситх) (0-4)
 
     private Keys() {}
 
@@ -91,5 +96,10 @@ public final class Keys {
         golemJob = new NamespacedKey(plugin, "golem_job");
         amphibTrident = new NamespacedKey(plugin, "amphib_trident");
         amphibTridentDamage = new NamespacedKey(plugin, "amphib_trident_damage");
+        saberForceNode = new NamespacedKey(plugin, "saber_force_node");
+        saberPathDefender = new NamespacedKey(plugin, "saber_path_defender");
+        saberPathPower = new NamespacedKey(plugin, "saber_path_power");
+        saberPathDuelist = new NamespacedKey(plugin, "saber_path_duelist");
+        saberPathSide = new NamespacedKey(plugin, "saber_path_side");
     }
 }

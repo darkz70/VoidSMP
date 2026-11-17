@@ -64,6 +64,29 @@ public final class SaberSystem implements Listener {
     private final java.util.Map<java.util.UUID, Long> spitCooldown = new java.util.HashMap<>();
     private static final long SPIT_COOLDOWN_MS = 5_000L;
 
+    /**
+     * Связь с деревом прокачки ({@link SaberProgression}) — она ставится ПОСЛЕ создания
+     * обоих объектов через {@link #setProgressionHook}, чтобы не плодить цикл в конструкторах.
+     * Если прокачка выключена/не инициализирована, все хуки просто возвращают значения
+     * «по умолчанию» (как было раньше, без дерева прокачки).
+     */
+    public interface ProgressionHook {
+        /** Донашить зачарования/эффекты меча по купленным уровням игрока. */
+        void enhanceSaber(Player player, ItemStack saber);
+        /** Каждый N-й выстрел луча бьёт молнией (по умолчанию 5). */
+        int lightningEveryNShots(Player player);
+        /** Бонус к урону луча сверху базового (по умолчанию 0). */
+        double beamDamageBonus(Player player);
+        /** Если у цели активен щит (Путь Стороны ур.3) — урон уходит обратно стрелку, true = обработано. */
+        boolean reflectBeamIfShielded(Player shooter, org.bukkit.entity.LivingEntity target, double damage);
+    }
+
+    private ProgressionHook progressionHook;
+
+    public void setProgressionHook(ProgressionHook hook) {
+        this.progressionHook = hook;
+    }
+
     public SaberSystem(VoidQuirksPlugin plugin) {
         this.plugin = plugin;
         Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -124,7 +147,7 @@ public final class SaberSystem implements Listener {
     }
 
     /** Собирает меч выбранной стороны (таймер пересчитывается при каждой выдаче). */
-    public ItemStack makeSaber(boolean dark) {
+    public ItemStack makeSaber(Player owner, boolean dark) {
         ItemStack sword = new ItemStack(Material.DIAMOND_SWORD); // алмазный базис; 3D-модель/текстура — из ресурспака по custom_model_data
         sword.editMeta(meta -> {
             meta.displayName(Msg.color(dark
@@ -152,6 +175,9 @@ public final class SaberSystem implements Listener {
                     EquipmentSlotGroup.MAINHAND));
             meta.getPersistentDataContainer().set(Keys.saberItem, PersistentDataType.BOOLEAN, true);
         });
+        if (progressionHook != null) {
+            progressionHook.enhanceSaber(owner, sword); // дерево прокачки: острота/бич/кара/облик огня по купленным уровням
+        }
         return sword;
     }
 
@@ -172,11 +198,11 @@ public final class SaberSystem implements Listener {
         for (int i = 0; i < player.getInventory().getSize(); i++) {
             ItemStack item = player.getInventory().getItem(i);
             if (isSaber(item)) {
-                player.getInventory().setItem(i, makeSaber(dark)); // свежий таймер
+                player.getInventory().setItem(i, makeSaber(player, dark)); // свежий таймер
                 return;
             }
         }
-        player.getInventory().addItem(makeSaber(dark)).values()
+        player.getInventory().addItem(makeSaber(player, dark)).values()
                 .forEach(rest -> player.getWorld().dropItemNaturally(player.getLocation(), rest));
     }
 
@@ -409,7 +435,8 @@ public final class SaberSystem implements Listener {
         spitCooldown.put(player.getUniqueId(), now);
 
         int shotNumber = spitShotCount.merge(player.getUniqueId(), 1, Integer::sum);
-        boolean lightningShot = shotNumber % 5 == 0;
+        int lightningEvery = progressionHook != null ? Math.max(1, progressionHook.lightningEveryNShots(player)) : 5;
+        boolean lightningShot = shotNumber % lightningEvery == 0;
 
         org.bukkit.Location eye = player.getEyeLocation();
         org.bukkit.util.Vector dir = eye.getDirection().normalize();
@@ -440,8 +467,12 @@ public final class SaberSystem implements Listener {
         world.playSound(eye, org.bukkit.Sound.ENTITY_GUARDIAN_ATTACK, 1f, 1.6f);
 
         if (hit != null && hit.getHitEntity() instanceof org.bukkit.entity.LivingEntity target) {
-            double damage = 7.0 + java.util.concurrent.ThreadLocalRandom.current().nextDouble();
-            target.damage(damage, player);
+            double bonus = progressionHook != null ? progressionHook.beamDamageBonus(player) : 0.0;
+            double damage = 7.0 + java.util.concurrent.ThreadLocalRandom.current().nextDouble() + bonus;
+            boolean reflected = progressionHook != null && progressionHook.reflectBeamIfShielded(player, target, damage);
+            if (!reflected) {
+                target.damage(damage, player);
+            }
         }
 
         // каждый 5-й выстрел — молния в конце луча (визуальный эффект, без поджога/урона от грозы)
@@ -529,7 +560,7 @@ public final class SaberSystem implements Listener {
             // заменить меч на месте
             for (int i = 0; i < player.getInventory().getSize(); i++) {
                 if (isSaber(player.getInventory().getItem(i))) {
-                    player.getInventory().setItem(i, makeSaber(true));
+                    player.getInventory().setItem(i, makeSaber(player, true));
                 }
             }
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_WARDEN_SONIC_BOOM, 0.6f, 1.2f);
