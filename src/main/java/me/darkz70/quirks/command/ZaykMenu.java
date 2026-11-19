@@ -49,7 +49,7 @@ public final class ZaykMenu implements CommandExecutor, Listener {
             return true;
         }
         // директива: игрокам недоступно (только OP)
-        if (!player.hasPermission("quirks.admin")) {
+        if (!me.darkz70.quirks.util.Perms.isAdmin(player)) {
             Msg.send(player, "no-permission");
             return true;
         }

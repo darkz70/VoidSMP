@@ -37,7 +37,7 @@ public final class MagicCommand implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
             @NotNull String label, @NotNull String[] args) {
         // директива: команды закрыты для не-админов (игрокам доступна только /quirk info)
-        if (!sender.hasPermission("quirks.admin")) {
+        if (!me.darkz70.quirks.util.Perms.isAdmin(sender)) {
             Msg.send(sender, "no-permission");
             return true;
         }
@@ -191,7 +191,7 @@ public final class MagicCommand implements TabExecutor {
     }
 
     private boolean admin(CommandSender sender) {
-        if (sender.hasPermission("quirks.admin")) return true;
+        if (me.darkz70.quirks.util.Perms.isAdmin(sender)) return true;
         Msg.send(sender, "no-permission");
         return false;
     }
@@ -201,7 +201,7 @@ public final class MagicCommand implements TabExecutor {
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
             @NotNull String label, @NotNull String[] args) {
         List<String> out = new ArrayList<>();
-        if (!sender.hasPermission("quirks.admin")) return out;
+        if (!me.darkz70.quirks.util.Perms.isAdmin(sender)) return out;
         if (args.length == 1) {
             return filter(List.of("book", "upbook", "brew", "set"), args[0]);
         }

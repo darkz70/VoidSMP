@@ -52,6 +52,12 @@ public final class Keys {
     public static NamespacedKey saberPathDuelist;   // световой меч: уровень ветки «Путь Дуэлянта» (0-4)
     public static NamespacedKey saberPathSide;      // световой меч: уровень ветки «Путь Стороны» (Джедай/Ситх) (0-4)
 
+    // --- Реликвии (#98): шесть особых предметов ---
+    public static NamespacedKey relicCover;        // «Обложка конструктора миров» (STRUCTURE_BLOCK): метка предмета
+    public static NamespacedKey relicVoidBlock;    // «Блок пустоты» (STRUCTURE_VOID): метка предмета
+    public static NamespacedKey relicLavaCore;     // «Лавовое ядро» (MAGMA_BLOCK): метка предмета
+    public static NamespacedKey relicPrism;        // «Призма» (PRISMARINE): метка предмета
+
     private Keys() {}
 
     public static void init(VoidQuirksPlugin plugin) {
@@ -101,5 +107,9 @@ public final class Keys {
         saberPathPower = new NamespacedKey(plugin, "saber_path_power");
         saberPathDuelist = new NamespacedKey(plugin, "saber_path_duelist");
         saberPathSide = new NamespacedKey(plugin, "saber_path_side");
+        relicCover = new NamespacedKey(plugin, "relic_cover");
+        relicVoidBlock = new NamespacedKey(plugin, "relic_void_block");
+        relicLavaCore = new NamespacedKey(plugin, "relic_lava_core");
+        relicPrism = new NamespacedKey(plugin, "relic_prism");
     }
 }

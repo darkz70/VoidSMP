@@ -30,7 +30,7 @@ public final class IventCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
                              @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission("quirks.admin")) {
+        if (!me.darkz70.quirks.util.Perms.isAdmin(sender)) {
             Msg.send(sender, "no-permission");
             return true;
         }
@@ -115,7 +115,7 @@ public final class IventCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                       @NotNull String label, @NotNull String[] args) {
         List<String> out = new ArrayList<>();
-        if (!sender.hasPermission("quirks.admin")) return out;
+        if (!me.darkz70.quirks.util.Perms.isAdmin(sender)) return out;
         if (args.length == 1) {
             String prefix = args[0].toLowerCase(Locale.ROOT);
             for (String sub : List.of("open", "give", "reset", "status")) {

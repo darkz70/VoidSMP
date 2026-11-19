@@ -413,8 +413,9 @@ public final class CraftListener implements Listener {
         }
         if (BrewTree.tagged(serverResult, "fertilizer")
                 && plugin.quirks().levelOf(player, Quirk.FARMER) == 0
-                && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
-            return; // не-фермер (и не Админ) не видит удобрение
+                && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0
+                && !me.darkz70.quirks.mechanic.RelicItems.hasVoidBlock(player.getInventory())) {
+            return; // не-фермер (и не Админ, и не носитель Блока пустоты) не видит удобрение
         }
         String tag = BrewTree.markOf(serverResult);
         if (tag != null && tag.startsWith("upbook-") && !seesSecretBasics(player)) {
@@ -427,8 +428,9 @@ public final class CraftListener implements Listener {
         }
         if (CopperGolemListener.isFirmware(serverResult)
                 && plugin.quirks().levelOf(player, Quirk.ENGINEER) < 2
-                && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
-            return; // прошивку собирает только Инженер со 2 ур. (и Админ)
+                && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0
+                && !me.darkz70.quirks.mechanic.RelicItems.hasVoidBlock(player.getInventory())) {
+            return; // прошивку собирает только Инженер со 2 ур. (и Админ, и носитель Блока пустоты)
         }
         if (AmphibianListener.isAmphibTrident(serverResult)
                 && plugin.quirks().levelOf(player, Quirk.AMPHIBIAN) == 0
@@ -450,13 +452,15 @@ public final class CraftListener implements Listener {
     public void onCraft(CraftItemEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         ItemStack result = event.getInventory().getResult();
-        if (BrewTree.tagged(result, "fertilizer") && plugin.quirks().levelOf(player, Quirk.FARMER) == 0) {
+        if (BrewTree.tagged(result, "fertilizer") && plugin.quirks().levelOf(player, Quirk.FARMER) == 0
+                && !me.darkz70.quirks.mechanic.RelicItems.hasVoidBlock(player.getInventory())) {
             event.setCancelled(true);
             Msg.send(player, "farmer-craft-denied");
             return;
         }
         if (CopperGolemListener.isFirmware(result) && plugin.quirks().levelOf(player, Quirk.ENGINEER) < 2
-                && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
+                && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0
+                && !me.darkz70.quirks.mechanic.RelicItems.hasVoidBlock(player.getInventory())) {
             event.setCancelled(true);
             Msg.send(player, "engineer-firmware-craft-denied");
             return;

@@ -40,7 +40,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                              @NotNull String label, @NotNull String[] args) {
         // директива: обычным игрокам доступна ТОЛЬКО /quirk info (и только про себя),
         // всё остальное — с OP/правом quirks.admin
-        if (!sender.hasPermission("quirks.admin")) {
+        if (!me.darkz70.quirks.util.Perms.isAdmin(sender)) {
             if (args.length >= 1 && (args[0].equalsIgnoreCase("info") || args[0].equalsIgnoreCase("get"))) {
                 handleInfo(sender, args);
             } else {
@@ -141,7 +141,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
         }
         Msg.send(sender, "pack-link",
                 "%link%", "https://github.com/darkz70/VoidSMP/releases/download/ci-build/VoidQuirks-Pack.zip");
-        if (sender.hasPermission("quirks.admin")) {
+        if (me.darkz70.quirks.util.Perms.isAdmin(sender)) {
             boolean ready = me.darkz70.quirks.mechanic.ResourcePackServer.isReady();
             Msg.send(sender, ready ? "pack-status-ready" : "pack-status-not-ready");
         }
@@ -317,7 +317,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
     private void handleInfo(CommandSender sender, String[] args) {
         Player target;
         if (args.length >= 2) {
-            if (!sender.hasPermission("quirks.admin")
+            if (!me.darkz70.quirks.util.Perms.isAdmin(sender)
                     && !sender.getName().equalsIgnoreCase(args[1])) {
                 Msg.send(sender, "info-self-only"); // обычные игроки — только про себя
                 return;
@@ -558,7 +558,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
     }
 
     private boolean admin(CommandSender sender) {
-        if (sender.hasPermission("quirks.admin")) return true;
+        if (me.darkz70.quirks.util.Perms.isAdmin(sender)) return true;
         Msg.send(sender, "no-permission");
         return false;
     }
@@ -568,7 +568,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                       @NotNull String label, @NotNull String[] args) {
         List<String> out = new ArrayList<>();
-        if (!sender.hasPermission("quirks.admin")) {
+        if (!me.darkz70.quirks.util.Perms.isAdmin(sender)) {
             return out; // обычным игрокам — никаких подсказок: меню само всё покажет
         }
         if (args.length == 1) {

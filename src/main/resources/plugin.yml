@@ -18,7 +18,7 @@ commands:
     permission: quirks.user
   gaid:
     description: Книга-гайд по механикам VoidSMP (админ)
-    usage: /gaid [phrase <текст>|nick <игрок> <ник|reset>|lore <on|off>]
+    usage: /gaid [phrase <текст>|nick <игрок> <ник|reset>|lore <on|off>|relic <id> [игрок]]
   mage:
     description: Причуда «Маг» — меню прямого выбора стихии магии
     aliases: [маг]
@@ -27,7 +27,10 @@ commands:
   ivent:
     description: Ивент «Недрочабрь» — световые мечи (админ)
     usage: /ivent <open|give|reset|status>
-    permission: quirks.admin
+    # permission намеренно НЕ объявлена здесь: Bukkit блокировал бы команду ДО того,
+    # как наш код в IventCommand#onCommand успеет пропустить настоящих OP через
+    # Perms.isAdmin() (isOp() || hasPermission) — это и была причина бага
+    # «Недостаточно прав.» для админов на /gaid и /ivent.
   zayk:
     description: Политика зайцекролов для игроков — партии, цари, выборы
     aliases: [зайцекрол]

@@ -43,6 +43,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     private me.darkz70.quirks.lore.LoreTabManager loreTab;
     private me.darkz70.quirks.mechanic.customblock.CustomBlockService customBlocks;
     private me.darkz70.quirks.mechanic.SculkDomeManager domes;
+    private me.darkz70.quirks.mechanic.RelicBlocks relicBlocks;
 
     @Override
     public void onEnable() {
@@ -69,6 +70,9 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         domes = new me.darkz70.quirks.mechanic.SculkDomeManager(this);
         domes.loadIfExists();
         domes.startWarding();
+        relicBlocks = new me.darkz70.quirks.mechanic.RelicBlocks(this);
+        relicBlocks.loadIfExists();
+        relicBlocks.pruneMissing();
 
         gaidMenus = new me.darkz70.quirks.command.GaidMenus(this);
         adminMenu = new me.darkz70.quirks.command.AdminMenu(this);
@@ -115,6 +119,8 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         new me.darkz70.quirks.listener.SculkSensorBoostListener(this); // скалк-древесина усиливает сенсоры рядом
         new me.darkz70.quirks.listener.WardenSculkImmunityListener(this); // вардены не трогают скалк 2+ ур.
         new me.darkz70.quirks.listener.CopperGolemListener(this); // инженер: прошивка медных големов (2+ ур.)
+        new me.darkz70.quirks.listener.RelicListener(this); // реликвии #98: обложка/блок пустоты/ядро/призма
+        new me.darkz70.quirks.task.RelicTask(this).runTaskTimer(this, 20L, 20L); // периодика реликвий + яйцо дракона
         me.darkz70.quirks.command.DecoyCommand[] decoys = {
             new me.darkz70.quirks.command.DecoyCommand(0), new me.darkz70.quirks.command.DecoyCommand(1),
             new me.darkz70.quirks.command.DecoyCommand(2), new me.darkz70.quirks.command.DecoyCommand(3),
@@ -339,6 +345,10 @@ public final class VoidQuirksPlugin extends JavaPlugin {
 
     public me.darkz70.quirks.mechanic.SculkDomeManager domes() {
         return domes;
+    }
+
+    public me.darkz70.quirks.mechanic.RelicBlocks relicBlocks() {
+        return relicBlocks;
     }
 
     public me.darkz70.quirks.mechanic.customblock.CustomBlockService customBlocks() {

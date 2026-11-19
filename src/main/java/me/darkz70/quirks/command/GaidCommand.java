@@ -25,7 +25,7 @@ public final class GaidCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage("Только для игроков.");
             return true;
         }
-        if (!player.hasPermission("quirks.admin")) {
+        if (!me.darkz70.quirks.util.Perms.isAdmin(player)) {
             me.darkz70.quirks.util.Msg.send(player, "no-permission");
             return true;
         }
@@ -48,8 +48,50 @@ public final class GaidCommand implements CommandExecutor, TabCompleter {
             handleLore(player, args);
             return true;
         }
+        if (args.length >= 1 && args[0].equalsIgnoreCase("relic")) {
+            handleRelic(player, args);
+            return true;
+        }
         plugin.gaidMenus().openRoot(player);
         return true;
+    }
+
+    private static final List<String> RELIC_IDS = List.of("cover", "voidblock", "lavacore", "prism");
+
+    /** /gaid relic <cover|voidblock|lavacore|prism> [игрок] — выдать реликвию #98. */
+    private void handleRelic(Player admin, String[] args) {
+        if (args.length < 2) {
+            admin.sendMessage(me.darkz70.quirks.util.Msg.color(
+                    "&e/gaid relic <cover|voidblock|lavacore|prism> [игрок]"));
+            return;
+        }
+        Player target = admin;
+        if (args.length >= 3) {
+            Player found = Bukkit.getPlayerExact(args[2]);
+            if (found == null) {
+                me.darkz70.quirks.util.Msg.send(admin, "target-offline");
+                return;
+            }
+            target = found;
+        }
+        org.bukkit.inventory.ItemStack relic = switch (args[1].toLowerCase()) {
+            case "cover" -> me.darkz70.quirks.mechanic.RelicItems.makeWorldbuilderCover();
+            case "voidblock" -> me.darkz70.quirks.mechanic.RelicItems.makeVoidBlock();
+            case "lavacore" -> me.darkz70.quirks.mechanic.RelicItems.makeLavaCore();
+            case "prism" -> me.darkz70.quirks.mechanic.RelicItems.makePrism();
+            default -> null;
+        };
+        if (relic == null) {
+            admin.sendMessage(me.darkz70.quirks.util.Msg.color(
+                    "&cНеизвестная реликвия. Варианты: cover, voidblock, lavacore, prism."));
+            return;
+        }
+        var leftover = target.getInventory().addItem(relic);
+        leftover.values().forEach(it -> target.getWorld().dropItemNaturally(target.getLocation(), it));
+        String plainName = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
+                .serialize(relic.getItemMeta().displayName());
+        admin.sendMessage(me.darkz70.quirks.util.Msg.color(
+                "&aИгроку &f" + target.getName() + " &aвыдана реликвия: &d" + plainName));
     }
 
     /** /gaid lore [on|off] — глобальный таб-баннер «VOID SMP» на время ролевого Лора. */
@@ -131,11 +173,23 @@ public final class GaidCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (!sender.hasPermission("quirks.admin")) return List.of();
+        if (!me.darkz70.quirks.util.Perms.isAdmin(sender)) return List.of();
         List<String> out = new ArrayList<>();
         if (args.length == 1) {
-            for (String sub : new String[]{"phrase", "nick", "lore"}) {
+            for (String sub : new String[]{"phrase", "nick", "lore", "relic"}) {
                 if (sub.startsWith(args[0].toLowerCase())) out.add(sub);
+            }
+            return out;
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("relic")) {
+            for (String id : RELIC_IDS) {
+                if (id.startsWith(args[1].toLowerCase())) out.add(id);
+            }
+            return out;
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("relic")) {
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                if (online.getName().toLowerCase().startsWith(args[2].toLowerCase())) out.add(online.getName());
             }
             return out;
         }
