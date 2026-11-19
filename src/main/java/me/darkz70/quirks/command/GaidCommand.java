@@ -86,8 +86,9 @@ public final class GaidCommand implements CommandExecutor, TabCompleter {
                     "&cНеизвестная реликвия. Варианты: cover, voidblock, lavacore, prism."));
             return;
         }
-        var leftover = target.getInventory().addItem(relic);
-        leftover.values().forEach(it -> target.getWorld().dropItemNaturally(target.getLocation(), it));
+        Player receiver = target;
+        var leftover = receiver.getInventory().addItem(relic);
+        leftover.values().forEach(it -> receiver.getWorld().dropItemNaturally(receiver.getLocation(), it));
         String plainName = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
                 .serialize(relic.getItemMeta().displayName());
         admin.sendMessage(me.darkz70.quirks.util.Msg.color(
