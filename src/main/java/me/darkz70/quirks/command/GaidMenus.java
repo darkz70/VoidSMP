@@ -114,6 +114,16 @@ public final class GaidMenus implements Listener {
         items.add(me.darkz70.quirks.mechanic.SculkWood.makeItem(me.darkz70.quirks.mechanic.SculkWood.Type.PLANKS));
         items.add(me.darkz70.quirks.mechanic.SculkWood.makeSaplingItem());
         items.add(SoulShards.makeShard(Quirk.AXE, 1));
+        // реликвии (#98) — только выдача админом, крафта нет
+        items.add(me.darkz70.quirks.mechanic.RelicItems.makeWorldbuilderCover());
+        items.add(me.darkz70.quirks.mechanic.RelicItems.makeVoidBlock());
+        items.add(me.darkz70.quirks.mechanic.RelicItems.makeLavaCore());
+        items.add(me.darkz70.quirks.mechanic.RelicItems.makePrism());
+        ItemStack egg = new ItemStack(Material.DRAGON_EGG);
+        egg.editMeta(meta -> meta.lore(List.of(
+                Msg.color("&7Обычное яйцо дракона — бафф действует на ЛЮБОЕ такое яйцо на сервере"),
+                Msg.color("&8VoidSMP"))));
+        items.add(egg);
         return items;
     }
 
@@ -154,6 +164,26 @@ public final class GaidMenus implements Listener {
         }
         if (tag == null && SoulShards.isShard(item)) {
             return new String[]{"&7Освобождение душ в лабиринте или /quirk item"};
+        }
+        if (tag == null && me.darkz70.quirks.mechanic.RelicItems.isWorldbuilderCover(item)) {
+            return new String[]{"&7Не крафтится — только выдача отсюда или /gaid relic cover",
+                "&8Нельзя поставить/сломать, бафф в инвентаре, телепорт при смерти"};
+        }
+        if (tag == null && me.darkz70.quirks.mechanic.RelicItems.isVoidBlock(item)) {
+            return new String[]{"&7Не крафтится — только выдача отсюда или /gaid relic voidblock",
+                "&8Нельзя поставить/сломать, открывает крафты, защита от заморозки"};
+        }
+        if (tag == null && me.darkz70.quirks.mechanic.RelicItems.isLavaCore(item)) {
+            return new String[]{"&7Не крафтится — только выдача отсюда или /gaid relic lavacore",
+                "&8Можно поставить, нельзя сломать — купол 32 блока"};
+        }
+        if (tag == null && me.darkz70.quirks.mechanic.RelicItems.isPrism(item)) {
+            return new String[]{"&7Не крафтится — только выдача отсюда или /gaid relic prism",
+                "&8Можно поставить, нельзя сломать — купол 32 блока"};
+        }
+        if (tag == null && item.getType() == Material.DRAGON_EGG) {
+            return new String[]{"&7Ваниль (Край) — любое яйцо дракона на сервере уже даёт бафы",
+                "&8Раз в 5 мин в инвентаре / раз в 30 сек поставленным блоком"};
         }
         if (tag == null) return new String[]{"&7(нет)"};
         if (tag.startsWith("arrow:")) {
