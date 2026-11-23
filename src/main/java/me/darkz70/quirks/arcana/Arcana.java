@@ -8,9 +8,9 @@ import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * #99: 12 стихий НОВОЙ системы магии (причуда ADMIN_MAG). Отдельно и независимо
- * от старой {@link me.darkz70.quirks.magic.Element} (6 стихий, причуда MAGE) —
- * старая система не трогается вообще.
+ * #99: 12 стихий НОВОЙ системы магии (причуда MAGE). Отдельно и независимо
+ * от старой {@link me.darkz70.quirks.magic.Element} (6 стихий, теперь на
+ * технической причуде ADMIN_MAG) — старая система не трогается вообще.
  */
 public enum Arcana {
 

@@ -122,7 +122,7 @@ public final class Msg {
         def("amph-armor-denied", "&bНезерит тянет тебя на дно — броня соскальзывает!");
 
         // v1.0 — магия
-        def("arcana-no-quirk", "%prefix%&cНужна причуда &5АдминМаг&c для новой магии Арканы.");
+        def("arcana-no-quirk", "%prefix%&cНужна причуда &5Маг&c для новой магии Арканы.");
         def("arcana-no-element", "%prefix%&7Ты ещё не изучил ни одной стихии Арканы. Прочти фолиант.");
         def("arcana-learned", "%prefix%&dАркана отозвалась! %emoji% &f%element% &dтеперь твоя. Shift+Q — смена стихии.");
         def("arcana-already", "%prefix%&7Ты уже изучил &f%element%&7.");
@@ -140,7 +140,7 @@ public final class Msg {
         def("magic-learned", "&dСтихия отозвалась! %emoji% &f%element% &dстала твоей. &7ПКМ — каст, Q/F — смена, Shift+F — меню.");
         def("magic-already-element", "&7Твоя душа уже слушает: &f%element%&7. Смена — только зельем переквалификации.");
         def("magic-need-four-books", "&cСвет и тьма смиряются только теми, кто держит &f4 книги&c других стихий.");
-        def("mage-need-quirk", "%prefix%&cВыбирать магию в менюшке умеет только причуда «Маг» (/mage).");
+        def("mage-need-quirk", "%prefix%&cСтарая магия (книги стихий, /mage) доступна только причуде «АдминМаг».");
         def("magic-book-weak", "&cЭта книга слишком сильна для тебя. Нужен уровень магии %min%+.");
         def("magic-level-up", "&b✦ Уровень магии: &f%level%&b!");
         def("magic-spell-locked", "&8Заклинание &7%spell% &8откроется на %level% уровне магии.");

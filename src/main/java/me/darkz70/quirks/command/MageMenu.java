@@ -20,10 +20,10 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Причуда «Маг» (/mage): удобное меню прямого выбора стихии — без крафта
- * фолианта и без ограничения в 4 книги для тьмы/света. Полностью ОТДЕЛЬНО
- * от старой системы: фолианты стихий крафтятся и работают для всех игроков
- * как раньше, причуда «Маг» не требуется и ничего не блокирует без себя.
+ * Старая 6-стихийная магия (/mage): удобное меню прямого выбора стихии — без
+ * крафта фолианта и без ограничения в 4 книги для тьмы/света. Теперь это
+ * техническая причуда — доступ даёт ADMIN_MAG (выдаётся только через /gaid),
+ * а причуда MAGE открывает НОВУЮ 12-стихийную магию Arcana (см. ArcanaSystem).
  * Сюда же переехал список всех нынешних заклинаний (превью в лоре) —
  * новые заклинания будут добавляться сюда по мере появления.
  */
@@ -44,12 +44,12 @@ public final class MageMenu implements Listener {
     }
 
     public boolean hasAccess(Player player) {
-        return plugin.quirks().levelOf(player, Quirk.MAGE) > 0
+        return plugin.quirks().levelOf(player, Quirk.ADMIN_MAG) > 0
                 || plugin.quirks().levelOf(player, Quirk.ADMIN) > 0;
     }
 
     public void open(Player player) {
-        Inventory inv = Bukkit.createInventory(new Holder(), 27, Msg.color("&5&lВыбор магии &8(причуда «Маг»)"));
+        Inventory inv = Bukkit.createInventory(new Holder(), 27, Msg.color("&5&lВыбор магии &8(причуда «АдминМаг»)"));
         Element current = plugin.magic().elementOf(player);
         int[] slots = {10, 11, 12, 14, 15, 16};
         Element[] elements = Element.values();

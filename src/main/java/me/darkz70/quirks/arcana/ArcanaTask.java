@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-/** Раз в секунду: реген маны Арканы + actionbar, только для носителей admin_mag. */
+/** Раз в секунду: реген маны Арканы + actionbar, только для носителей причуды MAGE. */
 public final class ArcanaTask extends BukkitRunnable {
 
     private final VoidQuirksPlugin plugin;

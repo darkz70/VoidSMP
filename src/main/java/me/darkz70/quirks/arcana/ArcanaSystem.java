@@ -13,9 +13,11 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Ядро НОВОЙ системы магии Arcana (#99, причуда admin_mag): 12 стихий,
- * независимая от старой {@link me.darkz70.quirks.magic.MagicSystem} (причуда MAGE).
- * Старая система не трогается — ни полями PlayerData, ни ключами PDC, ни логикой.
+ * Ядро НОВОЙ системы магии Arcana (#99, причуда MAGE — «Маг», доступна обычным
+ * игрокам): 12 стихий, независимая от старой {@link me.darkz70.quirks.magic.MagicSystem}
+ * (теперь на технической причуде ADMIN_MAG — только через /gaid, для админов).
+ * Старая система не трогается — ни полями PlayerData, ни ключами PDC, ни логикой;
+ * поменялось только то, какая причуда какую систему магии открывает.
  */
 public final class ArcanaSystem {
 
@@ -30,7 +32,7 @@ public final class ArcanaSystem {
     }
 
     public boolean hasQuirk(Player player) {
-        return plugin.quirks().levelOf(player, Quirk.ADMIN_MAG) > 0;
+        return plugin.quirks().levelOf(player, Quirk.MAGE) > 0;
     }
 
     @Nullable

@@ -60,7 +60,7 @@ public final class Keys {
     public static NamespacedKey relicNevergateMace;     // «Nevergate's Mace» (MACE): метка предмета
     public static NamespacedKey relicNevergateMaceOnce; // «nevergate's mace» (MACE, одноразовая): метка предмета
 
-    // --- Новая система магии Arcana (#99, причуда admin_mag) — отдельно от старой MAGE ---
+    // --- Новая система магии Arcana (#99, причуда MAGE) — отдельно от старой (теперь на ADMIN_MAG) ---
     public static NamespacedKey arcanaFocus;   // посох новой магии: можно колдовать
     public static NamespacedKey arcanaBook;    // фолиант новой магии: id стихии (как elem-book-* у старой)
 

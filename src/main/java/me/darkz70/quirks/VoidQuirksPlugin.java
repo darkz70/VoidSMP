@@ -60,7 +60,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         storage.load();
         quirkManager = new QuirkManager(this, storage);
         magic = new MagicSystem(this);
-        arcana = new me.darkz70.quirks.arcana.ArcanaSystem(this); // #99: НОВАЯ магия (12 стихий, причуда admin_mag)
+        arcana = new me.darkz70.quirks.arcana.ArcanaSystem(this); // #99: НОВАЯ магия (12 стихий, причуда MAGE)
         // #99: АдминПро теперь снимает кулдауны не только у заклинаний/зелий/вещей,
         // но и у ВСЕХ способностей причуд, идущих через общий ScanUtil.tryUse/remaining.
         me.darkz70.quirks.util.ScanUtil.setAdminProCheck(id -> magic.cooldownsOff(id));

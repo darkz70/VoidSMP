@@ -9,8 +9,9 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Предметы НОВОЙ системы магии Arcana (#99, причуда admin_mag): посох-фокус
- * и 12 фолиантов стихий. Полностью отдельно от старых elem-book- и фокус-кристалла.
+ * Предметы НОВОЙ системы магии Arcana (#99, причуда MAGE): посох-фокус
+ * и 12 фолиантов стихий. Полностью отдельно от старых elem-book- и фокус-кристалла
+ * (та старая система теперь на технической причуде ADMIN_MAG).
  */
 public final class ArcanaItems {
 
@@ -27,7 +28,7 @@ public final class ArcanaItems {
                     Msg.color("&dПКМ: &7каст текущего заклинания"),
                     Msg.color("&dQ / F: &7след. заклинание &8| &dShift+F: &7меню"),
                     Msg.color("&dShift+Q: &7сменить активную стихию"),
-                    Msg.color("&8Требует причуду &5АдминМаг&8. VoidSMP"))
+                    Msg.color("&8Требует причуду &5Маг&8. VoidSMP"))
             );
             meta.getPersistentDataContainer().set(Keys.arcanaFocus, PersistentDataType.BYTE, (byte) 1);
         });
@@ -47,7 +48,7 @@ public final class ArcanaItems {
             meta.lore(List.of(
                     Msg.color("&7&oДревние письмена об Аркане стихии " + element.display().toLowerCase()),
                     Msg.color("&8—————————————"),
-                    Msg.color("&dПКМ: &7изучить стихию (нужна причуда &5АдминМаг&7)"),
+                    Msg.color("&dПКМ: &7изучить стихию (нужна причуда &5Маг&7)"),
                     Msg.color("&8Вторую и дальнейшие стихии можно изучить"),
                     Msg.color("&8только имея хотя бы одну 20-го уровня."),
                     Msg.color("&8VoidSMP"))

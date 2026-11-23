@@ -422,9 +422,9 @@ public final class CraftListener implements Listener {
             return; // книги прокачки — только магам и Админам
         }
         if (tag != null && tag.startsWith("elem-book-")
-                && plugin.quirks().levelOf(player, Quirk.MAGE) == 0
+                && plugin.quirks().levelOf(player, Quirk.ADMIN_MAG) == 0
                 && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
-            return; // книги стихий крафтит только причуда «Маг» (и Админ)
+            return; // книги стихий (старая 6-стихийная магия) крафтит только причуда «АдминМаг» (и Админ)
         }
         if (CopperGolemListener.isFirmware(serverResult)
                 && plugin.quirks().levelOf(player, Quirk.ENGINEER) < 2
@@ -473,7 +473,7 @@ public final class CraftListener implements Listener {
         }
         String elemTag = BrewTree.markOf(result);
         if (elemTag != null && elemTag.startsWith("elem-book-")
-                && plugin.quirks().levelOf(player, Quirk.MAGE) == 0
+                && plugin.quirks().levelOf(player, Quirk.ADMIN_MAG) == 0
                 && plugin.quirks().levelOf(player, Quirk.ADMIN) == 0) {
             event.setCancelled(true);
             Msg.send(player, "mage-need-quirk");

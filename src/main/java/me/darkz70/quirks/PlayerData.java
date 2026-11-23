@@ -29,7 +29,7 @@ public final class PlayerData {
     /** Ник, назначенный админом через /gaid nick; null — ника нет (настоящее имя). */
     private String nickname = null;
 
-    // новая магия Arcana (#99, причуда ADMIN_MAG): id стихии -> уровень 1-20
+    // новая магия Arcana (#99, причуда MAGE): id стихии -> уровень 1-20
     private final Map<String, Integer> arcanaLevels = new HashMap<>();
     private final Map<String, Integer> arcanaSpellIndex = new HashMap<>();
     private final Map<String, Double> arcanaXp = new HashMap<>();

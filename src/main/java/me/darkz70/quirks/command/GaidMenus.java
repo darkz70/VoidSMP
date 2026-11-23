@@ -121,7 +121,7 @@ public final class GaidMenus implements Listener {
         items.add(me.darkz70.quirks.mechanic.RelicItems.makePrism());
         items.add(me.darkz70.quirks.mechanic.RelicItems.makeNevergateMace());
         items.add(me.darkz70.quirks.mechanic.RelicItems.makeNevergateMaceOnce());
-        // новая магия Arcana (#99, причуда admin_mag) — посох + 12 фолиантов стихий
+        // новая магия Arcana (#99, причуда MAGE) — посох + 12 фолиантов стихий
         items.add(me.darkz70.quirks.arcana.ArcanaItems.makeFocusStaff());
         for (me.darkz70.quirks.arcana.Arcana element : me.darkz70.quirks.arcana.Arcana.values()) {
             items.add(me.darkz70.quirks.arcana.ArcanaItems.makeTome(element));
@@ -202,11 +202,11 @@ public final class GaidMenus implements Listener {
         }
         if (tag == null && me.darkz70.quirks.arcana.ArcanaItems.isFocusStaff(item)) {
             return new String[]{"&7Не крафтится — только выдача отсюда",
-                "&8Фокус-предмет НОВОЙ магии Арканы (причуда admin_mag)"};
+                "&8Фокус-предмет НОВОЙ магии Арканы (причуда mage)"};
         }
         if (tag == null && me.darkz70.quirks.arcana.ArcanaItems.tomeElement(item) != null) {
             return new String[]{"&7Не крафтится — только выдача отсюда",
-                "&8ПКМ изучает стихию (нужна причуда admin_mag)"};
+                "&8ПКМ изучает стихию (нужна причуда mage)"};
         }
         if (tag == null) return new String[]{"&7(нет)"};
         if (tag.startsWith("arrow:")) {
