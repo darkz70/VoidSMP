@@ -29,6 +29,13 @@ public final class PlayerData {
     /** Ник, назначенный админом через /gaid nick; null — ника нет (настоящее имя). */
     private String nickname = null;
 
+    // новая магия Arcana (#99, причуда ADMIN_MAG): id стихии -> уровень 1-20
+    private final Map<String, Integer> arcanaLevels = new HashMap<>();
+    private final Map<String, Integer> arcanaSpellIndex = new HashMap<>();
+    private final Map<String, Double> arcanaXp = new HashMap<>();
+    private String arcanaActive = null;
+    private double arcanaMana = 0;
+
     public boolean has(Quirk quirk) {
         return quirks.containsKey(quirk);
     }
@@ -137,6 +144,61 @@ public final class PlayerData {
 
     public void tmpUntil(long until) {
         this.tmpUntil = until;
+    }
+
+    // ---------- новая магия Arcana (#99) ----------
+
+    public Map<String, Integer> arcanaLevels() {
+        return arcanaLevels;
+    }
+
+    public int arcanaLevelOf(String elementId) {
+        return arcanaLevels.getOrDefault(elementId, 0);
+    }
+
+    public void arcanaSetLevel(String elementId, int level) {
+        arcanaLevels.put(elementId, Math.max(0, Math.min(20, level)));
+    }
+
+    @org.jetbrains.annotations.Nullable
+    public String arcanaActive() {
+        return arcanaActive;
+    }
+
+    public void arcanaActive(@org.jetbrains.annotations.Nullable String elementId) {
+        this.arcanaActive = elementId;
+    }
+
+    public int arcanaSpellIndex(String elementId) {
+        return arcanaSpellIndex.getOrDefault(elementId, 0);
+    }
+
+    public void arcanaSpellIndex(String elementId, int index) {
+        arcanaSpellIndex.put(elementId, index);
+    }
+
+    public Map<String, Integer> arcanaSpellIndexMap() {
+        return arcanaSpellIndex;
+    }
+
+    public double arcanaXp(String elementId) {
+        return arcanaXp.getOrDefault(elementId, 0.0);
+    }
+
+    public void arcanaXp(String elementId, double value) {
+        arcanaXp.put(elementId, value);
+    }
+
+    public Map<String, Double> arcanaXpMap() {
+        return arcanaXp;
+    }
+
+    public double arcanaMana() {
+        return arcanaMana;
+    }
+
+    public void arcanaMana(double mana) {
+        this.arcanaMana = Math.max(0, mana);
     }
 
     // ---------- ник ----------

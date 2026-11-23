@@ -172,7 +172,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                 return;
             }
         }
-        if (quirk == Quirk.ADMIN || quirk == Quirk.ADMIN_PRO) level = 1; // техпричуда всегда 1-го
+        if (quirk == Quirk.ADMIN || quirk == Quirk.ADMIN_PRO || quirk == Quirk.ADMIN_MAG) level = 1; // техпричуда всегда 1-го
         Player target;
         if (args.length >= 4) {
             target = Bukkit.getPlayerExact(args[3]);
@@ -225,7 +225,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
                 return;
             }
         }
-        if (quirk == Quirk.ADMIN || quirk == Quirk.ADMIN_PRO) level = 1; // техпричуда всегда 1-го
+        if (quirk == Quirk.ADMIN || quirk == Quirk.ADMIN_PRO || quirk == Quirk.ADMIN_MAG) level = 1; // техпричуда всегда 1-го
 
         plugin.quirks().assign(target, quirk, level);
         Msg.send(sender, "set-ok",
@@ -249,6 +249,7 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
         }
         boolean removed = plugin.quirks().remove(target, Quirk.ADMIN);
         removed |= plugin.quirks().remove(target, Quirk.ADMIN_PRO);
+        removed |= plugin.quirks().remove(target, Quirk.ADMIN_MAG);
         if (removed) {
             Msg.send(sender, "removed", "%player%", target.getName());
         } else {
@@ -360,7 +361,8 @@ public final class QuirkCommand implements CommandExecutor, TabCompleter {
             String name = Bukkit.getOfflinePlayer(entry.getKey()).getName();
             List<String> parts = new ArrayList<>();
             for (Map.Entry<Quirk, Integer> quirkEntry : data.entries()) {
-                if (quirkEntry.getKey() == Quirk.ADMIN || quirkEntry.getKey() == Quirk.ADMIN_PRO) {
+                if (quirkEntry.getKey() == Quirk.ADMIN || quirkEntry.getKey() == Quirk.ADMIN_PRO
+                        || quirkEntry.getKey() == Quirk.ADMIN_MAG) {
                     continue; // техпричуды — вне списков
                 }
                 parts.add(quirkEntry.getKey().display() + " ур. " + quirkEntry.getValue());

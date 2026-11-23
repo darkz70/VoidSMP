@@ -86,6 +86,27 @@ public final class QuirkStorage {
                 String nick = section.getString("nickname", null);
                 if (nick != null && !nick.isBlank()) data.nickname(nick);
 
+                data.arcanaActive(section.getString("arcana.active", null));
+                data.arcanaMana(section.getDouble("arcana.mana", 0));
+                ConfigurationSection arcLevels = section.getConfigurationSection("arcana.levels");
+                if (arcLevels != null) {
+                    for (String elementId : arcLevels.getKeys(false)) {
+                        data.arcanaSetLevel(elementId, arcLevels.getInt(elementId, 0));
+                    }
+                }
+                ConfigurationSection arcSpells = section.getConfigurationSection("arcana.spell");
+                if (arcSpells != null) {
+                    for (String elementId : arcSpells.getKeys(false)) {
+                        data.arcanaSpellIndex(elementId, arcSpells.getInt(elementId, 0));
+                    }
+                }
+                ConfigurationSection arcXp = section.getConfigurationSection("arcana.xp");
+                if (arcXp != null) {
+                    for (String elementId : arcXp.getKeys(false)) {
+                        data.arcanaXp(elementId, arcXp.getDouble(elementId, 0));
+                    }
+                }
+
                 ConfigurationSection cds = section.getConfigurationSection("cooldowns");
                 if (cds != null) {
                     for (String cd : cds.getKeys(false)) {
@@ -123,6 +144,17 @@ public final class QuirkStorage {
             if (data.tmpQuirks() != null) yaml.set(path + ".tmpquirks", data.tmpQuirks());
             yaml.set(path + ".tmpuntil", data.tmpUntil());
             if (data.nickname() != null) yaml.set(path + ".nickname", data.nickname());
+            if (data.arcanaActive() != null) yaml.set(path + ".arcana.active", data.arcanaActive());
+            if (data.arcanaMana() != 0) yaml.set(path + ".arcana.mana", data.arcanaMana());
+            for (Map.Entry<String, Integer> lvl : data.arcanaLevels().entrySet()) {
+                yaml.set(path + ".arcana.levels." + lvl.getKey(), lvl.getValue());
+            }
+            for (Map.Entry<String, Integer> idx : data.arcanaSpellIndexMap().entrySet()) {
+                yaml.set(path + ".arcana.spell." + idx.getKey(), idx.getValue());
+            }
+            for (Map.Entry<String, Double> xp : data.arcanaXpMap().entrySet()) {
+                yaml.set(path + ".arcana.xp." + xp.getKey(), xp.getValue());
+            }
             for (Map.Entry<String, Long> cd : data.cooldowns().entrySet()) {
                 yaml.set(path + ".cooldowns." + cd.getKey(), cd.getValue());
             }

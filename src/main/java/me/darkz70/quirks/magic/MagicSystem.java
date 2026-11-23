@@ -378,7 +378,7 @@ public final class MagicSystem {
             data.tmpQuirks(sb.toString());
         }
         for (Quirk quirk : Quirk.values()) {
-            if (quirk == Quirk.ADMIN || quirk == Quirk.ADMIN_PRO) continue; // техпричуды не входят в «все причуды»
+            if (quirk == Quirk.ADMIN || quirk == Quirk.ADMIN_PRO || quirk == Quirk.ADMIN_MAG) continue; // техпричуды не входят в «все причуды»
             if (!data.has(quirk) || data.levelOf(quirk) < 3) {
                 plugin.quirks().assign(player, quirk, 3);
             }
@@ -411,11 +411,11 @@ public final class MagicSystem {
             wanted.put(quirk, lvl);
         }
         for (Quirk quirk : current) {
-            if (quirk == Quirk.ADMIN || quirk == Quirk.ADMIN_PRO) continue;
+            if (quirk == Quirk.ADMIN || quirk == Quirk.ADMIN_PRO || quirk == Quirk.ADMIN_MAG) continue;
             if (!wanted.containsKey(quirk)) plugin.quirks().remove(player, quirk);
         }
         for (Map.Entry<Quirk, Integer> e : wanted.entrySet()) {
-            if (e.getKey() == Quirk.ADMIN || e.getKey() == Quirk.ADMIN_PRO) continue;
+            if (e.getKey() == Quirk.ADMIN || e.getKey() == Quirk.ADMIN_PRO || e.getKey() == Quirk.ADMIN_MAG) continue;
             if (data(player) == null || plugin.quirks().levelOf(player, e.getKey()) != e.getValue()) {
                 plugin.quirks().assign(player, e.getKey(), e.getValue());
             }

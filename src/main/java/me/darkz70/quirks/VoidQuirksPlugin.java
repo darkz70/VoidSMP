@@ -44,6 +44,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     private me.darkz70.quirks.mechanic.customblock.CustomBlockService customBlocks;
     private me.darkz70.quirks.mechanic.SculkDomeManager domes;
     private me.darkz70.quirks.mechanic.RelicBlocks relicBlocks;
+    private me.darkz70.quirks.arcana.ArcanaSystem arcana;
 
     @Override
     public void onEnable() {
@@ -59,6 +60,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         storage.load();
         quirkManager = new QuirkManager(this, storage);
         magic = new MagicSystem(this);
+        arcana = new me.darkz70.quirks.arcana.ArcanaSystem(this); // #99: НОВАЯ магия (12 стихий, причуда admin_mag)
         // #99: АдминПро теперь снимает кулдауны не только у заклинаний/зелий/вещей,
         // но и у ВСЕХ способностей причуд, идущих через общий ScanUtil.tryUse/remaining.
         me.darkz70.quirks.util.ScanUtil.setAdminProCheck(id -> magic.cooldownsOff(id));
@@ -100,6 +102,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
 
         MagicListener magicListener = new MagicListener(this);
         Bukkit.getPluginManager().registerEvents(magicListener, this);
+        Bukkit.getPluginManager().registerEvents(new me.darkz70.quirks.arcana.ArcanaListener(this), this); // #99: Аркана
         Bukkit.getPluginManager().registerEvents(new PotionListener(this), this);
         zayceTask = new me.darkz70.quirks.task.ZayceKrolTask(this);
         Bukkit.getPluginManager().registerEvents(new me.darkz70.quirks.listener.ZayceKrolListener(this), this);
@@ -175,6 +178,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         new EffectsTask(this).runTaskTimer(this, interval, interval);
         new WebPhysicsTask(this).runTaskTimer(this, 1L, 1L);
         new MagicTask(this).runTaskTimer(this, 20L, 20L);
+        new me.darkz70.quirks.arcana.ArcanaTask(this).runTaskTimer(this, 20L, 20L); // #99: Аркана — реген маны/actionbar
         // Демон азарта: тик каждые полсекунды (картинка силуэтов); появление — раз в
         // demon.interval-minutes из конфига (5/10/15/20/30/60 мин)
         demonWatcher = new DemonWatcherTask(this);
@@ -321,6 +325,10 @@ public final class VoidQuirksPlugin extends JavaPlugin {
 
     public MagicSystem magic() {
         return magic;
+    }
+
+    public me.darkz70.quirks.arcana.ArcanaSystem arcana() {
+        return arcana;
     }
 
     public QuirkStorage storage() {

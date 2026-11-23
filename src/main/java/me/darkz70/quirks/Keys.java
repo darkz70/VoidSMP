@@ -60,6 +60,10 @@ public final class Keys {
     public static NamespacedKey relicNevergateMace;     // «Nevergate's Mace» (MACE): метка предмета
     public static NamespacedKey relicNevergateMaceOnce; // «nevergate's mace» (MACE, одноразовая): метка предмета
 
+    // --- Новая система магии Arcana (#99, причуда admin_mag) — отдельно от старой MAGE ---
+    public static NamespacedKey arcanaFocus;   // посох новой магии: можно колдовать
+    public static NamespacedKey arcanaBook;    // фолиант новой магии: id стихии (как elem-book-* у старой)
+
     private Keys() {}
 
     public static void init(VoidQuirksPlugin plugin) {
@@ -115,5 +119,7 @@ public final class Keys {
         relicPrism = new NamespacedKey(plugin, "relic_prism");
         relicNevergateMace = new NamespacedKey(plugin, "relic_nevergate_mace");
         relicNevergateMaceOnce = new NamespacedKey(plugin, "relic_nevergate_mace_once");
+        arcanaFocus = new NamespacedKey(plugin, "arcana_focus");
+        arcanaBook = new NamespacedKey(plugin, "arcana_book");
     }
 }

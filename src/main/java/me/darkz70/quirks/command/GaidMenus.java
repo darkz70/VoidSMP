@@ -121,6 +121,11 @@ public final class GaidMenus implements Listener {
         items.add(me.darkz70.quirks.mechanic.RelicItems.makePrism());
         items.add(me.darkz70.quirks.mechanic.RelicItems.makeNevergateMace());
         items.add(me.darkz70.quirks.mechanic.RelicItems.makeNevergateMaceOnce());
+        // новая магия Arcana (#99, причуда admin_mag) — посох + 12 фолиантов стихий
+        items.add(me.darkz70.quirks.arcana.ArcanaItems.makeFocusStaff());
+        for (me.darkz70.quirks.arcana.Arcana element : me.darkz70.quirks.arcana.Arcana.values()) {
+            items.add(me.darkz70.quirks.arcana.ArcanaItems.makeTome(element));
+        }
         ItemStack egg = new ItemStack(Material.DRAGON_EGG);
         egg.editMeta(meta -> meta.lore(List.of(
                 Msg.color("&7Обычное яйцо дракона — бафф действует на ЛЮБОЕ такое яйцо на сервере"),
@@ -194,6 +199,14 @@ public final class GaidMenus implements Listener {
         if (tag == null && item.getType() == Material.DRAGON_EGG) {
             return new String[]{"&7Ваниль (Край) — любое яйцо дракона на сервере уже даёт бафы",
                 "&8Раз в 5 мин в инвентаре / раз в 30 сек поставленным блоком"};
+        }
+        if (tag == null && me.darkz70.quirks.arcana.ArcanaItems.isFocusStaff(item)) {
+            return new String[]{"&7Не крафтится — только выдача отсюда",
+                "&8Фокус-предмет НОВОЙ магии Арканы (причуда admin_mag)"};
+        }
+        if (tag == null && me.darkz70.quirks.arcana.ArcanaItems.tomeElement(item) != null) {
+            return new String[]{"&7Не крафтится — только выдача отсюда",
+                "&8ПКМ изучает стихию (нужна причуда admin_mag)"};
         }
         if (tag == null) return new String[]{"&7(нет)"};
         if (tag.startsWith("arrow:")) {

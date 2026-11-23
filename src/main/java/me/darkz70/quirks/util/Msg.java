@@ -122,6 +122,19 @@ public final class Msg {
         def("amph-armor-denied", "&bНезерит тянет тебя на дно — броня соскальзывает!");
 
         // v1.0 — магия
+        def("arcana-no-quirk", "%prefix%&cНужна причуда &5АдминМаг&c для новой магии Арканы.");
+        def("arcana-no-element", "%prefix%&7Ты ещё не изучил ни одной стихии Арканы. Прочти фолиант.");
+        def("arcana-learned", "%prefix%&dАркана отозвалась! %emoji% &f%element% &dтеперь твоя. Shift+Q — смена стихии.");
+        def("arcana-already", "%prefix%&7Ты уже изучил &f%element%&7.");
+        def("arcana-need-20", "%prefix%&cВторую стихию можно изучить только когда одна из твоих достигла 20 ур.");
+        def("arcana-bar", "%emoji% %element% &8| &dМана %mana%/%max% &8| &f%spell%");
+        def("arcana-no-other", "%prefix%&7Других изученных стихий Арканы нет.");
+        def("arcana-switched", "%prefix%&dАктивная стихия: %emoji% &f%element%&d.");
+        def("arcana-cooldown", "%prefix%&7Заклинание остывает: &f%time%с&7.");
+        def("arcana-no-mana", "%prefix%&cМаны не хватает — нужно %need%.");
+        def("arcana-spell-locked", "&8Заклинание &7%spell% &8откроется на %level% ур. стихии.");
+        def("arcana-level-up", "%prefix%&d✦ Уровень стихии %element%: &f%level%&d!");
+        def("arcana-menu-title", "%emoji% Аркана: %element%");
         def("magic-no-mage", "&7Ты ещё не ощутил стихию. Найди книгу стихии…");
         def("magic-bar", "%emoji% %element% &8| &bМана %mana%/%max% &8| &f%spell%");
         def("magic-learned", "&dСтихия отозвалась! %emoji% &f%element% &dстала твоей. &7ПКМ — каст, Q/F — смена, Shift+F — меню.");
