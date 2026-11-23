@@ -14,7 +14,20 @@ public final class ScanUtil {
 
     private static final Map<String, Long> COOLDOWNS = new HashMap<>();
 
+    /** Причуда АдминПро (#99): если истинно для игрока — ЛЮБОЙ кулдаун через этот класс
+     *  считается истёкшим. Устанавливается плагином в onEnable, чтобы не тащить сюда
+     *  зависимость на VoidQuirksPlugin/MagicSystem напрямую. */
+    private static Predicate<UUID> adminProCheck = id -> false;
+
     private ScanUtil() {}
+
+    public static void setAdminProCheck(Predicate<UUID> check) {
+        adminProCheck = check != null ? check : id -> false;
+    }
+
+    private static boolean adminPro(UUID player) {
+        return adminProCheck.test(player);
+    }
 
     /** Считает блоки кубом (2r+1)^3 вокруг центра. Незагруженные чанки пропускает. */
     public static int countBlocks(Location center, int radius, Predicate<Material> filter) {
@@ -37,18 +50,23 @@ public final class ScanUtil {
         return count;
     }
 
-    /** true, если кулдаун истёк (и обновляет метку). */
+    /** true, если кулдаун истёк (и обновляет метку). АдминПро — всегда true. */
     public static boolean tryUse(UUID player, String ability, long cooldownMs) {
         long now = System.currentTimeMillis();
         String key = player + ":" + ability;
+        if (adminPro(player)) {
+            COOLDOWNS.put(key, now);
+            return true;
+        }
         Long last = COOLDOWNS.get(key);
         if (last != null && now - last < cooldownMs) return false;
         COOLDOWNS.put(key, now);
         return true;
     }
 
-    /** Сколько миллисекунд осталось до конца кулдауна (0, если готов). */
+    /** Сколько миллисекунд осталось до конца кулдауна (0, если готов). АдминПро — всегда 0. */
     public static long remaining(UUID player, String ability, long cooldownMs) {
+        if (adminPro(player)) return 0;
         Long last = COOLDOWNS.get(player + ":" + ability);
         if (last == null) return 0;
         return Math.max(0, cooldownMs - (System.currentTimeMillis() - last));

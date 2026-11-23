@@ -118,6 +118,55 @@ public final class RelicItems {
                 && item.getItemMeta().getPersistentDataContainer().has(Keys.relicPrism);
     }
 
+    // ---------------------------------------------------------------- Nevergate's Mace (#99)
+
+    public static ItemStack makeNevergateMace() {
+        ItemStack item = new ItemStack(Material.MACE);
+        item.editMeta(meta -> {
+            meta.displayName(Msg.color("&4&l☠ Nevergate's Mace"));
+            meta.lore(List.of(
+                    Msg.color("&7&oОружие из-за врат, что никогда не откроются вновь"),
+                    Msg.color("&8—————————————"),
+                    Msg.color("&cУрон: &7×5 от обычной булавы."),
+                    Msg.color("&dПри попадании: &7тряска экрана всем в радиусе 50 блоков,"),
+                    Msg.color("&7рядом с ударом пропадает от 3 до 15 блоков."),
+                    Msg.color("&8VoidSMP")
+            ));
+            meta.getPersistentDataContainer().set(Keys.relicNevergateMace, PersistentDataType.BOOLEAN, true);
+        });
+        return item;
+    }
+
+    public static boolean isNevergateMace(@Nullable ItemStack item) {
+        return item != null && item.getType() == Material.MACE && item.hasItemMeta()
+                && item.getItemMeta().getPersistentDataContainer().has(Keys.relicNevergateMace);
+    }
+
+    /** Та же булава, но с подвохом: исчезает после одного удара. Отличается только
+     *  регистром имени (намеренно — «nevergate's mace» с маленькой буквы). */
+    public static ItemStack makeNevergateMaceOnce() {
+        ItemStack item = new ItemStack(Material.MACE);
+        item.editMeta(meta -> {
+            meta.displayName(Msg.color("&4&l☠ nevergate's mace"));
+            meta.lore(List.of(
+                    Msg.color("&7&oОдин удар — и врата закрываются за ней навсегда"),
+                    Msg.color("&8—————————————"),
+                    Msg.color("&cУрон: &7×5 от обычной булавы."),
+                    Msg.color("&dПри попадании: &7тряска экрана всем в радиусе 50 блоков,"),
+                    Msg.color("&7рядом с ударом пропадает от 3 до 15 блоков."),
+                    Msg.color("&4Исчезает после первого же удара."),
+                    Msg.color("&8VoidSMP")
+            ));
+            meta.getPersistentDataContainer().set(Keys.relicNevergateMaceOnce, PersistentDataType.BOOLEAN, true);
+        });
+        return item;
+    }
+
+    public static boolean isNevergateMaceOnce(@Nullable ItemStack item) {
+        return item != null && item.getType() == Material.MACE && item.hasItemMeta()
+                && item.getItemMeta().getPersistentDataContainer().has(Keys.relicNevergateMaceOnce);
+    }
+
     // ---------------------------------------------------------------- Проверки по всему инвентарю
 
     /** Предмет-реликвия лежит у игрока где угодно в инвентаре (хотбар/рюкзак/броня/офф-рука). */

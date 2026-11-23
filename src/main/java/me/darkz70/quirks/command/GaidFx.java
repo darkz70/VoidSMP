@@ -406,10 +406,16 @@ public final class GaidFx implements Listener {
                 "&7Магма-подложка, 4 трещины растут по 9 блоков с искрами,",
                 "&7дымом и потрескиванием; бульканье магмы, тряска 60 блоков."),
                 EnumSet.of(Element.FIRE), p -> hellRift(p)));
-        list.add(entry(Material.DEEPSLATE_TILES, "&4&lБольшой разлом", List.of(
-                "&7То же, но ×5: длинные трещины, кратеры на концах,",
-                "&7кратер под эпицентром, тряска 300 блоков."),
-                EnumSet.of(Element.FIRE, Element.EARTH), p -> hellRift(p, 5.0, 4)));
+        list.add(entry(Material.DEEPSLATE_TILES, "&4&lБольшой разлом (с метеоритами)", List.of(
+                "&7То же, но ×5: круглая/многоугольная подложка, 10 трещин,",
+                "&7в небе видно падающие метеориты — кратеры на их концах",
+                "&7и под эпицентром, тряска 300 блоков."),
+                EnumSet.of(Element.FIRE, Element.EARTH), p -> hellRift(p, 5.0, 10, true)));
+        list.add(entry(Material.BLACKSTONE, "&4&lБольшой разлом (без метеоритов)", List.of(
+                "&7То же самое ×5: круглая/многоугольная подложка, 10 трещин,",
+                "&7растут и дышат жаром, но без падающих метеоритов и кратеров —",
+                "&7земля трескается, но не взрывается. Тряска 300 блоков."),
+                EnumSet.of(Element.FIRE, Element.EARTH), p -> hellRift(p, 5.0, 10, false)));
         list.add(entry(Material.END_PORTAL_FRAME, "&4&lОткрытие ада", List.of(
                 "&7Тряска 12 сек, молнии, скачки дня/ночи, затем вертикальный",
                 "&7круг магмы с окантовкой ад-микса и порталом + кратер."),
@@ -833,6 +839,45 @@ public final class GaidFx implements Listener {
                 Sound.BLOCK_BEACON_AMBIENT, Sound.ITEM_TOTEM_USE,
                 new PotionEffect(PotionEffectType.RESISTANCE, 150, 0, true, true),
                 new PotionEffect(PotionEffectType.REGENERATION, 150, 0, true, true)));
+        // ---------- #99: ДОПОЛНИТЕЛЬНО — снег/вода/электричество/природа/камень ----------
+        list.add(combo(Element.WATER, Material.POWDER_SNOW_BUCKET, "Снежный вихрь",
+                Particle.CLOUD, Color.fromRGB(235, 245, 255), 1.6f, 36, 4, FxPattern.SPIRAL, 10,
+                Sound.BLOCK_WATER_AMBIENT, Sound.ENTITY_PLAYER_SPLASH,
+                new PotionEffect(PotionEffectType.SLOWNESS, 100, 1, true, true)));
+        list.add(combo(Element.WATER, Material.SNOW_BLOCK, "Ледяная буря",
+                Particle.DUST, Color.fromRGB(190, 225, 255), 2.0f, 40, 6, FxPattern.RAIN, 14,
+                Sound.BLOCK_WATER_AMBIENT, Sound.ENTITY_GUARDIAN_ATTACK,
+                new PotionEffect(PotionEffectType.SLOWNESS, 100, 2, true, true),
+                new PotionEffect(PotionEffectType.WEAKNESS, 80, 0, true, true)));
+        list.add(combo(Element.WATER, Material.TURTLE_HELMET, "Жемчужный поток",
+                Particle.DRIPPING_WATER, null, 0, 30, 0, FxPattern.BURST, 10,
+                Sound.ENTITY_PLAYER_SPLASH, Sound.BLOCK_WATER_AMBIENT,
+                new PotionEffect(PotionEffectType.WATER_BREATHING, 300, 0, true, true),
+                new PotionEffect(PotionEffectType.DOLPHINS_GRACE, 200, 0, true, true)));
+        list.add(combo(Element.WIND, Material.LIGHTNING_ROD, "Искровой разряд",
+                Particle.FLASH, null, 0, 16, 3, FxPattern.SPHERE, 10,
+                Sound.ENTITY_LIGHTNING_BOLT_THUNDER, Sound.ENTITY_ENDER_DRAGON_GROWL,
+                new PotionEffect(PotionEffectType.GLOWING, 150, 0, true, true)));
+        list.add(combo(Element.WIND, Material.COPPER_INGOT, "Молниевый купол",
+                Particle.FLASH, null, 0, 24, 5, FxPattern.RING, 12,
+                Sound.ENTITY_LIGHTNING_BOLT_THUNDER, Sound.ITEM_ELYTRA_FLYING,
+                new PotionEffect(PotionEffectType.SPEED, 120, 1, true, true),
+                new PotionEffect(PotionEffectType.SLOWNESS, 60, 0, true, true)));
+        list.add(combo(Element.EARTH, Material.OAK_SAPLING, "Цветение природы",
+                Particle.COMPOSTER, null, 0, 32, 0, FxPattern.AURA, 10,
+                Sound.ITEM_NETHER_WART_PLANT, Sound.BLOCK_GRAVEL_STEP,
+                new PotionEffect(PotionEffectType.REGENERATION, 150, 0, true, true),
+                new PotionEffect(PotionEffectType.HASTE, 100, 0, true, true)));
+        list.add(combo(Element.EARTH, Material.MOSS_CARPET, "Лесной вихрь",
+                Particle.MYCELIUM, null, 0, 28, 4, FxPattern.SPIRAL, 10,
+                Sound.BLOCK_GRAVEL_STEP, Sound.ENTITY_IRON_GOLEM_REPAIR,
+                new PotionEffect(PotionEffectType.JUMP_BOOST, 120, 1, true, true),
+                new PotionEffect(PotionEffectType.REGENERATION, 120, 0, true, true)));
+        list.add(combo(Element.EARTH, Material.GRANITE, "Гранитный удар",
+                Particle.CRIT, null, 0, 24, 0, FxPattern.CROSS, 10,
+                Sound.BLOCK_STONE_BREAK, Sound.BLOCK_BASALT_BREAK,
+                new PotionEffect(PotionEffectType.STRENGTH, 150, 1, true, true),
+                new PotionEffect(PotionEffectType.RESISTANCE, 150, 0, true, true)));
         return list;
     }
 
@@ -933,11 +978,12 @@ public final class GaidFx implements Listener {
     // ---------- адские разломы ----------
 
     private void hellRift(Player admin) {
-        hellRift(admin, 1.0, 4);
+        hellRift(admin, 1.0, 4, true);
     }
 
-    /** Адские разломы со шкалой: scale=5 — «Большой разлом». */
-    private void hellRift(Player admin, double scale, int lines) {
+    /** Адские разломы со шкалой: scale=5 — «Большой разлом» (#99: ×2 варианта —
+     *  с падающими метеоритами на концах трещин/в эпицентре, и без них). */
+    private void hellRift(Player admin, double scale, int lines, boolean meteors) {
         Location at = admin.getLocation();
         World world = at.getWorld();
         if (world == null) return;
@@ -945,10 +991,19 @@ public final class GaidFx implements Listener {
         int by = at.getBlockY() - 1; // грунт под ногами
         int bz = at.getBlockZ();
 
-        // магма-подложка под админом
+        // магма-подложка под админом: у «большого разлома» (scale>=2) — не квадрат,
+        // а круг/многоугольник с рваным краем (#99); у обычных адских разломов форма
+        // не менялась — остаётся старый квадрат.
         int pad = Math.max(1, (int) Math.round(scale * 1.4));
+        boolean round = scale >= 2;
+        double jitter = pad * 0.18;
         for (int dx = -pad; dx <= pad; dx++) {
             for (int dz = -pad; dz <= pad; dz++) {
+                if (round) {
+                    double d = Math.sqrt(dx * dx + dz * dz);
+                    double edge = pad + ThreadLocalRandom.current().nextDouble(-jitter, jitter);
+                    if (d > edge) continue;
+                }
                 Block block = world.getBlockAt(bx + dx, by, bz + dz);
                 if (canTurn(block)) block.setType(Material.MAGMA_BLOCK);
             }
@@ -989,16 +1044,19 @@ public final class GaidFx implements Listener {
                     world.playSound(tip, Sound.BLOCK_BASALT_BREAK, SoundCategory.BLOCKS, 0.7f, 0.8f);
                 }, ticks);
             }
-            // финал линии: всплеск жара (+ кратер при большом разломе)
+            // финал линии: всплеск жара (+ метеорит и кратер при большом разломе «с метеоритами»)
             int endTicks = line * 4 + len * 2 + 4;
             double ex = bx + Math.cos(angle) * len;
             double ez = bz + Math.sin(angle) * len;
+            if (meteors && scale >= 2) {
+                meteorStreak(world, ex, by, ez, Math.max(0, endTicks - 10));
+            }
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 world.spawnParticle(Particle.LAVA, ex, by + 1.4, ez, 20, 0.6, 0.4, 0.6, 0.02);
                 world.spawnParticle(Particle.EXPLOSION, ex, by + 1.2, ez, 2, 0.1, 0.1, 0.1, 0);
                 world.playSound(new Location(world, ex, by, ez),
                         Sound.ENTITY_GENERIC_EXPLODE, SoundCategory.BLOCKS, 0.8f, 0.8f);
-                if (scale >= 2) { // большой разлом: кратер на конце трещины
+                if (meteors && scale >= 2) { // большой разлом «с метеоритами»: кратер на конце трещины
                     crater(world, new Location(world, (int) Math.round(ex), by, (int) Math.round(ez)),
                             (int) Math.round(2 + scale * 0.6));
                 }
@@ -1015,7 +1073,8 @@ public final class GaidFx implements Listener {
                 }
             }, lines * 4 + (int) (20 * wave));
         }
-        if (scale >= 2) { // и воронка под эпицентром
+        if (meteors && scale >= 2) { // и воронка под эпицентром (вариант «с метеоритами»)
+            meteorStreak(world, bx + 0.5, by, bz + 0.5, 15);
             Bukkit.getScheduler().runTaskLater(plugin, () ->
                     crater(world, new Location(world, bx, by - 1, bz), (int) Math.round(2 + scale * 0.8)), 30L);
         }
@@ -1029,6 +1088,27 @@ public final class GaidFx implements Listener {
         shakeNearby(admin.getLocation(), 60 * scale, 3);
     }
 
+
+    /** #99: визуальный «падающий метеорит» — огненный след с неба вниз к точке удара,
+     *  запускается незадолго до взрыва/кратера, чтобы разлом буквально выглядел так,
+     *  будто в это место прилетело что-то с неба (а не просто разверзлась земля). */
+    private void meteorStreak(World world, double x, double groundY, double z, int delayTicks) {
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            double startY = groundY + 22;
+            int steps = 10;
+            for (int i = 0; i <= steps; i++) {
+                final int fi = i;
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    double y = startY - (startY - groundY) * fi / steps;
+                    world.spawnParticle(Particle.FLAME, x, y, z, 6, 0.12, 0.12, 0.12, 0.01);
+                    world.spawnParticle(Particle.LAVA, x, y, z, 1, 0.05, 0.05, 0.05, 0);
+                    world.spawnParticle(Particle.WHITE_SMOKE, x, y, z, 3, 0.1, 0.1, 0.1, 0.01);
+                }, (long) i);
+            }
+            world.playSound(new Location(world, x, groundY, z),
+                    Sound.ENTITY_GHAST_SHOOT, SoundCategory.BLOCKS, 1.2f, 0.6f);
+        }, Math.max(0, delayTicks));
+    }
 
     /** Кратер: выгрызает полусферу радиуса r вниз от center, кромка — обожжённый камень. */
     private void crater(World world, Location center, int r) {

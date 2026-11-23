@@ -32,11 +32,14 @@ import org.joml.Vector3f;
  * слоты 0/1 — действуют на ВСЕХ игроков сервера, пока админ не выключит):
  * <p>
  * - {@code sky.eyes.enabled} — 9 гигантских красных глаз вместо звёзд по кругу
- *   полусферы + 1 ещё больший глаз строго в зените (по центру, над головой).
+ *   полусферы + 1 ещё больший глаз строго в зените (по центру, над головой) +
+ *   1 одиннадцатый глаз (#99), не крупнее обычных, но с жёстко зафиксированным
+ *   взглядом «в центр» (вниз) вместо слежения за игроком.
  *   Технически это {@link ItemDisplay} с кастомной текстурой (void_eye,
- *   оверрайд на обычную бумагу по custom model data) и
- *   {@link Display.Billboard#CENTER} — глаз всегда развёрнут на игрока,
- *   куда бы тот ни посмотрел.
+ *   оверрайд на обычную бумагу по custom model data); десять глаз используют
+ *   {@link Display.Billboard#CENTER} — всегда развёрнуты на игрока, куда бы
+ *   тот ни посмотрел, а одиннадцатый — {@link Display.Billboard#FIXED} с
+ *   наклоном «лицом вниз», так что он не ворочается и смотрит в одну точку.
  * <p>
  * - {@code sky.red.enabled} — багровое небо. Технически гигантская тонкая
  *   светящаяся «крыша» из красного стекла ({@link BlockDisplay}) высоко над
@@ -54,7 +57,10 @@ public final class SkyEffectsTask extends BukkitRunnable implements Listener {
     private static final float EYE_SCALE = 38f;
     /** Большой центральный глаз в зените полусферы (10-й, самый заметный). */
     private static final float CENTER_EYE_SCALE = 70f;
-    private static final int TOTAL_EYE_COUNT = EYE_COUNT + 1;
+    /** #99: 11-й глаз — не крупнее остальных («не по размеру»!), но с жёстко
+     *  зафиксированным взглядом «в центр» (вниз), а не на игрока по бокам. */
+    private static final float FIXED_EYE_SCALE = EYE_SCALE;
+    private static final int TOTAL_EYE_COUNT = EYE_COUNT + 2;
     private static final double PLANE_Y_OFFSET = 170;
     private static final float PLANE_SIZE = 650f;
     /** Если игрок отошёл от последнего "якоря" дальше этого — переставляем декорации. */
@@ -151,6 +157,11 @@ public final class SkyEffectsTask extends BukkitRunnable implements Listener {
         Location zenith = base.clone().add(0, EYE_RADIUS, 0);
         ItemDisplay center = spawnEye(zenith, CENTER_EYE_SCALE);
         if (center != null) fresh.add(center);
+        // 11-й глаз (#99) — смотрит «в центр» (вниз, в точку под собой), не билборд
+        // на игрока, как остальные десять: взгляд жёстко зафиксирован.
+        Location fixedSpot = base.clone().add(EYE_RADIUS * 0.15, EYE_RADIUS - 12, EYE_RADIUS * 0.15);
+        ItemDisplay fixedGaze = spawnFixedEye(fixedSpot, FIXED_EYE_SCALE);
+        if (fixedGaze != null) fresh.add(fixedGaze);
         if (!fresh.isEmpty()) {
             eyes.put(id, fresh);
             eyeAnchor.put(id, base);
@@ -177,6 +188,36 @@ public final class SkyEffectsTask extends BukkitRunnable implements Listener {
                 display.setTransformation(new Transformation(
                         new Vector3f(0f, 0f, 0f),
                         new AxisAngle4f(),
+                        new Vector3f(scale, scale, scale),
+                        new AxisAngle4f()));
+            });
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return null;
+        }
+    }
+
+    /** Вариант глаза с {@link Display.Billboard#FIXED}: не поворачивается к игроку,
+     *  а всегда смотрит в одну и ту же сторону (вниз, в «центр») — наклон на 90°. */
+    private ItemDisplay spawnFixedEye(Location spot, float scale) {
+        try {
+            ItemStack stack = new ItemStack(Material.PAPER);
+            stack.editMeta(meta -> {
+                var cmd = meta.getCustomModelDataComponent();
+                cmd.setStrings(List.of("void_eye"));
+                meta.setCustomModelDataComponent(cmd);
+            });
+            return spot.getWorld().spawn(spot, ItemDisplay.class, display -> {
+                display.setItemStack(stack);
+                display.setBillboard(Display.Billboard.FIXED);
+                display.setBrightness(new Display.Brightness(15, 15));
+                display.setShadowRadius(0f);
+                display.setGlowing(true);
+                display.setGlowColorOverride(Color.RED);
+                display.setPersistent(false);
+                display.setInvulnerable(true);
+                display.setTransformation(new Transformation(
+                        new Vector3f(0f, 0f, 0f),
+                        new AxisAngle4f((float) Math.toRadians(90), 1f, 0f, 0f),
                         new Vector3f(scale, scale, scale),
                         new AxisAngle4f()));
             });

@@ -119,6 +119,8 @@ public final class GaidMenus implements Listener {
         items.add(me.darkz70.quirks.mechanic.RelicItems.makeVoidBlock());
         items.add(me.darkz70.quirks.mechanic.RelicItems.makeLavaCore());
         items.add(me.darkz70.quirks.mechanic.RelicItems.makePrism());
+        items.add(me.darkz70.quirks.mechanic.RelicItems.makeNevergateMace());
+        items.add(me.darkz70.quirks.mechanic.RelicItems.makeNevergateMaceOnce());
         ItemStack egg = new ItemStack(Material.DRAGON_EGG);
         egg.editMeta(meta -> meta.lore(List.of(
                 Msg.color("&7Обычное яйцо дракона — бафф действует на ЛЮБОЕ такое яйцо на сервере"),
@@ -180,6 +182,14 @@ public final class GaidMenus implements Listener {
         if (tag == null && me.darkz70.quirks.mechanic.RelicItems.isPrism(item)) {
             return new String[]{"&7Не крафтится — только выдача отсюда или /gaid relic prism",
                 "&8Можно поставить, нельзя сломать — купол 32 блока"};
+        }
+        if (tag == null && me.darkz70.quirks.mechanic.RelicItems.isNevergateMace(item)) {
+            return new String[]{"&7Не крафтится — только выдача отсюда или /gaid relic nevergate",
+                "&8Урон ×5, тряска экрана 50 блоков, рушит 3-15 блоков у удара"};
+        }
+        if (tag == null && me.darkz70.quirks.mechanic.RelicItems.isNevergateMaceOnce(item)) {
+            return new String[]{"&7Не крафтится — только выдача отсюда или /gaid relic nevergate_once",
+                "&8Те же эффекты, но исчезает после одного удара (имя с маленькой буквы)"};
         }
         if (tag == null && item.getType() == Material.DRAGON_EGG) {
             return new String[]{"&7Ваниль (Край) — любое яйцо дракона на сервере уже даёт бафы",

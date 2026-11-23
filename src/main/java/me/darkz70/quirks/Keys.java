@@ -57,6 +57,8 @@ public final class Keys {
     public static NamespacedKey relicVoidBlock;    // «Блок пустоты» (STRUCTURE_VOID): метка предмета
     public static NamespacedKey relicLavaCore;     // «Лавовое ядро» (MAGMA_BLOCK): метка предмета
     public static NamespacedKey relicPrism;        // «Призма» (PRISMARINE): метка предмета
+    public static NamespacedKey relicNevergateMace;     // «Nevergate's Mace» (MACE): метка предмета
+    public static NamespacedKey relicNevergateMaceOnce; // «nevergate's mace» (MACE, одноразовая): метка предмета
 
     private Keys() {}
 
@@ -111,5 +113,7 @@ public final class Keys {
         relicVoidBlock = new NamespacedKey(plugin, "relic_void_block");
         relicLavaCore = new NamespacedKey(plugin, "relic_lava_core");
         relicPrism = new NamespacedKey(plugin, "relic_prism");
+        relicNevergateMace = new NamespacedKey(plugin, "relic_nevergate_mace");
+        relicNevergateMaceOnce = new NamespacedKey(plugin, "relic_nevergate_mace_once");
     }
 }

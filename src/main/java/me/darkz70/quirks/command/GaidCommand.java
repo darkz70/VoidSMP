@@ -52,17 +52,46 @@ public final class GaidCommand implements CommandExecutor, TabCompleter {
             handleRelic(player, args);
             return true;
         }
+        if (args.length >= 1 && args[0].equalsIgnoreCase("macecd")) {
+            handleMaceCooldown(player, args);
+            return true;
+        }
         plugin.gaidMenus().openRoot(player);
         return true;
     }
 
-    private static final List<String> RELIC_IDS = List.of("cover", "voidblock", "lavacore", "prism");
+    private static final List<String> RELIC_IDS =
+            List.of("cover", "voidblock", "lavacore", "prism", "nevergate", "nevergate_once");
 
-    /** /gaid relic <cover|voidblock|lavacore|prism> [игрок] — выдать реликвию #98. */
+    /** /gaid macecd [секунды] — глобальный регулируемый кулдаун булавы (0 — выключен). АдминПро его не чувствует. */
+    private void handleMaceCooldown(Player admin, String[] args) {
+        if (args.length < 2) {
+            double current = plugin.getConfig().getDouble("mace.cooldown-seconds", 0.0);
+            admin.sendMessage(me.darkz70.quirks.util.Msg.color(
+                    "&eТекущий кулдаун булавы: &f" + current + "с &7(0 — выключен). Задать: /gaid macecd <секунды>"));
+            return;
+        }
+        double seconds;
+        try {
+            seconds = Double.parseDouble(args[1].replace(',', '.'));
+        } catch (NumberFormatException ex) {
+            admin.sendMessage(me.darkz70.quirks.util.Msg.color("&cУкажи число секунд, например: /gaid macecd 1.5"));
+            return;
+        }
+        if (seconds < 0) seconds = 0;
+        plugin.getConfig().set("mace.cooldown-seconds", seconds);
+        plugin.saveConfig();
+        admin.sendMessage(me.darkz70.quirks.util.Msg.color(
+                seconds == 0
+                        ? "&aКулдаун булавы &cвыключен&a."
+                        : "&aКулдаун булавы установлен: &f" + seconds + "с &7(АдминПро его не чувствует)."));
+    }
+
+    /** /gaid relic <cover|voidblock|lavacore|prism|nevergate|nevergate_once> [игрок] — выдать реликвию #98/#99. */
     private void handleRelic(Player admin, String[] args) {
         if (args.length < 2) {
             admin.sendMessage(me.darkz70.quirks.util.Msg.color(
-                    "&e/gaid relic <cover|voidblock|lavacore|prism> [игрок]"));
+                    "&e/gaid relic <cover|voidblock|lavacore|prism|nevergate|nevergate_once> [игрок]"));
             return;
         }
         Player target = admin;
@@ -79,11 +108,13 @@ public final class GaidCommand implements CommandExecutor, TabCompleter {
             case "voidblock" -> me.darkz70.quirks.mechanic.RelicItems.makeVoidBlock();
             case "lavacore" -> me.darkz70.quirks.mechanic.RelicItems.makeLavaCore();
             case "prism" -> me.darkz70.quirks.mechanic.RelicItems.makePrism();
+            case "nevergate" -> me.darkz70.quirks.mechanic.RelicItems.makeNevergateMace();
+            case "nevergate_once" -> me.darkz70.quirks.mechanic.RelicItems.makeNevergateMaceOnce();
             default -> null;
         };
         if (relic == null) {
             admin.sendMessage(me.darkz70.quirks.util.Msg.color(
-                    "&cНеизвестная реликвия. Варианты: cover, voidblock, lavacore, prism."));
+                    "&cНеизвестная реликвия. Варианты: cover, voidblock, lavacore, prism, nevergate, nevergate_once."));
             return;
         }
         Player receiver = target;
@@ -177,7 +208,7 @@ public final class GaidCommand implements CommandExecutor, TabCompleter {
         if (!me.darkz70.quirks.util.Perms.isAdmin(sender)) return List.of();
         List<String> out = new ArrayList<>();
         if (args.length == 1) {
-            for (String sub : new String[]{"phrase", "nick", "lore", "relic"}) {
+            for (String sub : new String[]{"phrase", "nick", "lore", "relic", "macecd"}) {
                 if (sub.startsWith(args[0].toLowerCase())) out.add(sub);
             }
             return out;

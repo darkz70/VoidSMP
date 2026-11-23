@@ -59,6 +59,9 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         storage.load();
         quirkManager = new QuirkManager(this, storage);
         magic = new MagicSystem(this);
+        // #99: АдминПро теперь снимает кулдауны не только у заклинаний/зелий/вещей,
+        // но и у ВСЕХ способностей причуд, идущих через общий ScanUtil.tryUse/remaining.
+        me.darkz70.quirks.util.ScanUtil.setAdminProCheck(id -> magic.cooldownsOff(id));
         labyrinth = new me.darkz70.quirks.labyrinth.LabyrinthManager(this);
         labyrinth.loadIfExists();
         arena = new me.darkz70.quirks.arena.ArenaManager(this);
@@ -121,6 +124,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         new me.darkz70.quirks.listener.CopperGolemListener(this); // инженер: прошивка медных големов (2+ ур.)
         new me.darkz70.quirks.listener.RelicListener(this); // реликвии #98: обложка/блок пустоты/ядро/призма
         new me.darkz70.quirks.task.RelicTask(this).runTaskTimer(this, 20L, 20L); // периодика реликвий + яйцо дракона
+        new me.darkz70.quirks.listener.MaceListener(this); // #99: кулдаун булавы + Nevergate's Mace
         me.darkz70.quirks.command.DecoyCommand[] decoys = {
             new me.darkz70.quirks.command.DecoyCommand(0), new me.darkz70.quirks.command.DecoyCommand(1),
             new me.darkz70.quirks.command.DecoyCommand(2), new me.darkz70.quirks.command.DecoyCommand(3),
