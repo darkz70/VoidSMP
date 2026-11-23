@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Предметы НОВОЙ системы магии Arcana (#99, причуда admin_mag): посох-фокус
- * и 12 фолиантов стихий. Полностью отдельно от старых elem-book-*/фокус-кристалла.
+ * и 12 фолиантов стихий. Полностью отдельно от старых elem-book- и фокус-кристалла.
  */
 public final class ArcanaItems {
 
