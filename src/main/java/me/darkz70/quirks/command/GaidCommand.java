@@ -1,9 +1,11 @@
 package me.darkz70.quirks.command;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import me.darkz70.quirks.VoidQuirksPlugin;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -167,40 +169,64 @@ public final class GaidCommand implements CommandExecutor, TabCompleter {
         return tab != null && tab.isEnabled();
     }
 
+    /**
+     * /gaid nick — работает для ЛЮБОГО игрока: онлайн, офлайн или вообще никогда
+     * не заходившего на сервер. Онлайн-игрок резолвится мгновенно; для остальных
+     * ник сохраняется в players.yml по UUID (через {@link OfflinePlayer}) и
+     * применится автоматически при следующем входе (см. NicknameManager.onJoin).
+     */
     private void handleNick(Player admin, String[] args) {
         if (args.length < 2) {
             admin.sendMessage(me.darkz70.quirks.util.Msg.color(
                     "&e/gaid nick <игрок> <новый ник> &8| &e/gaid nick <игрок> reset"));
             return;
         }
-        Player target = Bukkit.getPlayerExact(args[1]);
-        if (target == null) {
-            me.darkz70.quirks.util.Msg.send(admin, "target-offline");
+        String targetName = args[1];
+        Player online = Bukkit.getPlayerExact(targetName);
+        if (online != null) {
+            applyNickCommand(admin, online, targetName, args);
             return;
         }
+        // офлайн или никогда не заходил: поиск по нику может дёрнуть Mojang API
+        // (блокирующий запрос) — резолвим асинхронно, чтобы не фризить сервер
+        admin.sendMessage(me.darkz70.quirks.util.Msg.color("&7Ищу игрока &f" + targetName + "&7…"));
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            OfflinePlayer offline = resolveOffline(targetName);
+            Bukkit.getScheduler().runTask(plugin, () -> applyNickCommand(admin, offline, targetName, args));
+        });
+    }
+
+    @SuppressWarnings("deprecation")
+    private OfflinePlayer resolveOffline(String name) {
+        return Bukkit.getOfflinePlayer(name);
+    }
+
+    private void applyNickCommand(Player admin, OfflinePlayer target, String targetName, String[] args) {
+        String shown = target.getName() != null ? target.getName() : targetName;
         if (args.length < 3) {
             String current = plugin.nicknames().currentNickname(target);
             admin.sendMessage(me.darkz70.quirks.util.Msg.color(
-                    "&7Текущий ник &f" + target.getName() + "&7: "
+                    "&7Текущий ник &f" + shown + "&7: "
                             + (current == null ? "&8— (настоящее имя)" : "&d" + current)));
             admin.sendMessage(me.darkz70.quirks.util.Msg.color(
-                    "&e/gaid nick " + target.getName() + " <новый ник> &8| &e/gaid nick " + target.getName() + " reset"));
+                    "&e/gaid nick " + shown + " <новый ник> &8| &e/gaid nick " + shown + " reset"));
             return;
         }
         if (args[2].equalsIgnoreCase("reset")) {
             plugin.nicknames().resetNickname(target);
             admin.sendMessage(me.darkz70.quirks.util.Msg.color(
-                    "&aНик игрока &f" + target.getName() + " &aсброшен — показывается настоящее имя."));
+                    "&aНик игрока &f" + shown + " &aсброшен — показывается настоящее имя."));
             return;
         }
-        String newNick = String.join(" ", java.util.Arrays.copyOfRange(args, 2, args.length));
+        String newNick = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
         boolean ok = plugin.nicknames().setNickname(target, newNick);
         if (!ok) {
             admin.sendMessage(me.darkz70.quirks.util.Msg.color("&cНик не может быть пустым."));
             return;
         }
+        String offlineNote = target.isOnline() ? "" : " &7(игрок офлайн — ник применится при входе)";
         admin.sendMessage(me.darkz70.quirks.util.Msg.color(
-                "&aИгроку &f" + target.getName() + " &aназначен ник: " + newNick));
+                "&aИгроку &f" + shown + "&a назначен ник: " + newNick + offlineNote));
     }
 
     @Override

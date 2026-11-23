@@ -9,6 +9,7 @@ import me.darkz70.quirks.util.Msg;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -63,40 +64,61 @@ public final class NicknameManager implements Listener {
         return originalNames.getOrDefault(player.getUniqueId(), player.getName());
     }
 
+    /**
+     * Текущий ник игрока — работает и для офлайн/никогда не заходивших (берётся
+     * из players.yml по UUID, без требования, чтобы игрок был сейчас на сервере).
+     */
     @Nullable
-    public String currentNickname(Player player) {
-        PlayerData data = plugin.storage().get(player.getUniqueId());
+    public String currentNickname(OfflinePlayer target) {
+        PlayerData data = plugin.storage().get(target.getUniqueId());
         return data == null ? null : data.nickname();
     }
 
-    /** Назначает ник. rawText может содержать &amp;-цвета — они применятся в чате/табе. */
-    public boolean setNickname(Player target, String rawText) {
+    /**
+     * Назначает ник. rawText может содержать &amp;-цвета — они применятся в чате/табе.
+     * Работает и для офлайн/никогда не заходивших игроков: ник просто сохраняется
+     * в players.yml по UUID и подхватится автоматически при следующем входе
+     * (см. {@link #onJoin}); если игрок сейчас онлайн — применяется сразу же.
+     */
+    public boolean setNickname(OfflinePlayer target, String rawText) {
         String trimmed = rawText == null ? "" : rawText.trim();
         Component colored = Msg.color(trimmed);
         String plainTag = PlainTextComponentSerializer.plainText().serialize(colored).trim();
         if (plainTag.isEmpty()) return false;
 
         // храним исходный текст с &-цветами — так ник корректно перекрасится при повторном входе
-        PlayerData data = plugin.magic().dataOrCreate(target);
+        PlayerData data = dataOrCreate(target.getUniqueId());
         data.nickname(trimmed);
         plugin.storage().save();
 
-        apply(target, trimmed);
+        Player online = target.getPlayer();
+        if (online != null) apply(online, trimmed);
         return true;
     }
 
-    /** Снимает ник, возвращает настоящее имя. */
-    public void resetNickname(Player target) {
+    /** Снимает ник, возвращает настоящее имя. Работает и для офлайн/никогда не заходивших. */
+    public void resetNickname(OfflinePlayer target) {
         PlayerData data = plugin.storage().get(target.getUniqueId());
         if (data != null) data.nickname(null);
         plugin.storage().save();
 
-        String real = originalName(target);
-        applyProfileName(target, real);
+        Player online = target.getPlayer();
+        if (online == null) return;
+        String real = originalName(online);
+        applyProfileName(online, real);
         Component plain = Component.text(real);
-        target.displayName(plain);
-        target.playerListName(plain);
-        refreshForViewers(target);
+        online.displayName(plain);
+        online.playerListName(plain);
+        refreshForViewers(online);
+    }
+
+    private PlayerData dataOrCreate(UUID uuid) {
+        PlayerData data = plugin.storage().get(uuid);
+        if (data == null) {
+            data = new PlayerData();
+            plugin.storage().put(uuid, data);
+        }
+        return data;
     }
 
     private void apply(Player target, String rawText) {
