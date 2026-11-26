@@ -6,6 +6,7 @@ import java.util.UUID;
 import me.darkz70.quirks.PlayerData;
 import me.darkz70.quirks.Quirk;
 import me.darkz70.quirks.VoidQuirksPlugin;
+import me.darkz70.quirks.arcana.Arcana;
 import me.darkz70.quirks.magic.Element;
 import me.darkz70.quirks.util.Msg;
 import net.kyori.adventure.text.Component;
@@ -23,8 +24,10 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 /**
  * Админ-панель (Shift+Q у OP под /quirks.admin):
- * хаб с головами игроков → редактор причуд (клик — цикл 0→1→2→3) и магии
- * (стихии, уровни, мана, сброс).
+ * хаб с головами игроков → редактор причуд (клик — цикл 0→1→2→3), переключатели
+ * доступа к магии (MAGE/ADMIN_MAG) и редакторы ОБЕИХ систем магии — старой
+ * 6-стихийной (стихия/уровень/мана/сброс) и новой 12-стихийной Арканы
+ * (активная стихия/уровень/мана/сброс).
  */
 public final class AdminMenu implements Listener {
 
@@ -59,8 +62,14 @@ public final class AdminMenu implements Listener {
                     }
                     lore.add(Msg.color("&7Причуды: &d" + (quirks.length() == 0 ? "—" : quirks.toString())));
                     Element element = Element.byId(data.magicElement());
-                    lore.add(Msg.color("&7Магия: &b" + (element == null ? "—"
+                    lore.add(Msg.color("&7Старая магия: &b" + (element == null ? "—"
                             : element.display() + " ур." + data.magicLevel())));
+                    Arcana active = Arcana.byId(data.arcanaActive());
+                    int learnedCount = (int) java.util.Arrays.stream(Arcana.values())
+                            .filter(a -> data.arcanaLevelOf(a.id()) > 0).count();
+                    lore.add(Msg.color("&7Аркана: &5" + (active == null ? "—"
+                            : active.display() + " ур." + data.arcanaLevelOf(active.id()))
+                            + " &8(изучено " + learnedCount + "/12)"));
                 }
                 meta.lore(lore);
             });
@@ -91,7 +100,7 @@ public final class AdminMenu implements Listener {
     private void fillEditor(EditorHolder holder, Player target) {
         Inventory inv = holder.inv;
         PlayerData data = plugin.magic().dataOrCreate(target);
-        // причуды: слоты 10..17 (клик — цикл 0→1→2→3)
+        // причуды: слоты 10..18 (клик — цикл 0→1→2→3)
         Quirk[] quirks = {Quirk.AXE, Quirk.SPIDER, Quirk.BEDROCK, Quirk.SCULK,
             Quirk.FARMER, Quirk.CAT, Quirk.AMPHIBIAN, Quirk.ENGINEER, Quirk.SCULK_LEADER};
         Material[] icons = {Material.DIAMOND_AXE, Material.COBWEB, Material.BEDROCK, Material.SCULK,
@@ -107,7 +116,25 @@ public final class AdminMenu implements Listener {
             inv.setItem(slot, icon);
             holder.quirkSlots[slot] = quirk;
         }
-        // магия
+        // доступ к магии: MAGE (новая Аркана) и ADMIN_MAG (старая 6-стихийная) —
+        // технические причуды-переключатели, слоты 19/20 (клик — вкл/выкл)
+        Quirk[] magicQuirks = {Quirk.MAGE, Quirk.ADMIN_MAG};
+        Material[] magicIcons = {Material.BLAZE_ROD, Material.AMETHYST_SHARD};
+        for (int i = 0; i < magicQuirks.length; i++) {
+            Quirk quirk = magicQuirks[i];
+            int level = data.levelOf(quirk);
+            ItemStack icon = button(magicIcons[i], (level > 0 ? "&a" : "&8") + quirk.display()
+                    + (level > 0 ? " &7вкл" : " &7выкл"));
+            lore(icon, quirk == Quirk.MAGE
+                    ? "&7Клик — вкл/выкл. Даёт доступ к НОВОЙ магии Арканы"
+                    : "&7Клик — вкл/выкл. Даёт доступ к СТАРОЙ 6-стихийной магии");
+            int slot = 19 + i;
+            inv.setItem(slot, icon);
+            holder.quirkSlots[slot] = quirk;
+        }
+
+        // старая магия (причуда ADMIN_MAG): слот-метка 27, редактор 28/30/31/32/34
+        inv.setItem(27, button(Material.GRAY_STAINED_GLASS_PANE, "&7— Старая магия (ADMIN_MAG) —"));
         Element element = Element.byId(data.magicElement());
         inv.setItem(28, button(Material.ENCHANTED_BOOK,
                 "&bСтихия: " + (element == null ? "&7—" : "&d" + element.display())));
@@ -115,8 +142,24 @@ public final class AdminMenu implements Listener {
         inv.setItem(30, button(Material.GOLD_NUGGET, "&aУровень: &d" + data.magicLevel() + " &7(+1)"));
         inv.setItem(31, button(Material.IRON_NUGGET, "&cУровень: &d" + data.magicLevel() + " &7(−1)"));
         inv.setItem(32, button(Material.LAPIS_LAZULI, "&bМана: &fполная"));
-        inv.setItem(34, button(Material.RED_STAINED_GLASS, "&cСтереть магию"));
-        loreOf(inv.getItem(28), "");
+        inv.setItem(34, button(Material.RED_STAINED_GLASS, "&cСтереть старую магию"));
+
+        // новая магия Аркана (причуда MAGE): слот-метка 36, редактор 37/39/40/41/43
+        inv.setItem(36, button(Material.GRAY_STAINED_GLASS_PANE, "&7— Аркана (MAGE) —"));
+        Arcana active = Arcana.byId(data.arcanaActive());
+        int learnedCount = (int) java.util.Arrays.stream(Arcana.values())
+                .filter(a -> data.arcanaLevelOf(a.id()) > 0).count();
+        ItemStack arcanaBtn = button(active == null ? Material.BOOK : active.icon(),
+                "&dАктивная стихия: " + (active == null ? "&7—" : "&5" + active.display()));
+        loreLines(arcanaBtn, "&7Клик — сменить (кругом, учит новую, если не изучена)",
+                "&8Изучено стихий: " + learnedCount + "/12");
+        inv.setItem(37, arcanaBtn);
+        int activeLevel = active == null ? 0 : data.arcanaLevelOf(active.id());
+        inv.setItem(39, button(Material.GOLD_NUGGET, "&aУровень: &d" + activeLevel + " &7(+1)"));
+        inv.setItem(40, button(Material.IRON_NUGGET, "&cУровень: &d" + activeLevel + " &7(−1)"));
+        inv.setItem(41, button(Material.LAPIS_LAZULI, "&bМана: &fполная"));
+        inv.setItem(43, button(Material.RED_STAINED_GLASS, "&cСтереть Аркану"));
+
         inv.setItem(45, button(Material.ARROW, "&7← назад к игрокам"));
     }
 
@@ -126,6 +169,12 @@ public final class AdminMenu implements Listener {
 
     private static void loreOf(ItemStack item, String text) {
         if (item != null && !text.isEmpty()) lore(item, text);
+    }
+
+    private static void loreLines(ItemStack item, String... lines) {
+        List<Component> comp = new ArrayList<>();
+        for (String line : lines) comp.add(Msg.color(line));
+        item.editMeta(meta -> meta.lore(comp));
     }
 
     private static ItemStack button(Material material, String name) {
@@ -165,7 +214,10 @@ public final class AdminMenu implements Listener {
         Quirk quirk = editor.quirkSlots[slot];
         if (quirk != null) {
             int level = data.levelOf(quirk);
-            int next = (level + 1) % 4;
+            // MAGE/ADMIN_MAG — технические причуды-переключатели доступа к магии,
+            // у них нет смысловых уровней 2/3 — просто вкл/выкл.
+            boolean toggleOnly = quirk == Quirk.MAGE || quirk == Quirk.ADMIN_MAG;
+            int next = toggleOnly ? (level > 0 ? 0 : 1) : (level + 1) % 4;
             if (next == 0) {
                 plugin.quirks().remove(target, quirk);
             } else {
@@ -189,6 +241,41 @@ public final class AdminMenu implements Listener {
             case 31 -> data.magicLevel(Math.max(1, data.magicLevel() - 1));
             case 32 -> plugin.magic().refillMana(target);
             case 34 -> plugin.magic().resetMagic(target);
+            case 37 -> { // стихии Арканы кругом: none → огонь → … → последняя → none
+                Arcana current = Arcana.byId(data.arcanaActive());
+                Arcana[] order = Arcana.values();
+                Arcana next = current == null ? order[0]
+                        : (current.ordinal() + 1 >= order.length ? null : order[current.ordinal() + 1]);
+                if (next == null) {
+                    data.arcanaActive(null);
+                } else {
+                    if (data.arcanaLevelOf(next.id()) <= 0) data.arcanaSetLevel(next.id(), 1);
+                    data.arcanaActive(next.id());
+                }
+            }
+            case 39 -> {
+                Arcana current = Arcana.byId(data.arcanaActive());
+                if (current != null) data.arcanaSetLevel(current.id(), data.arcanaLevelOf(current.id()) + 1);
+            }
+            case 40 -> {
+                Arcana current = Arcana.byId(data.arcanaActive());
+                if (current != null) {
+                    data.arcanaSetLevel(current.id(), Math.max(1, data.arcanaLevelOf(current.id()) - 1));
+                }
+            }
+            case 41 -> {
+                Arcana current = Arcana.byId(data.arcanaActive());
+                if (current != null) {
+                    data.arcanaMana(plugin.arcana().maxMana(data.arcanaLevelOf(current.id())));
+                }
+            }
+            case 43 -> {
+                data.arcanaLevels().clear();
+                data.arcanaSpellIndexMap().clear();
+                data.arcanaXpMap().clear();
+                data.arcanaActive(null);
+                data.arcanaMana(0);
+            }
             default -> { return; }
         }
         plugin.storage().save();

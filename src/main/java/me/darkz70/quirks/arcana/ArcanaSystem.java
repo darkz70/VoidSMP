@@ -32,7 +32,11 @@ public final class ArcanaSystem {
     }
 
     public boolean hasQuirk(Player player) {
-        return plugin.quirks().levelOf(player, Quirk.MAGE) > 0;
+        // ADMIN — универсальный пропуск везде по плагину (как и у старой системы,
+        // см. MageMenu.hasAccess/CraftListener), поэтому и здесь даёт доступ к Аркане
+        // даже без явно выданной причуды MAGE.
+        return plugin.quirks().levelOf(player, Quirk.MAGE) > 0
+                || plugin.quirks().levelOf(player, Quirk.ADMIN) > 0;
     }
 
     @Nullable
