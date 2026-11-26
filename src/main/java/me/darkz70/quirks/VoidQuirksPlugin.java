@@ -97,6 +97,8 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new FarmerListener(this), this);
         Bukkit.getPluginManager().registerEvents(new AmphibianListener(this), this);
         Bukkit.getPluginManager().registerEvents(new SpiderListener(this), this);
+        // приватность: прячет ники из подсказки сервер-листа (см. config.yml: server-list-ping)
+        Bukkit.getPluginManager().registerEvents(new me.darkz70.quirks.listener.ServerListPingListener(this), this);
         CraftListener.registerRecipes(this);
         BrewTree.registerBrewing(this);
 
