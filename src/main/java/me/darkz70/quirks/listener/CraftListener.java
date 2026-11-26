@@ -216,6 +216,16 @@ public final class CraftListener implements Listener {
         trident.addIngredient(1, Material.TRIDENT);
         trident.addIngredient(1, Material.NETHERITE_INGOT);
         add(tridentKey, trident);
+
+        // сапоги фермера: 4 изумруда + 4 алмазные мотыги + алмазные сапоги
+        // рецепт НИКОМУ не открывается (нет вызова discoverRecipe) — скрыт в книге рецептов,
+        // но крафтится у любого, кто вручную соберёт сетку.
+        NamespacedKey farmerBootsKey = new NamespacedKey(plugin, "farmer_boots");
+        ShapelessRecipe farmerBoots = new ShapelessRecipe(farmerBootsKey, FarmerListener.makeFarmerBoots());
+        farmerBoots.addIngredient(4, Material.EMERALD);
+        farmerBoots.addIngredient(4, Material.DIAMOND_HOE);
+        farmerBoots.addIngredient(1, Material.DIAMOND_BOOTS);
+        add(farmerBootsKey, farmerBoots);
     }
 
     private static void addCooking(VoidQuirksPlugin plugin, String id, org.bukkit.inventory.CookingRecipe<?> recipe) {

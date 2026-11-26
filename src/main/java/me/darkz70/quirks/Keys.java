@@ -64,6 +64,11 @@ public final class Keys {
     public static NamespacedKey arcanaFocus;   // посох новой магии: можно колдовать
     public static NamespacedKey arcanaBook;    // фолиант новой магии: id стихии (как elem-book-* у старой)
 
+    // --- Сапоги фермера: крафт скрыт (ручной матчинг), метки предметов ---
+    public static NamespacedKey farmerBoots;   // сапоги фермера: метка предмета (DIAMOND_BOOTS)
+    public static NamespacedKey humanMeat;     // человечина: метка предмета (ROTTEN_FLESH)
+    public static NamespacedKey witchProvoked; // ведьма уже получила урон от фермера — больше не нейтральна к нему
+
     private Keys() {}
 
     public static void init(VoidQuirksPlugin plugin) {
@@ -121,5 +126,8 @@ public final class Keys {
         relicNevergateMaceOnce = new NamespacedKey(plugin, "relic_nevergate_mace_once");
         arcanaFocus = new NamespacedKey(plugin, "arcana_focus");
         arcanaBook = new NamespacedKey(plugin, "arcana_book");
+        farmerBoots = new NamespacedKey(plugin, "farmer_boots");
+        humanMeat = new NamespacedKey(plugin, "human_meat");
+        witchProvoked = new NamespacedKey(plugin, "witch_provoked");
     }
 }

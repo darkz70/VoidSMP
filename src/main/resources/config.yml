@@ -134,6 +134,8 @@ farmer:
   growth-chance-percent: 1  # шанс +1 стадия у посева каждые 2 сек
   weakness-hp: 5.0       # ниже этого HP — слабость I (2-3 ур.)
   wolf-radius: 10.0      # дикие волки нападают (3 ур.)
+  boots-growth-radius: 30          # сапоги фермера: радиус ускоренного роста (x10)
+  boots-growth-chance-percent: 10  # сапоги фермера: шанс +1 стадия у посева каждые 2 сек (x10 от базового)
 
 tasks:
   effects-interval-ticks: 40   # переприменение эффектов / ремонт инвентаря / чистка мечей
@@ -262,6 +264,7 @@ messages:
   antidote-none: "%prefix%&7Горьковато. Но и изгонять нечего."
   farmer-raw-denied: "&eСырое! Это нужно пожарить."
   farmer-craft-denied: "&cТвоим рукам этот рецепт не подвластен."
+  farmer-human-meat-eaten: "&4*хрусть* &7Вкус силы..."
   spider-meat-denied: "&cЭто тело питается только мясом!"
   spider-webs-hint: "&eShift + ПКМ мечом &f— выстрел паутиной &8(&7нужно 9 паутины&8)"
   spider-webs-cooldown: "&cПаутинные железы отдыхают: &f%time%&c."
