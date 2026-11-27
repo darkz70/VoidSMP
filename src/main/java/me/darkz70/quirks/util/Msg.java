@@ -82,8 +82,8 @@ public final class Msg {
         def("leader-offer-sent", "%prefix%&5Приглашение отправлено игроку %player%.");
         def("leader-invite-accepted", "%prefix%&5Скалк принят: добровольно и навсегда.");
         def("leader-invite-notify", "%prefix%&5%player% принял Скалка.");
-        def("leader-punish", "&5−4 сердца на 5 минут: скалечное наказание от главы.");
-        def("leader-punish-done", "%prefix%&5%player% наказан (−4 HP на 5 мин).");
+        def("leader-punish", "&5−4 сердца навсегда: дисциплинарное наказание от главы скалка.");
+        def("leader-punish-done", "%prefix%&5%player% наказан (−4 HP навсегда, снимается только вместе со Скалком).");
         def("leader-upgrade", "&dГлава скалка повышает твой уровень до %level%!");
         def("leader-upgrade-done", "%prefix%&dУровень %player% поднят. Следующий — через 24 ч.");
         def("leader-upgrade-cd", "%prefix%&cПовышать можно раз в 24 часа.");

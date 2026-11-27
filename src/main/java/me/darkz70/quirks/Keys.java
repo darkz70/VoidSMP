@@ -23,6 +23,7 @@ public final class Keys {
     public static NamespacedKey noLoot;          // призванный моб: без дропа
     public static NamespacedKey qpHp;            // временный −2 макс. HP от зелья причуды
     public static NamespacedKey qpPerm;          // перманентный −1 сердце от смерти зелья причуды
+    public static NamespacedKey sculkPunishHp;   // перманентный −4 HP: дисциплинарное наказание от главы скалка
     public static NamespacedKey divineHp;        // временный −1 сердце от зелья божества (7 дней)
     public static NamespacedKey spiderHp;        // -2 HP Паука 1 ур. (модификатор атрибута)
     public static NamespacedKey effHero;         // герой деревни Фермера применён нами
@@ -91,6 +92,7 @@ public final class Keys {
         noLoot = new NamespacedKey(plugin, "summon_no_loot");
         qpHp = new NamespacedKey(plugin, "qp_hp");
         qpPerm = new NamespacedKey(plugin, "qp_perm");
+        sculkPunishHp = new NamespacedKey(plugin, "sculk_punish_hp");
         divineHp = new NamespacedKey(plugin, "divine_hp");
         spiderHp = new NamespacedKey(plugin, "spider_hp");
         effHero = new NamespacedKey(plugin, "eff_hero");

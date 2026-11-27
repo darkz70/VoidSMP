@@ -24,7 +24,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * Причуда «Глава скалка» (drug-dealing причуда, со 1-го уровня):
@@ -74,8 +73,9 @@ public final class SculkLeaderListener implements Listener {
                 27, Msg.color(targetSculk ? "&5Изменение: " + target.getName()
                         : "&5Предложение скалка: " + target.getName()));
         if (targetSculk) {
-            inv.setItem(1, item(Material.CRIMSON_FUNGUS, "&cДисциплинарно: −4 HP на 5 мин",
-                    "&7Сольные поражения отступают — порадуемся. Клик — применить сразу."));
+            inv.setItem(1, item(Material.CRIMSON_FUNGUS, "&cДисциплинарно: −4 HP навсегда",
+                    "&7Сольные поражения отступают — порадуемся. Клик — применить сразу.",
+                    "&8Наказание перманентное (снимается только вместе со Скалком)."));
             long cd = levelUpCd.getOrDefault(leader.getUniqueId(), 0L);
             boolean ready = cd < System.currentTimeMillis();
             inv.setItem(3, item(ready ? Material.EXPERIENCE_BOTTLE : Material.GRAY_DYE,
@@ -151,21 +151,23 @@ public final class SculkLeaderListener implements Listener {
         }
     }
 
-    /** −4 HP на 5 минут. */
+    /**
+     * −4 HP НАВСЕГДА (дисциплинарное наказание от главы скалка) — не на время,
+     * снимается только вместе со Скалком (см. {@link #strip}). Собственный PDC-ключ
+     * {@link me.darkz70.quirks.Keys#sculkPunishHp}, отдельный от {@link me.darkz70.quirks.Keys#qpHp}
+     * (временный −2 HP от зелья причуды) — раньше по ошибке использовался общий ключ,
+     * из-за чего наказание могло быть случайно снято чужим таймером/системой зелий.
+     */
     private void punish(Player leader, Player target) {
         var inst = target.getAttribute(Attribute.MAX_HEALTH);
         if (inst == null) return;
-        AttributeModifier mod = new AttributeModifier(me.darkz70.quirks.Keys.qpHp, -4.0,
+        inst.getModifiers().removeIf(m -> m.getKey().equals(me.darkz70.quirks.Keys.sculkPunishHp));
+        AttributeModifier mod = new AttributeModifier(me.darkz70.quirks.Keys.sculkPunishHp, -4.0,
                 AttributeModifier.Operation.ADD_NUMBER);
-        inst.getModifiers().removeIf(m -> m.getKey().equals(me.darkz70.quirks.Keys.qpHp));
         inst.addModifier(mod);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                var again = target.getAttribute(Attribute.MAX_HEALTH);
-                if (again != null) again.getModifiers().removeIf(m -> m.getKey().equals(me.darkz70.quirks.Keys.qpHp));
-            }
-        }.runTaskLater(plugin, 100L * 60L); // 5 минут
+        if (target.getHealth() > inst.getValue()) {
+            target.setHealth(Math.max(1, inst.getValue()));
+        }
         Msg.send(target, "leader-punish");
         Msg.send(leader, "leader-punish-done", "%player%", target.getName());
         leader.closeInventory();
@@ -210,6 +212,8 @@ public final class SculkLeaderListener implements Listener {
             data.remove(Quirk.SCULK_LEADER);
             plugin.storage().save();
         }
+        var inst = target.getAttribute(Attribute.MAX_HEALTH);
+        if (inst != null) inst.getModifiers().removeIf(m -> m.getKey().equals(me.darkz70.quirks.Keys.sculkPunishHp));
         Msg.send(target, "leader-stripped");
         Msg.send(leader, "leader-stripped-done", "%player%", target.getName());
         leader.closeInventory();
