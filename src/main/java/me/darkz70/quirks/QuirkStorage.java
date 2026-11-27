@@ -106,6 +106,12 @@ public final class QuirkStorage {
                         data.arcanaXp(elementId, arcXp.getDouble(elementId, 0));
                     }
                 }
+                ConfigurationSection arcFree = section.getConfigurationSection("arcana.free");
+                if (arcFree != null) {
+                    for (String elementId : arcFree.getKeys(false)) {
+                        data.arcanaSetFree(elementId, arcFree.getBoolean(elementId, false));
+                    }
+                }
 
                 ConfigurationSection cds = section.getConfigurationSection("cooldowns");
                 if (cds != null) {
@@ -154,6 +160,9 @@ public final class QuirkStorage {
             }
             for (Map.Entry<String, Double> xp : data.arcanaXpMap().entrySet()) {
                 yaml.set(path + ".arcana.xp." + xp.getKey(), xp.getValue());
+            }
+            for (Map.Entry<String, Boolean> free : data.arcanaFreeMap().entrySet()) {
+                if (free.getValue()) yaml.set(path + ".arcana.free." + free.getKey(), true);
             }
             for (Map.Entry<String, Long> cd : data.cooldowns().entrySet()) {
                 yaml.set(path + ".cooldowns." + cd.getKey(), cd.getValue());

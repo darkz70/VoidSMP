@@ -122,9 +122,13 @@ public final class GaidMenus implements Listener {
         items.add(me.darkz70.quirks.mechanic.RelicItems.makeNevergateMace());
         items.add(me.darkz70.quirks.mechanic.RelicItems.makeNevergateMaceOnce());
         // новая магия Arcana (#99, причуда MAGE) — посох + 12 фолиантов стихий
+        // (обычные, с причудой MAGE/ADMIN) + 12 фолиантов БЕЗ причуды (доступны любому)
         items.add(me.darkz70.quirks.arcana.ArcanaItems.makeFocusStaff());
         for (me.darkz70.quirks.arcana.Arcana element : me.darkz70.quirks.arcana.Arcana.values()) {
             items.add(me.darkz70.quirks.arcana.ArcanaItems.makeTome(element));
+        }
+        for (me.darkz70.quirks.arcana.Arcana element : me.darkz70.quirks.arcana.Arcana.values()) {
+            items.add(me.darkz70.quirks.arcana.ArcanaItems.makeFreeTome(element));
         }
         ItemStack egg = new ItemStack(Material.DRAGON_EGG);
         egg.editMeta(meta -> meta.lore(List.of(
@@ -207,6 +211,10 @@ public final class GaidMenus implements Listener {
         if (tag == null && me.darkz70.quirks.arcana.ArcanaItems.tomeElement(item) != null) {
             return new String[]{"&7Не крафтится — только выдача отсюда",
                 "&8ПКМ изучает стихию (нужна причуда mage)"};
+        }
+        if (tag == null && me.darkz70.quirks.arcana.ArcanaItems.freeTomeElement(item) != null) {
+            return new String[]{"&7Не крафтится — только выдача отсюда",
+                "&8ПКМ изучает стихию БЕЗ причуды — доступно любому игроку"};
         }
         if (tag == null) return new String[]{"&7(нет)"};
         if (tag.startsWith("arrow:")) {

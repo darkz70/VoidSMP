@@ -35,6 +35,8 @@ public final class PlayerData {
     private final Map<String, Double> arcanaXp = new HashMap<>();
     private String arcanaActive = null;
     private double arcanaMana = 0;
+    /** id стихии -> изучена фолиантом БЕЗ причуды (кастуется и без MAGE/ADMIN). */
+    private final Map<String, Boolean> arcanaFree = new HashMap<>();
 
     public boolean has(Quirk quirk) {
         return quirks.containsKey(quirk);
@@ -199,6 +201,19 @@ public final class PlayerData {
 
     public void arcanaMana(double mana) {
         this.arcanaMana = Math.max(0, mana);
+    }
+
+    /** Изучена ли стихия фолиантом без причуды (значит кастуется без MAGE/ADMIN). */
+    public boolean arcanaIsFree(String elementId) {
+        return arcanaFree.getOrDefault(elementId, false);
+    }
+
+    public void arcanaSetFree(String elementId, boolean free) {
+        arcanaFree.put(elementId, free);
+    }
+
+    public Map<String, Boolean> arcanaFreeMap() {
+        return arcanaFree;
     }
 
     // ---------- ник ----------

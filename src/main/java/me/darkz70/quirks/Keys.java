@@ -62,7 +62,8 @@ public final class Keys {
 
     // --- Новая система магии Arcana (#99, причуда MAGE) — отдельно от старой (теперь на ADMIN_MAG) ---
     public static NamespacedKey arcanaFocus;   // посох новой магии: можно колдовать
-    public static NamespacedKey arcanaBook;    // фолиант новой магии: id стихии (как elem-book-* у старой)
+    public static NamespacedKey arcanaBook;    // фолиант новой магии (с причудой): id стихии (как elem-book-* у старой)
+    public static NamespacedKey arcanaFreeBook; // фолиант новой магии БЕЗ причуды: id стихии
 
     // --- Сапоги фермера: крафт скрыт (ручной матчинг), метки предметов ---
     public static NamespacedKey farmerBoots;   // сапоги фермера: метка предмета (DIAMOND_BOOTS)
@@ -126,6 +127,7 @@ public final class Keys {
         relicNevergateMaceOnce = new NamespacedKey(plugin, "relic_nevergate_mace_once");
         arcanaFocus = new NamespacedKey(plugin, "arcana_focus");
         arcanaBook = new NamespacedKey(plugin, "arcana_book");
+        arcanaFreeBook = new NamespacedKey(plugin, "arcana_free_book");
         farmerBoots = new NamespacedKey(plugin, "farmer_boots");
         humanMeat = new NamespacedKey(plugin, "human_meat");
         witchProvoked = new NamespacedKey(plugin, "witch_provoked");

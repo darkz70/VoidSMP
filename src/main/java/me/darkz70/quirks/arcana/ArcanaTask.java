@@ -7,7 +7,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-/** Раз в секунду: реген маны Арканы + actionbar, только для носителей причуды MAGE. */
+/**
+ * Раз в секунду: реген маны Арканы + actionbar — для носителей причуды MAGE/ADMIN,
+ * а также для игроков без причуды, у которых есть хотя бы одна стихия, изученная
+ * фолиантом БЕЗ причуды (см. {@link ArcanaSystem#canUseArcana}).
+ */
 public final class ArcanaTask extends BukkitRunnable {
 
     private final VoidQuirksPlugin plugin;
@@ -20,7 +24,7 @@ public final class ArcanaTask extends BukkitRunnable {
     public void run() {
         ArcanaSystem arcana = plugin.arcana();
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!arcana.hasQuirk(player)) continue;
+            if (!arcana.canUseArcana(player)) continue;
             arcana.tickSecond(player);
             showBarIfNeeded(player, arcana);
         }

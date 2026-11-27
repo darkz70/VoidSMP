@@ -78,11 +78,25 @@ public final class ArcanaSystem {
 
     // ---------- изучение стихии фолиантом ----------
 
+    /** Обычный фолиант (с причудой): изучить может только MAGE/ADMIN. */
     public boolean learnElement(Player player, Arcana element) {
         if (!hasQuirk(player)) {
             Msg.send(player, "arcana-no-quirk");
             return false;
         }
+        return doLearn(player, element, false);
+    }
+
+    /**
+     * Фолиант БЕЗ причуды: изучить и кастовать может ЛЮБОЙ игрок, причуда
+     * MAGE/ADMIN не требуется ни сейчас, ни впредь для именно этой стихии
+     * (см. {@link PlayerData#arcanaIsFree(String)} и проверку в {@link #cast}).
+     */
+    public boolean learnElementFree(Player player, Arcana element) {
+        return doLearn(player, element, true);
+    }
+
+    private boolean doLearn(Player player, Arcana element, boolean free) {
         PlayerData data = dataOrCreate(player);
         if (data.arcanaLevelOf(element.id()) > 0) {
             Msg.send(player, "arcana-already", "%element%", element.display());
@@ -98,12 +112,27 @@ public final class ArcanaSystem {
         }
         data.arcanaSetLevel(element.id(), 1);
         data.arcanaSpellIndex(element.id(), 0);
+        data.arcanaSetFree(element.id(), free);
         if (data.arcanaActive() == null) data.arcanaActive(element.id());
         plugin.storage().save();
         Msg.send(player, "arcana-learned", "%element%", element.display(), "%emoji%", element.emoji());
         player.getWorld().playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 0.8f);
         player.getWorld().spawnParticle(Particle.WITCH, player.getLocation().add(0, 1, 0), 30, 0.4, 0.8, 0.4, 0.02);
         return true;
+    }
+
+    /**
+     * Общий доступ к UI/переключению Арканы: причуда MAGE/ADMIN, ИЛИ у игрока
+     * есть хотя бы одна стихия, изученная фолиантом без причуды.
+     */
+    public boolean canUseArcana(Player player) {
+        if (hasQuirk(player)) return true;
+        PlayerData data = data(player);
+        if (data == null) return false;
+        for (Arcana a : Arcana.values()) {
+            if (data.arcanaLevelOf(a.id()) > 0 && data.arcanaIsFree(a.id())) return true;
+        }
+        return false;
     }
 
     // ---------- переключение стихии / заклинания ----------
@@ -160,10 +189,15 @@ public final class ArcanaSystem {
     // ---------- каст ----------
 
     public void cast(Player player) {
-        if (!hasQuirk(player)) { Msg.send(player, "arcana-no-quirk"); return; }
         PlayerData data = data(player);
         Arcana element = activeElement(player);
         if (data == null || element == null) { Msg.send(player, "arcana-no-element"); return; }
+        // причуда MAGE/ADMIN открывает каст любой изученной стихии; без причуды —
+        // только той, что изучена фолиантом БЕЗ причуды (см. learnElementFree).
+        if (!hasQuirk(player) && !data.arcanaIsFree(element.id())) {
+            Msg.send(player, "arcana-no-quirk");
+            return;
+        }
         int level = data.arcanaLevelOf(element.id());
         ArcanaSpell[] spells = ArcanaSpells.of(element);
         int idx = Math.max(0, Math.min(data.arcanaSpellIndex(element.id()), spells.length - 1));
@@ -209,7 +243,7 @@ public final class ArcanaSystem {
     // ---------- реген маны ----------
 
     public void tickSecond(Player player) {
-        if (!hasQuirk(player)) return;
+        if (!canUseArcana(player)) return;
         PlayerData data = data(player);
         Arcana element = activeElement(player);
         if (data == null || element == null) return;

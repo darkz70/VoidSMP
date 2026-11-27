@@ -122,7 +122,7 @@ public final class Msg {
         def("amph-armor-denied", "&bНезерит тянет тебя на дно — броня соскальзывает!");
 
         // v1.0 — магия
-        def("arcana-no-quirk", "%prefix%&cНужна причуда &5Маг&c для новой магии Арканы.");
+        def("arcana-no-quirk", "%prefix%&cНужна причуда &5Маг&c (или фолиант &eбез причуды&c) для магии Арканы.");
         def("arcana-no-element", "%prefix%&7Ты ещё не изучил ни одной стихии Арканы. Прочти фолиант.");
         def("arcana-learned", "%prefix%&dАркана отозвалась! %emoji% &f%element% &dтеперь твоя. Shift+Q — смена стихии.");
         def("arcana-already", "%prefix%&7Ты уже изучил &f%element%&7.");

@@ -30,6 +30,10 @@ import org.jetbrains.annotations.Nullable;
  * Shift+Q, которая у старого слушателя при OP открывает админ-меню: здесь мы
  * перехватываем событие РАНЬШЕ и гасим его, если в руке именно посох Арканы
  * и у игрока есть причуда MAGE — тогда приоритет у смены стихии).
+ *
+ * Два вида фолиантов: обычный ({@link ArcanaItems#tomeElement}, требует MAGE/ADMIN)
+ * и БЕЗ причуды ({@link ArcanaItems#freeTomeElement}, доступен любому игроку) —
+ * см. {@link ArcanaSystem#canUseArcana} для правил общего доступа к UI/посоху.
  */
 public final class ArcanaListener implements Listener {
 
@@ -61,8 +65,17 @@ public final class ArcanaListener implements Listener {
             return;
         }
 
+        Arcana freeTome = ArcanaItems.freeTomeElement(item);
+        if (freeTome != null) {
+            event.setCancelled(true);
+            if (arcana().learnElementFree(player, freeTome)) {
+                item.setAmount(item.getAmount() - 1);
+            }
+            return;
+        }
+
         if (!ArcanaItems.isFocusStaff(item)) return;
-        if (!arcana().hasQuirk(player)) {
+        if (!arcana().canUseArcana(player)) {
             Msg.send(player, "arcana-no-quirk");
             return;
         }
@@ -82,7 +95,7 @@ public final class ArcanaListener implements Listener {
         ItemStack item = event.getItemDrop().getItemStack();
         if (!ArcanaItems.isFocusStaff(item)) return;
         Player player = event.getPlayer();
-        if (!arcana().hasQuirk(player)) return;
+        if (!arcana().canUseArcana(player)) return;
         if (player.getOpenInventory() != null
                 && player.getOpenInventory().getType() != org.bukkit.event.inventory.InventoryType.CRAFTING) {
             return;
@@ -102,7 +115,7 @@ public final class ArcanaListener implements Listener {
         boolean focus = ArcanaItems.isFocusStaff(event.getMainHandItem()) || ArcanaItems.isFocusStaff(event.getOffHandItem());
         if (!focus) return;
         Player player = event.getPlayer();
-        if (!arcana().hasQuirk(player)) return;
+        if (!arcana().canUseArcana(player)) return;
         event.setCancelled(true);
         Arcana element = arcana().activeElement(player);
         if (element == null) {

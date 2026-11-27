@@ -64,4 +64,35 @@ public final class ArcanaItems {
         String id = item.getItemMeta().getPersistentDataContainer().get(Keys.arcanaBook, PersistentDataType.STRING);
         return Arcana.byId(id);
     }
+
+    /**
+     * Фолиант стихии БЕЗ причуды: ПКМ изучает стихию и кастуется дальше вообще
+     * без причуды Маг/Админ (см. {@link me.darkz70.quirks.arcana.ArcanaSystem#learnElementFree}).
+     * Визуально отличается от обычного фолианта (обычная книга, не зачарованная),
+     * чтобы админ и игрок не путали их в инвентаре.
+     */
+    public static ItemStack makeFreeTome(Arcana element) {
+        ItemStack item = new ItemStack(Material.BOOK);
+        item.editMeta(meta -> {
+            meta.displayName(Msg.color("&e&l" + element.emoji() + " Фолиант: " + element.display() + " &7(без причуды)"));
+            meta.lore(List.of(
+                    Msg.color("&7&oДревние письмена об Аркане стихии " + element.display().toLowerCase()),
+                    Msg.color("&8—————————————"),
+                    Msg.color("&eПКМ: &7изучить стихию — &aпричуда НЕ нужна"),
+                    Msg.color("&7Кастуется Посохом Арканы кем угодно."),
+                    Msg.color("&8Вторую и дальнейшие стихии можно изучить"),
+                    Msg.color("&8только имея хотя бы одну 20-го уровня."),
+                    Msg.color("&8VoidSMP"))
+            );
+            meta.getPersistentDataContainer().set(Keys.arcanaFreeBook, PersistentDataType.STRING, element.id());
+        });
+        return item;
+    }
+
+    @Nullable
+    public static Arcana freeTomeElement(@Nullable ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return null;
+        String id = item.getItemMeta().getPersistentDataContainer().get(Keys.arcanaFreeBook, PersistentDataType.STRING);
+        return Arcana.byId(id);
+    }
 }

@@ -105,6 +105,9 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         MagicListener magicListener = new MagicListener(this);
         Bukkit.getPluginManager().registerEvents(magicListener, this);
         Bukkit.getPluginManager().registerEvents(new me.darkz70.quirks.arcana.ArcanaListener(this), this); // #99: Аркана
+        me.darkz70.quirks.arcana.ArcanaMigration arcanaMigration = new me.darkz70.quirks.arcana.ArcanaMigration(this);
+        Bukkit.getPluginManager().registerEvents(arcanaMigration, this); // автозамена старых фолиантов на новые (без причуды)
+        arcanaMigration.migrateOnline();
         Bukkit.getPluginManager().registerEvents(new PotionListener(this), this);
         zayceTask = new me.darkz70.quirks.task.ZayceKrolTask(this);
         Bukkit.getPluginManager().registerEvents(new me.darkz70.quirks.listener.ZayceKrolListener(this), this);
