@@ -32,6 +32,11 @@ import org.jetbrains.annotations.Nullable;
  * (элективной в 2 раза сильнее), житель держится дома (15 блоков, ночью всегда у дома),
  * царь не двигается, прыгает в 2 раза выше, вечереет императора, жители растянут поколение
  * с 60 (+2 к каждой группе ежечасно). И по мелочи — фантомы боятся игроков с Котом.
+ * <p>
+ * Команды админа (Shift+ПКМ по зайцекролу → {@link me.darkz70.quirks.command.ZayceCommandMenu}):
+ * можно назначить конкретного игрока (или нескольких) целью атаки — отдельно для
+ * революционеров и отдельно для царских войск (охрана+элита), см.
+ * {@link #revolutionerTargets()}/{@link #loyalistTargets()}.
  */
 public final class ZayceKrolTask extends BukkitRunnable {
 
@@ -41,10 +46,25 @@ public final class ZayceKrolTask extends BukkitRunnable {
     private final Map<UUID, UUID> guardAggro = new HashMap<>(); // охранник -> игрок
     private final Map<UUID, Long> tsarGreeting = new HashMap<>(); // царь -> когда молчал о императоре
     private final Map<UUID, Long> tsarSummonCd = new HashMap<>(); // царь -> когда закончится КД призыва
+    // Команды админа (/zayce-команды, Shift+ПКМ по зайцекролу): цели атаки по фракциям —
+    // применяются сразу ко ВСЕЙ фракции (а не к одному мобу) и сохраняются до сброса,
+    // включая вновь заспавненных бойцов. Приоритет ниже персональной мести (eliteAggro/guardAggro).
+    private final Set<UUID> revolutionerTargets = new HashSet<>(); // революционеры атакуют этих игроков
+    private final Set<UUID> loyalistTargets = new HashSet<>();     // охрана+элита атакуют этих игроков
     private long lastHourTick = System.currentTimeMillis();
 
     public ZayceKrolTask(VoidQuirksPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    /** Живой изменяемый набор целей революционеров (для меню команд). */
+    public Set<UUID> revolutionerTargets() {
+        return revolutionerTargets;
+    }
+
+    /** Живой изменяемый набор целей царских войск — охрана+элита (для меню команд). */
+    public Set<UUID> loyalistTargets() {
+        return loyalistTargets;
     }
 
     /** Админ-спавн: один зайцекрол роли в точке. */
@@ -212,6 +232,16 @@ public final class ZayceKrolTask extends BukkitRunnable {
             }
             return;
         }
+        // команда админа (ниже приоритетом, чем личная месть за удар царя выше)
+        if (!loyalistTargets.isEmpty()) {
+            Player ordered = nearestOnlineTarget(rabbit, loyalistTargets);
+            if (ordered != null) {
+                if (walkTo(rabbit, ordered.getLocation())) {
+                    ordered.damage(damage, rabbit);
+                }
+                return;
+            }
+        }
         // держится рядом со своими зайцекролами
         Rabbit friend = nearestZayce(rabbit, plugin.getConfig().getDouble("zaycekrol.guard-radius", 14));
         if (friend != null && friend.getLocation().distanceSquared(rabbit.getLocation())
@@ -373,8 +403,18 @@ public final class ZayceKrolTask extends BukkitRunnable {
                 (mobName == null ? "&eЗайцекрол" : "&e" + mobName) + " &7\u00B7 &fДепутат &8(&d" + party + "&8)"));
     }
 
-    /** Недовольные (революционеры): охотятся на царя, охрану и элиту. */
+    /** Недовольные (революционеры): охотятся на царя, охрану и элиту — либо на цель админа. */
     private void revolutioner(Rabbit rabbit) {
+        if (!revolutionerTargets.isEmpty()) {
+            Player ordered = nearestOnlineTarget(rabbit, revolutionerTargets);
+            if (ordered != null) {
+                walkTo(rabbit, ordered.getLocation());
+                if (rabbit.getLocation().distanceSquared(ordered.getLocation()) < 2.5) {
+                    ordered.damage(4.0, rabbit);
+                }
+                return;
+            }
+        }
         Rabbit target = nearestRole(rabbit, Role.TSAR, 30);
         if (target == null) {
             Rabbit g = nearestRole(rabbit, Role.GUARD, 30);
@@ -449,6 +489,28 @@ public final class ZayceKrolTask extends BukkitRunnable {
                     bestDist = dist;
                     best = other;
                 }
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Ближайший онлайн-игрок из набора целей, назначенных админом (меню команд,
+     * см. {@link #revolutionerTargets()}/{@link #loyalistTargets()}) — тот же мир,
+     * не «Бедрок» (на императора зайцекролы не нападают, см. {@link #onTsarHit}).
+     */
+    @Nullable
+    private Player nearestOnlineTarget(Rabbit rabbit, Set<UUID> targets) {
+        Player best = null;
+        double bestDist = Double.MAX_VALUE;
+        for (UUID id : targets) {
+            Player candidate = Bukkit.getPlayer(id);
+            if (candidate == null || !candidate.isOnline() || candidate.getWorld() != rabbit.getWorld()) continue;
+            if (plugin.quirks().levelOf(candidate, Quirk.BEDROCK) > 0) continue;
+            double dist = candidate.getLocation().distanceSquared(rabbit.getLocation());
+            if (dist < bestDist) {
+                bestDist = dist;
+                best = candidate;
             }
         }
         return best;

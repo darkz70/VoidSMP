@@ -26,9 +26,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 /**
- * Админ (OP) ПКМ по зайцекролу → меню управления: поменять нужное имя и партию
- * (у депутата партия отображается в имени). Изменения помечаются PDC-метками,
- * ежесекундные переназывания таски их уважают.
+ * Админ (OP) обычный (БЕЗ shift) ПКМ по зайцекролу → меню управления: поменять
+ * нужное имя и партию (у депутата партия отображается в имени). Изменения
+ * помечаются PDC-метками, ежесекундные переназывания таски их уважают.
+ * <p>
+ * Shift+ПКМ по зайцекролу — ОТДЕЛЬНОЕ меню, см. {@link ZayceCommandMenu}
+ * (команды атаки по фракциям); здесь мы его не трогаем, чтобы оба меню не
+ * открывались одновременно на один клик.
  */
 public final class ZayceMobMenu implements Listener {
 
@@ -66,6 +70,7 @@ public final class ZayceMobMenu implements Listener {
         if (!ZayceKrol.isZayce(rabbit)) return;
         Player admin = event.getPlayer();
         if (!admin.isOp() && !admin.hasPermission("quirks.admin")) return;
+        if (admin.isSneaking()) return; // Shift+ПКМ — меню команд, см. ZayceCommandMenu
         event.setCancelled(true);
         openRoot(admin, rabbit);
     }

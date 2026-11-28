@@ -117,6 +117,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
         mageMenu = new me.darkz70.quirks.command.MageMenu(this); // причуда «Маг»: меню выбора стихии
         new me.darkz70.quirks.listener.AbilityMenus(this);
         zayceMobMenu = new me.darkz70.quirks.command.ZayceMobMenu(this);
+        zayceCommandMenu = new me.darkz70.quirks.command.ZayceCommandMenu(this); // Shift+ПКМ: команды атаки по фракциям
         toggleMenu = new me.darkz70.quirks.command.ToggleMenu(this);
         Bukkit.getPluginManager().registerEvents(toggleMenu, this);
         sabers = new me.darkz70.quirks.mechanic.SaberSystem(this); // световые мечи (регистрируется сам)
@@ -276,6 +277,7 @@ public final class VoidQuirksPlugin extends JavaPlugin {
     private me.darkz70.quirks.command.PoliticsMenu gaipolitics;
     private me.darkz70.quirks.command.GaidFx gaidFx;
     private me.darkz70.quirks.command.ZayceMobMenu zayceMobMenu;
+    private me.darkz70.quirks.command.ZayceCommandMenu zayceCommandMenu;
     private DemonWatcherTask demonWatcher;
     private me.darkz70.quirks.command.MageMenu mageMenu;
     private me.darkz70.quirks.task.SkyEffectsTask skyEffects;
@@ -311,6 +313,10 @@ public final class VoidQuirksPlugin extends JavaPlugin {
 
     public me.darkz70.quirks.command.ZayceMobMenu zayceMobMenu() {
         return zayceMobMenu;
+    }
+
+    public me.darkz70.quirks.command.ZayceCommandMenu zayceCommandMenu() {
+        return zayceCommandMenu;
     }
 
     public me.darkz70.quirks.mechanic.SaberSystem sabers() { return sabers; }
